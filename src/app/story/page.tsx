@@ -19,7 +19,6 @@ export default function StoryPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  // Initialize state from URL or use defaults
   const [unlockedMiniStories, setUnlockedMiniStories] = useState(() => {
     const p = searchParams.get('unlocked');
     return p ? parseInt(p, 10) : 1;
@@ -39,7 +38,6 @@ export default function StoryPage() {
 
   const { toast } = useToast();
 
-  // Effect to update URL when state changes
   useEffect(() => {
     const params = new URLSearchParams();
     params.set('gems', gems.toString());
@@ -80,7 +78,6 @@ export default function StoryPage() {
     params.set('coins', coins.toString());
     params.set('unlocked', unlockedMiniStories.toString());
     params.set('level', playerLevel.toString());
-    // Also pass XP and energy if they were passed to this page
     const xp = searchParams.get('xp');
     const energy = searchParams.get('energy');
     if (xp) params.set('xp', xp);
