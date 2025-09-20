@@ -204,7 +204,7 @@ export default function GameLayout() {
       {/* Desktop Layout */}
       <main className="relative z-10 pt-16 hidden lg:grid grid-cols-1 lg:grid-cols-12 gap-4 p-4 flex-grow">
         <div className="lg:col-span-3 flex flex-col gap-4">
-            <Button asChild size="lg" className="h-20 text-lg animate-pulse">
+            <Button asChild size="lg" className="h-20 text-lg">
                 <Link href="/story" className='flex-col'>
                     <BookOpen className="w-8 h-8 mb-1" />
                     Story
