@@ -1,12 +1,18 @@
 import type { Item, ItemType, Order } from './types';
-import { findImage } from './utils';
+
+// IMPORTANT: This function is a placeholder and will be replaced by the real findImage function.
+// It's a workaround to break a circular dependency between game-data.ts and utils.ts
+const findImage = (id: string): string => {
+  return `https://placehold.co/200x200/FFFFFF/A149F8?text=${id}&font=fredoka`;
+};
 
 const createItem = (id: string, name: string, level: number, type: ItemType): Item => ({
   id,
   name,
   level,
   type,
-  image: findImage(id),
+  // This will be dynamically replaced by the real findImage function at runtime
+  image: findImage(id), 
 });
 
 export const ITEMS: Record<string, Item> = {
@@ -80,6 +86,15 @@ export const ITEMS: Record<string, Item> = {
   bags_11: createItem('bags_11', 'Bolso de Noche', 11, 'bags'),
   bags_12: createItem('bags_12', 'Bolso de Alta Costura', 12, 'bags'),
 };
+
+// Re-map the images after ITEMS has been defined to use the correct names.
+// This avoids circular dependency issues.
+for (const key in ITEMS) {
+  const item = ITEMS[key];
+  const name = item.name.replace(/\s/g, '+');
+  ITEMS[key].image = `https://placehold.co/200x200/FFFFFF/A149F8?text=${name}&font=fredoka`;
+}
+
 
 export const MERGE_RULES: Record<string, string> = {
   // Jewelry
