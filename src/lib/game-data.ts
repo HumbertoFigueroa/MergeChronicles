@@ -1,4 +1,4 @@
-import type { Item, ItemType } from './types';
+import type { Item, ItemType, Order } from './types';
 import { findImage } from './utils';
 
 const createItem = (id: string, name: string, level: number, type: ItemType): Item => ({
@@ -46,4 +46,25 @@ export const STORY_DIALOGUES: string[] = [
     "A royal crown! Rumors whisper of a lost princess. Could this be a clue to your own past?",
     "The gala is tonight. You've created a masterpiece, but a rival designer, 'Silas', might challenge your claim to fame.",
     "You found a locket hidden in the lining of the evening gown. It has a single initial engraved on it: 'A'.",
+];
+
+export const INITIAL_ORDERS: Order[] = [
+    {
+        id: 'order-1',
+        requiredItems: [{ itemId: 'heels_2', quantity: 1 }],
+        reward: { gems: 5 }
+    },
+    {
+        id: 'order-2',
+        requiredItems: [{ itemId: 'tunic_2', quantity: 2 }],
+        reward: { gems: 10 }
+    },
+    {
+        id: 'order-3',
+        requiredItems: [
+            { itemId: 'cocktail_3', quantity: 1 },
+            { itemId: 'necklace_2', quantity: 1 }
+        ],
+        reward: { gems: 25 }
+    }
 ];

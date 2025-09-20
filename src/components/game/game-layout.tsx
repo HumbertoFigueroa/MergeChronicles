@@ -5,15 +5,19 @@ import GameHeader from './game-header';
 import CharacterDisplay from './character-display';
 import MergeBoard from './merge-board';
 import StoryPanel from './story-panel';
-import type { BoardSlot, Item, ItemType } from '@/lib/types';
-import { ITEMS, MERGE_RULES, STORY_DIALOGUES } from '@/lib/game-data';
+import type { BoardSlot, Item, ItemType, Order } from '@/lib/types';
+import { ITEMS, MERGE_RULES, STORY_DIALOGUES, INITIAL_ORDERS } from '@/lib/game-data';
 import { useToast } from '@/hooks/use-toast';
 import { adaptStory } from '@/ai/flows/adaptive-story-telling';
 import { Button } from '../ui/button';
 import { Sparkles, Gift } from 'lucide-react';
 import RewardedAd from './ad-placeholder';
+import PlayerStats from './player-stats';
+import OrderDisplay from './order-display';
 
-const BOARD_SIZE = 20;
+const BOARD_SIZE = 70; // 7 columns x 10 rows
+const ENERGY_REGEN_RATE = 1.5 * 60 * 1000; // 1.5 minutes in ms
+const MAX_ENERGY = 100;
 
 const initialBoard: BoardSlot[] = Array.from({ length: BOARD_SIZE }, (_, i) => ({
   id: `cell-${i}`,
@@ -36,8 +40,26 @@ export default function GameLayout() {
   );
   const [playerUnderstanding, setPlayerUnderstanding] = useState(10);
   const [mergingIndex, setMergingIndex] = useState<number | null>(null);
+  const [appearingIndex, setAppearingIndex] = useState<number | null>(null);
   const [isThinking, setIsThinking] = useState(false);
+  const [energy, setEnergy] = useState(80);
+  const [gems, setGems] = useState(25);
+  const [orders, setOrders] = useState<Order[]>(INITIAL_ORDERS.slice(0, 1));
+
   const { toast } = useToast();
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+        setEnergy(currentEnergy => {
+            if (currentEnergy < MAX_ENERGY) {
+                return currentEnergy + 1;
+            }
+            return currentEnergy;
+        });
+    }, ENERGY_REGEN_RATE);
+
+    return () => clearInterval(timer);
+  }, []);
 
   const handleStoryCheck = useCallback(async () => {
     setIsThinking(true);
@@ -153,11 +175,28 @@ export default function GameLayout() {
         const randomItemKey = Object.keys(ITEMS).filter(k => ITEMS[k].level === 1)[Math.floor(Math.random() * 3)];
         newBoard[emptySlotIndex] = {...newBoard[emptySlotIndex], item: ITEMS[randomItemKey]};
         setBoard(newBoard);
+        setAppearingIndex(emptySlotIndex);
+        setTimeout(() => setAppearingIndex(null), 500);
         toast({ title: "A new item has arrived!", description: `You received a ${ITEMS[randomItemKey].name}.` });
     } else {
         toast({ variant: "destructive", title: "Board is full!", description: "Clear some space to get new items." });
     }
   }, [board, toast]);
+  
+  const handleCompleteOrder = (order: Order) => {
+    // This is a placeholder. Logic to check inventory and grant rewards will go here.
+    console.log("Attempting to complete order:", order.id);
+    toast({
+      title: "Order Completed!",
+      description: `You earned ${order.reward.gems} gems!`,
+    });
+    setGems(g => g + order.reward.gems);
+    // Generate new order
+    const currentOrderIndex = INITIAL_ORDERS.findIndex(o => o.id === order.id);
+    const nextOrderIndex = (currentOrderIndex + 1) % INITIAL_ORDERS.length;
+    setOrders([INITIAL_ORDERS[nextOrderIndex]]);
+  };
+
 
   return (
     <>
@@ -165,15 +204,18 @@ export default function GameLayout() {
       <main className="pt-16 min-h-screen grid grid-cols-1 lg:grid-cols-12 gap-4 p-4">
         <div className="lg:col-span-3 flex flex-col gap-4">
           <StoryPanel storyProgress={storyProgress} dialogue={dialogue} isThinking={isThinking} />
+          <OrderDisplay orders={orders} onCompleteOrder={handleCompleteOrder} />
           <RewardedAd onReward={generateNewItem} />
         </div>
 
         <div className="lg:col-span-6 flex flex-col items-center justify-center gap-4">
+          <PlayerStats energy={energy} maxEnergy={MAX_ENERGY} gems={gems} />
           <MergeBoard
             board={board}
             onDragStart={handleDragStart}
             onDrop={handleDrop}
             mergingIndex={mergingIndex}
+            appearingIndex={appearingIndex}
           />
           <Button onClick={generateNewItem}>
               <Gift className="mr-2 h-4 w-4" />
