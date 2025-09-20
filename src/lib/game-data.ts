@@ -109,7 +109,7 @@ export const ALL_ORDERS: Order[] = [
   { id: 'order_1_3', customerEmoji: '🧑‍🎨', requiredItems: [{ itemId: 'clothing_3', quantity: 1 }], minLevel: 2 },
   { id: 'order_1_4', customerEmoji: '🐮', requiredItems: [{ itemId: 'animals_4', quantity: 1 }], minLevel: 2 },
   { id: 'order_1_5', customerEmoji: '🏴', requiredItems: [{ itemId: 'flags_3', quantity: 1 }], minLevel: 3 },
-  { id: 'order_1_6', customerEmoji: '́‍⚕️', requiredItems: [{ itemId: 'professions_3', quantity: 1 }], minLevel: 3 },
+  { id: 'order_1_6', customerEmoji: '🧑‍⚕️', requiredItems: [{ itemId: 'professions_3', quantity: 1 }], minLevel: 3 },
   
   // Level 4-6 Orders
   { id: 'order_2_1', customerEmoji: '🐖', requiredItems: [{ itemId: 'animals_5', quantity: 1 }], minLevel: 4 },
@@ -145,5 +145,3 @@ export const ALL_ORDERS: Order[] = [
   { id: 'order_5_7', customerEmoji: '🧥', requiredItems: [{ itemId: 'clothing_12', quantity: 1 }], minLevel: 21 },
   { id: 'order_5_8', customerEmoji: '🍑', requiredItems: [{ itemId: 'food_12', quantity: 1 }], minLevel: 22 },
 ];
-
-    
