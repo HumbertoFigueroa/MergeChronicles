@@ -13,7 +13,7 @@ const createItem = (id: string, name: string, level: number, type: ItemType, emo
 export const ITEMS: Record<string, Item> = {
   // Generators
   generator_animals: createItem('generator_animals', 'Nido de Animales', 0, 'animals', '🥚', true),
-  generator_flags: createItem('generator_flags', 'Poste de Banderas', 0, 'flags', '🚩', true),
+  generator_flags: createItem('generator_flags', 'Poste de Banderas', 0, 'flags', '🏁', true),
   generator_professions: createItem('generator_professions', 'Maletín de Trabajo', 0, 'professions', '💼', true),
   generator_clothing: createItem('generator_clothing', 'Armario', 0, 'clothing', '🚪', true),
   generator_food: createItem('generator_food', 'Cesta de Comida', 0, 'food', '🧺', true),
@@ -108,7 +108,7 @@ export const ALL_ORDERS: Order[] = [
   { id: 'order_1_2', customerEmoji: '🍓', requiredItems: [{ itemId: 'food_4', quantity: 1 }], minLevel: 1 },
   { id: 'order_1_3', customerEmoji: '🧑‍🎨', requiredItems: [{ itemId: 'clothing_3', quantity: 1 }], minLevel: 2 },
   { id: 'order_1_4', customerEmoji: '🐮', requiredItems: [{ itemId: 'animals_4', quantity: 1 }], minLevel: 2 },
-  { id: 'order_1_5', customerEmoji: '🏴', requiredItems: [{ itemId: 'flags_3', quantity: 1 }], minLevel: 3 },
+  { id: 'order_1_5', customerEmoji: '🇪🇸', requiredItems: [{ itemId: 'flags_3', quantity: 1 }], minLevel: 3 },
   { id: 'order_1_6', customerEmoji: '🧑‍⚕️', requiredItems: [{ itemId: 'professions_3', quantity: 1 }], minLevel: 3 },
   
   // Level 4-6 Orders
@@ -145,3 +145,5 @@ export const ALL_ORDERS: Order[] = [
   { id: 'order_5_7', customerEmoji: '🧥', requiredItems: [{ itemId: 'clothing_12', quantity: 1 }], minLevel: 21 },
   { id: 'order_5_8', customerEmoji: '🍑', requiredItems: [{ itemId: 'food_12', quantity: 1 }], minLevel: 22 },
 ];
+
+    
