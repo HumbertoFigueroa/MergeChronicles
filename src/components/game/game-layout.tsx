@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { adaptStory } from '@/ai/flows/adaptive-story-telling';
 import { Button } from '../ui/button';
 import { Sparkles, Gift } from 'lucide-react';
+import AdPlaceholder from './ad-placeholder';
 
 const BOARD_SIZE = 20;
 
@@ -162,8 +163,9 @@ export default function GameLayout() {
     <>
       <GameHeader />
       <main className="pt-16 min-h-screen grid grid-cols-1 lg:grid-cols-12 gap-4 p-4">
-        <div className="lg:col-span-3">
+        <div className="lg:col-span-3 flex flex-col gap-4">
           <StoryPanel storyProgress={storyProgress} dialogue={dialogue} isThinking={isThinking} />
+          <AdPlaceholder />
         </div>
 
         <div className="lg:col-span-6 flex flex-col items-center justify-center gap-4">
