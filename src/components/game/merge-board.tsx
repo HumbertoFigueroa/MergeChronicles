@@ -1,3 +1,5 @@
+'use client';
+
 import type { BoardSlot } from '@/lib/types';
 import MergeItem from './merge-item';
 import { cn } from '@/lib/utils';
