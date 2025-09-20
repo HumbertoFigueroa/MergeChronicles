@@ -19,7 +19,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { User, Scroll } from 'lucide-react';
 import Link from 'next/link';
 
-const BOARD_SIZE = 70; // 7 columns x 10 rows
+const BOARD_SIZE = 56; // 7 columns x 8 rows
 const ENERGY_REGEN_RATE = 1.5 * 60 * 1000; // 1.5 minutes in ms
 const MAX_ENERGY = 100;
 
