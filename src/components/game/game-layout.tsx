@@ -79,7 +79,6 @@ export default function GameLayout() {
     const sourceSlot = newBoard[sourceIndex];
     const targetSlot = newBoard[targetIndex];
 
-    // Added guard clause to prevent crash
     if (!sourceSlot) return;
 
     if (!sourceSlot.item) return;
@@ -244,8 +243,8 @@ export default function GameLayout() {
       </main>
 
       {/* Mobile Layout */}
-      <main className="relative z-10 pt-16 flex flex-col lg:hidden flex-grow p-2 sm:p-4">
-        <div className='w-full flex items-start justify-between gap-2 px-1'>
+      <main className="relative z-10 pt-16 flex flex-col lg:hidden flex-grow p-2 sm:p-4 overflow-hidden">
+        <div className='w-full flex items-start justify-between gap-2 px-1 flex-shrink-0'>
           <PlayerStats level={57} xp={75} energy={energy} maxEnergy={MAX_ENERGY} gems={gems} isMobile />
           <div className="flex gap-2 flex-shrink-0">
             <Button asChild variant="secondary" size="icon" className='h-12 w-12 rounded-2xl'>
@@ -259,7 +258,7 @@ export default function GameLayout() {
           </div>
         </div>
 
-        <div className="flex-grow flex flex-col items-center justify-center gap-2 my-2">
+        <div className="flex-grow flex flex-col items-center justify-center min-h-0 my-2">
           <MergeBoard
             board={board}
             onDragStart={handleDragStart}
@@ -269,11 +268,11 @@ export default function GameLayout() {
           />
         </div>
 
-        <div className={activeTab ? 'pb-0' : 'pb-20'}>
+        <div className="flex-shrink-0">
              <RewardedAd onReward={() => generateNewItem()} />
         </div>
         
-        <div className="fixed bottom-0 left-0 right-0 z-50 p-2 bg-background/80 backdrop-blur-sm border-t">
+        <div className="fixed bottom-0 left-0 right-0 z-50 p-2 bg-background/80 backdrop-blur-sm border-t lg:hidden">
             <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
                 <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="orders" className="py-3 text-sm">
@@ -301,5 +300,3 @@ export default function GameLayout() {
     </div>
   );
 }
-
-    

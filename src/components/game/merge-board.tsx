@@ -18,7 +18,7 @@ export default function MergeBoard({ board, onDragStart, onDrop, mergingIndex, a
   };
 
   return (
-    <div className="grid grid-cols-7 gap-1.5 p-2 sm:p-4 rounded-lg bg-card/70 backdrop-blur-sm border-2 border-dashed w-full max-w-2xl mx-auto shadow-inner flex-grow">
+    <div className="grid grid-cols-7 gap-1.5 p-2 sm:p-4 rounded-lg bg-card/70 backdrop-blur-sm border-2 border-dashed w-full max-w-2xl mx-auto shadow-inner aspect-[7/8] lg:aspect-auto lg:flex-grow">
       {board.map((slot, index) => (
         <div
           key={slot.id}
@@ -42,5 +42,3 @@ export default function MergeBoard({ board, onDragStart, onDrop, mergingIndex, a
     </div>
   );
 }
-
-    
