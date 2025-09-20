@@ -21,7 +21,6 @@ export const ENERGY_REGEN_RATE = 1.5 * 60 * 1000; // 1.5 minutes in ms
 export const MAX_ENERGY = 100;
 const ENERGY_COST_PER_ITEM = 1;
 const GEMS_PER_LEVEL = 5;
-const XP_PER_LEVEL = 10;
 const MAX_ORDERS = 3;
 
 const CUSTOMER_EMOJIS = ['👩‍🌾', '🍓', '🧑‍🎨', '🐮', '🛹', '🧑‍⚕️', '🐖', '🍊', '👘', '🚲', '🧑‍🌾', '🐑', '🍌', '🚌', '👠', '🧑‍🍳', '🐕', '🍍', '🧑‍🔬', '👔', '🐈', '✈️', '🍎', '🧑‍🚀', '🐎', '🧤', '🍐', '🚀', '🐘', '🧑‍🚒', '🧥', '🍑'];
@@ -39,6 +38,45 @@ initialBoard[11] = { ...initialBoard[11], item: ITEMS['generator_vehicles'] };
 
 
 type Multiplier = 1 | 2 | 4;
+
+const getXpNeededForLevel = (level: number): number => {
+    if (level === 1) return 10;
+    let xpNeeded = 10;
+    for (let i = 2; i <= level; i++) {
+        if (i <= 2) { // level 2 needs 12
+            xpNeeded = 12;
+        } else if (i <= 10) { // level 3-10
+            xpNeeded += 2;
+        } else if (i <= 30) { // level 11-30
+            xpNeeded += 3;
+        } else if (i <= 50) { // level 31-50
+            xpNeeded += 4;
+        } else { // level 51+
+            xpNeeded += 5;
+        }
+    }
+    // For level 3, the loop runs for i=2 (xp=12), then i=3 (xp=12+2=14), which is correct.
+    // The value we return is for reaching the *next* level.
+    if (level === 2) return 12;
+    
+    let currentXp = 10;
+    let nextLevelXp = 12;
+
+    for (let l = 2; l <= level; l++) {
+        currentXp = nextLevelXp;
+        if (l < 10) {
+            nextLevelXp += 2;
+        } else if (l < 30) {
+            nextLevelXp += 3;
+        } else if (l < 50) {
+            nextLevelXp += 4;
+        } else {
+            nextLevelXp += 5;
+        }
+    }
+    return currentXp;
+};
+
 
 export default function GameLayout() {
   const router = useRouter();
@@ -59,6 +97,8 @@ export default function GameLayout() {
   const [multiplier, setMultiplier] = useState<Multiplier>(1);
 
   const { toast } = useToast();
+  
+  const xpNeeded = getXpNeededForLevel(level);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -75,17 +115,22 @@ export default function GameLayout() {
 
   const addXp = (amount: number) => {
     setXp(currentXp => {
-      const newXp = currentXp + amount;
-      if (newXp >= XP_PER_LEVEL) {
-        const newLevel = level + 1;
-        setLevel(newLevel);
+      let newXp = currentXp + amount;
+      let newLevel = level;
+      let xpForNext = getXpNeededForLevel(newLevel);
+      
+      while (newXp >= xpForNext) {
+        newXp -= xpForNext;
+        newLevel++;
         setGems(currentGems => currentGems + GEMS_PER_LEVEL * newLevel);
         toast({
           title: "¡Subiste de nivel!",
           description: `¡Alcanzaste el nivel ${newLevel}! Has ganado ${GEMS_PER_LEVEL * newLevel} gemas.`,
         });
-        return newXp % XP_PER_LEVEL;
+        xpForNext = getXpNeededForLevel(newLevel);
       }
+      
+      setLevel(newLevel);
       return newXp;
     });
   };
@@ -380,7 +425,7 @@ export default function GameLayout() {
         <div className="flex flex-col items-center gap-4 flex-grow min-h-0 w-full lg:col-span-9">
           
           <div className='w-full flex items-center justify-center gap-2 px-1 flex-shrink-0'>
-            <PlayerStats level={level} xp={xp} xpNeeded={XP_PER_LEVEL} energy={energy} maxEnergy={MAX_ENERGY} gems={gems} />
+            <PlayerStats level={level} xp={xp} xpNeeded={xpNeeded} energy={energy} maxEnergy={MAX_ENERGY} gems={gems} />
             <Button variant="secondary" size="icon" className='h-14 w-14 rounded-2xl flex-shrink-0' onClick={() => setIsShopOpen(true)}>
                 <ShoppingCart className="h-7 w-7" />
             </Button>
