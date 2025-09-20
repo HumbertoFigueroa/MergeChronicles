@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Gem, CheckCircle2 } from 'lucide-react';
@@ -16,14 +15,10 @@ const OrderItem = ({ order, onComplete }: { order: Order; onComplete: () => void
     const firstItem = ITEMS[order.requiredItems[0].itemId];
     return (
         <Card className="flex items-center p-3">
-             <div className="relative w-16 h-16 bg-muted rounded-lg flex-shrink-0 mr-4">
-                <Image
-                    src={firstItem.image}
-                    alt={firstItem.name}
-                    fill
-                    className="object-contain p-1"
-                    sizes="64px"
-                />
+             <div className="relative w-16 h-16 bg-muted rounded-lg flex items-center justify-center flex-shrink-0 mr-4">
+                <span className="text-3xl" role="img" aria-label={firstItem.name}>
+                    {firstItem.emoji}
+                </span>
             </div>
             <div className='flex-grow'>
                 <div className='flex items-center justify-between'>

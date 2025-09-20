@@ -1,10 +1,8 @@
 'use client';
 
-import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
 import type { Item } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import { Sparkles } from 'lucide-react';
 
 interface MergeItemProps {
   item: Item;
@@ -24,15 +22,10 @@ export default function MergeItem({ item, onDragStart, isMerging, isAppearing }:
           isAppearing && "animate-appear"
       )}
     >
-      <div className="relative aspect-square w-full">
-        <Image
-          src={item.image}
-          alt={item.name}
-          fill
-          className="object-contain drop-shadow-lg"
-          sizes="(max-width: 768px) 10vw, (max-width: 1200px) 8vw, 6vw"
-          draggable="false"
-        />
+      <div className="relative aspect-square w-full flex items-center justify-center">
+        <span className="text-4xl sm:text-5xl drop-shadow-lg" role="img" aria-label={item.name}>
+          {item.emoji}
+        </span>
       </div>
       <Badge variant="secondary" className="mt-1 text-xs">
         Lvl {item.level}

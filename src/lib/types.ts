@@ -1,11 +1,11 @@
-export type ItemType = 'jewelry' | 'makeup' | 'shoes' | 'clothing' | 'bags';
+export type ItemType = 'animals' | 'flags' | 'professions' | 'clothing' | 'food';
 
 export interface Item {
   id: string;
   name: string;
   level: number;
   type: ItemType;
-  image: string;
+  emoji: string;
 }
 
 export interface BoardSlot {

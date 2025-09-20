@@ -1,118 +1,117 @@
 import type { Item, ItemType, Order } from './types';
-import { findImage } from './utils';
 
-const createItem = (id: string, name: string, level: number, type: ItemType): Item => ({
+const createItem = (id: string, name: string, level: number, type: ItemType, emoji: string): Item => ({
   id,
   name,
   level,
   type,
-  image: findImage(id, name), 
+  emoji,
 });
 
 export const ITEMS: Record<string, Item> = {
-  // Jewelry
-  jewelry_1: createItem('jewelry_1', 'Anillo Simple', 1, 'jewelry'),
-  jewelry_2: createItem('jewelry_2', 'Anillo de Piedra', 2, 'jewelry'),
-  jewelry_3: createItem('jewelry_3', 'Pendientes de Perla', 3, 'jewelry'),
-  jewelry_4: createItem('jewelry_4', 'Collar Fino', 4, 'jewelry'),
-  jewelry_5: createItem('jewelry_5', 'Pulsera de Abalorios', 5, 'jewelry'),
-  jewelry_6: createItem('jewelry_6', 'Aros de Diamantes', 6, 'jewelry'),
-  jewelry_7: createItem('jewelry_7', 'Collar de Cristal', 7, 'jewelry'),
-  jewelry_8: createItem('jewelry_8', 'Pulsera con Dijes', 8, 'jewelry'),
-  jewelry_9: createItem('jewelry_9', 'Anillo de Oro', 9, 'jewelry'),
-  jewelry_10: createItem('jewelry_10', 'Pendientes Colgantes', 10, 'jewelry'),
-  jewelry_11: createItem('jewelry_11', 'Collar de Perlas', 11, 'jewelry'),
-  jewelry_12: createItem('jewelry_12', 'Tiara de Gemas', 12, 'jewelry'),
+  // Animals
+  animals_1: createItem('animals_1', 'Huevo', 1, 'animals', '🐣'),
+  animals_2: createItem('animals_2', 'Pollo', 2, 'animals', '🐔'),
+  animals_3: createItem('animals_3', 'Vaca', 3, 'animals', '🐄'),
+  animals_4: createItem('animals_4', 'Cerdo', 4, 'animals', '🐖'),
+  animals_5: createItem('animals_5', 'Oveja', 5, 'animals', '🐑'),
+  animals_6: createItem('animals_6', 'Perro', 6, 'animals', '🐕'),
+  animals_7: createItem('animals_7', 'Gato', 7, 'animals', '🐈'),
+  animals_8: createItem('animals_8', 'Conejo', 8, 'animals', '🐇'),
+  animals_9: createItem('animals_9', 'Caballo', 9, 'animals', '🐎'),
+  animals_10: createItem('animals_10', 'Elefante', 10, 'animals', '🐘'),
+  animals_11: createItem('animals_11', 'Tigre', 11, 'animals', '🐅'),
+  animals_12: createItem('animals_12', 'León', 12, 'animals', '🦁'),
 
-  // Makeup
-  makeup_1: createItem('makeup_1', 'Brillo Labial', 1, 'makeup'),
-  makeup_2: createItem('makeup_2', 'Lápiz Labial Pastel', 2, 'makeup'),
-  makeup_3: createItem('makeup_3', 'Rubor Compacto', 3, 'makeup'),
-  makeup_4: createItem('makeup_4', 'Sombra Individual', 4, 'makeup'),
-  makeup_5: createItem('makeup_5', 'Mascara de Pestañas', 5, 'makeup'),
-  makeup_6: createItem('makeup_6', 'Delineador de Ojos', 6, 'makeup'),
-  makeup_7: createItem('makeup_7', 'Pinceles Básicos', 7, 'makeup'),
-  makeup_8: createItem('makeup_8', 'Estuche de Sombras', 8, 'makeup'),
-  makeup_9: createItem('makeup_9', 'Base Líquida', 9, 'makeup'),
-  makeup_10: createItem('makeup_10', 'Paleta de Contorno', 10, 'makeup'),
-  makeup_11: createItem('makeup_11', 'Set de Pinceles Pro', 11, 'makeup'),
-  makeup_12: createItem('makeup_12', 'Paleta de Maquillaje', 12, 'makeup'),
+  // Flags
+  flags_1: createItem('flags_1', 'Bandera Blanca', 1, 'flags', '🏳️'),
+  flags_2: createItem('flags_2', 'Bandera ONU', 2, 'flags', '🇺🇳'),
+  flags_3: createItem('flags_3', 'Bandera España', 3, 'flags', '🇪🇸'),
+  flags_4: createItem('flags_4', 'Bandera México', 4, 'flags', '🇲🇽'),
+  flags_5: createItem('flags_5', 'Bandera Argentina', 5, 'flags', '🇦🇷'),
+  flags_6: createItem('flags_6', 'Bandera Colombia', 6, 'flags', '🇨🇴'),
+  flags_7: createItem('flags_7', 'Bandera Perú', 7, 'flags', '🇵🇪'),
+  flags_8: createItem('flags_8', 'Bandera Venezuela', 8, 'flags', '🇻🇪'),
+  flags_9: createItem('flags_9', 'Bandera Chile', 9, 'flags', '🇨🇱'),
+  flags_10: createItem('flags_10', 'Bandera Ecuador', 10, 'flags', '🇪🇨'),
+  flags_11: createItem('flags_11', 'Bandera Bolivia', 11, 'flags', '🇧🇴'),
+  flags_12: createItem('flags_12', 'Bandera Pirata', 12, 'flags', '🏴‍☠️'),
 
-  // Shoes
-  shoes_1: createItem('shoes_1', 'Sandalias Simples', 1, 'shoes'),
-  shoes_2: createItem('shoes_2', 'Zapatillas de Lona', 2, 'shoes'),
-  shoes_3: createItem('shoes_3', 'Bailarinas con Lazo', 3, 'shoes'),
-  shoes_4: createItem('shoes_4', 'Sandalias de Cuña', 4, 'shoes'),
-  shoes_5: createItem('shoes_5', 'Botines Cortos', 5, 'shoes'),
-  shoes_6: createItem('shoes_6', 'Zapatos con Brillos', 6, 'shoes'),
-  shoes_7: createItem('shoes_7', 'Zapatos de Tacón Bajo', 7, 'shoes'),
-  shoes_8: createItem('shoes_8', 'Botas Altas', 8, 'shoes'),
-  shoes_9: createItem('shoes_9', 'Zapatos de Tacón Alto', 9, 'shoes'),
-  shoes_10: createItem('shoes_10', 'Zapatos de Plataforma', 10, 'shoes'),
-  shoes_11: createItem('shoes_11', 'Zapatos de Princesa', 11, 'shoes'),
-  shoes_12: createItem('shoes_12', 'Zapatos de Cristal', 12, 'shoes'),
-
+  // Professions
+  professions_1: createItem('professions_1', 'Estudiante', 1, 'professions', '🧑‍🎓'),
+  professions_2: createItem('professions_2', 'Profesor', 2, 'professions', '🧑‍🏫'),
+  professions_3: createItem('professions_3', 'Doctor', 3, 'professions', '🧑‍⚕️'),
+  professions_4: createItem('professions_4', 'Juez', 4, 'professions', '🧑‍⚖️'),
+  professions_5: createItem('professions_5', 'Granjero', 5, 'professions', '🧑‍🌾'),
+  professions_6: createItem('professions_6', 'Cocinero', 6, 'professions', '🧑‍🍳'),
+  professions_7: createItem('professions_7', 'Mecánico', 7, 'professions', '🧑‍🔧'),
+  professions_8: createItem('professions_8', 'Científico', 8, 'professions', '🧑‍🔬'),
+  professions_9: createItem('professions_9', 'Artista', 9, 'professions', '🧑‍🎨'),
+  professions_10: createItem('professions_10', 'Astronauta', 10, 'professions', '🧑‍🚀'),
+  professions_11: createItem('professions_11', 'Piloto', 11, 'professions', '🧑‍✈️'),
+  professions_12: createItem('professions_12', 'Bombero', 12, 'professions', '🧑‍🚒'),
+  
   // Clothing
-  clothing_1: createItem('clothing_1', 'Camiseta Básica', 1, 'clothing'),
-  clothing_2: createItem('clothing_2', 'Falda de Mezclilla', 2, 'clothing'),
-  clothing_3: createItem('clothing_3', 'Top de Tirantes', 3, 'clothing'),
-  clothing_4: createItem('clothing_4', 'Vestido de Verano', 4, 'clothing'),
-  clothing_5: createItem('clothing_5', 'Pantalones Vaqueros', 5, 'clothing'),
-  clothing_6: createItem('clothing_6', 'Sudadera con Capucha', 6, 'clothing'),
-  clothing_7: createItem('clothing_7', 'Blusa Elegante', 7, 'clothing'),
-  clothing_8: createItem('clothing_8', 'Chaqueta de Mezclilla', 8, 'clothing'),
-  clothing_9: createItem('clothing_9', 'Conjunto Coordinado', 9, 'clothing'),
-  clothing_10: createItem('clothing_10', 'Vestido de Cóctel', 10, 'clothing'),
-  clothing_11: createItem('clothing_11', 'Abrigo Elegante', 11, 'clothing'),
-  clothing_12: createItem('clothing_12', 'Vestido de Gala', 12, 'clothing'),
+  clothing_1: createItem('clothing_1', 'Gorra', 1, 'clothing', '🧢'),
+  clothing_2: createItem('clothing_2', 'Camiseta', 2, 'clothing', '👕'),
+  clothing_3: createItem('clothing_3', 'Pantalones', 3, 'clothing', '👖'),
+  clothing_4: createItem('clothing_4', 'Vestido', 4, 'clothing', '👗'),
+  clothing_5: createItem('clothing_5', 'Kimono', 5, 'clothing', '👘'),
+  clothing_6: createItem('clothing_6', 'Tacón Alto', 6, 'clothing', '👠'),
+  clothing_7: createItem('clothing_7', 'Bata de Laboratorio', 7, 'clothing', '🥼'),
+  clothing_8: createItem('clothing_8', 'Corbata', 8, 'clothing', '👔'),
+  clothing_9: createItem('clothing_9', 'Sombrero', 9, 'clothing', '👒'),
+  clothing_10: createItem('clothing_10', 'Guantes', 10, 'clothing', '🧤'),
+  clothing_11: createItem('clothing_11', 'Bufanda', 11, 'clothing', '🧣'),
+  clothing_12: createItem('clothing_12', 'Abrigo', 12, 'clothing', '🧥'),
 
-  // Bags
-  bags_1: createItem('bags_1', 'Monedero Simple', 1, 'bags'),
-  bags_2: createItem('bags_2', 'Cartera Pequeña', 2, 'bags'),
-  bags_3: createItem('bags_3', 'Bolso de Hombro', 3, 'bags'),
-  bags_4: createItem('bags_4', 'Mochila Colorida', 4, 'bags'),
-  bags_5: createItem('bags_5', 'Bolso de Mano', 5, 'bags'),
-  bags_6: createItem('bags_6', 'Bandolera con Adornos', 6, 'bags'),
-  bags_7: createItem('bags_7', 'Clutch Brillante', 7, 'bags'),
-  bags_8: createItem('bags_8', 'Bolso de Asas', 8, 'bags'),
-  bags_9: createItem('bags_9', 'Bolso de Cuero', 9, 'bags'),
-  bags_10: createItem('bags_10', 'Bolso de Diseñador', 10, 'bags'),
-  bags_11: createItem('bags_11', 'Bolso de Noche', 11, 'bags'),
-  bags_12: createItem('bags_12', 'Bolso de Alta Costura', 12, 'bags'),
+  // Food
+  food_1: createItem('food_1', 'Uvas', 1, 'food', '🍇'),
+  food_2: createItem('food_2', 'Melón', 2, 'food', '🍈'),
+  food_3: createItem('food_3', 'Sandía', 3, 'food', '🍉'),
+  food_4: createItem('food_4', 'Naranja', 4, 'food', '🍊'),
+  food_5: createItem('food_5', 'Limón', 5, 'food', '🍋'),
+  food_6: createItem('food_6', 'Plátano', 6, 'food', '🍌'),
+  food_7: createItem('food_7', 'Piña', 7, 'food', '🍍'),
+  food_8: createItem('food_8', 'Mango', 8, 'food', '🥭'),
+  food_9: createItem('food_9', 'Manzana Roja', 9, 'food', '🍎'),
+  food_10: createItem('food_10', 'Manzana Verde', 10, 'food', '🍏'),
+  food_11: createItem('food_11', 'Pera', 11, 'food', '🍐'),
+  food_12: createItem('food_12', 'Melocotón', 12, 'food', '🍑'),
 };
 
 export const MERGE_RULES: Record<string, string> = {
-  // Jewelry
-  jewelry_1: 'jewelry_2', jewelry_2: 'jewelry_3', jewelry_3: 'jewelry_4', jewelry_4: 'jewelry_5', jewelry_5: 'jewelry_6', jewelry_6: 'jewelry_7', jewelry_7: 'jewelry_8', jewelry_8: 'jewelry_9', jewelry_9: 'jewelry_10', jewelry_10: 'jewelry_11', jewelry_11: 'jewelry_12',
-  // Makeup
-  makeup_1: 'makeup_2', makeup_2: 'makeup_3', makeup_3: 'makeup_4', makeup_4: 'makeup_5', makeup_5: 'makeup_6', makeup_6: 'makeup_7', makeup_7: 'makeup_8', makeup_8: 'makeup_9', makeup_9: 'makeup_10', makeup_10: 'makeup_11', makeup_11: 'makeup_12',
-  // Shoes
-  shoes_1: 'shoes_2', shoes_2: 'shoes_3', shoes_3: 'shoes_4', shoes_4: 'shoes_5', shoes_5: 'shoes_6', shoes_6: 'shoes_7', shoes_7: 'shoes_8', shoes_8: 'shoes_9', shoes_9: 'shoes_10', shoes_10: 'shoes_11', shoes_11: 'shoes_12',
+  // Animals
+  animals_1: 'animals_2', animals_2: 'animals_3', animals_3: 'animals_4', animals_4: 'animals_5', animals_5: 'animals_6', animals_6: 'animals_7', animals_7: 'animals_8', animals_8: 'animals_9', animals_9: 'animals_10', animals_10: 'animals_11', animals_11: 'animals_12',
+  // Flags
+  flags_1: 'flags_2', flags_2: 'flags_3', flags_3: 'flags_4', flags_4: 'flags_5', flags_5: 'flags_6', flags_6: 'flags_7', flags_7: 'flags_8', flags_8: 'flags_9', flags_9: 'flags_10', flags_10: 'flags_11', flags_11: 'flags_12',
+  // Professions
+  professions_1: 'professions_2', professions_2: 'professions_3', professions_3: 'professions_4', professions_4: 'professions_5', professions_5: 'professions_6', professions_6: 'professions_7', professions_7: 'professions_8', professions_8: 'professions_9', professions_9: 'professions_10', professions_10: 'professions_11', professions_11: 'professions_12',
   // Clothing
   clothing_1: 'clothing_2', clothing_2: 'clothing_3', clothing_3: 'clothing_4', clothing_4: 'clothing_5', clothing_5: 'clothing_6', clothing_6: 'clothing_7', clothing_7: 'clothing_8', clothing_8: 'clothing_9', clothing_9: 'clothing_10', clothing_10: 'clothing_11', clothing_11: 'clothing_12',
-  // Bags
-  bags_1: 'bags_2', bags_2: 'bags_3', bags_3: 'bags_4', bags_4: 'bags_5', bags_5: 'bags_6', bags_6: 'bags_7', bags_7: 'bags_8', bags_8: 'bags_9', bags_9: 'bags_10', bags_10: 'bags_11', bags_11: 'bags_12',
+  // Food
+  food_1: 'food_2', food_2: 'food_3', food_3: 'food_4', food_4: 'food_5', food_5: 'food_6', food_6: 'food_7', food_7: 'food_8', food_8: 'food_9', food_9: 'food_10', food_10: 'food_11', food_11: 'food_12',
 };
 
 export const STORY_DIALOGUES: string[] = [
-    "A spark of inspiration! These fabric scraps could become something more...",
-    "With a new pair of heels, you feel a surge of confidence. The city's most exclusive gala is approaching. Are you ready?",
-    "This cocktail dress is stunning! It reminds you of a mysterious invitation you received...",
-    "A royal crown! Rumors whisper of a lost princess. Could this be a clue to your own past?",
-    "The gala is tonight. You've created a masterpiece, but a rival designer, 'Silas', might challenge your claim to fame.",
-    "You found a locket hidden in the lining of the evening gown. It has a single initial engraved on it: 'A'.",
+    "Un huevo solitario... ¿Qué podría salir de aquí?",
+    "Con una bandera en mano, sientes el impulso de explorar el mundo y conocer nuevas culturas.",
+    "Este delantal de cocinero te queda perfecto. Te sientes listo para preparar un banquete.",
+    "Un abrigo elegante. Te da un aire de misterio y sofisticación. ¿A dónde te llevará?",
+    "Una manzana brillante y jugosa. Dicen que una al día mantiene al doctor en la lejanía... o quizás atrae nuevas aventuras.",
+    "Has desbloqueado al León, ¡el rey de la sabana! Tu zoológico personal está creciendo.",
 ];
 
 export const INITIAL_ORDERS: Order[] = [
     {
         id: 'order-1',
-        customerEmoji: '👩‍🎤',
-        requiredItems: [{ itemId: 'shoes_2', quantity: 1 }],
+        customerEmoji: '👩‍🌾',
+        requiredItems: [{ itemId: 'animals_2', quantity: 1 }],
         reward: { gems: 5 }
     },
     {
         id: 'order-2',
-        customerEmoji: '👨‍💼',
+        customerEmoji: '👨‍🎨',
         requiredItems: [{ itemId: 'clothing_3', quantity: 2 }],
         reward: { gems: 10 }
     },
@@ -120,8 +119,8 @@ export const INITIAL_ORDERS: Order[] = [
         id: 'order-3',
         customerEmoji: '👸',
         requiredItems: [
-            { itemId: 'clothing_10', quantity: 1 },
-            { itemId: 'jewelry_7', quantity: 1 }
+            { itemId: 'food_4', quantity: 1 },
+            { itemId: 'animals_4', quantity: 1 }
         ],
         reward: { gems: 25 }
     }

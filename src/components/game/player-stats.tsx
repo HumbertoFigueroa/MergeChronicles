@@ -3,7 +3,6 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import Image from 'next/image';
-import { findImage } from '@/lib/utils';
 
 interface PlayerStatsProps {
   level: number;
@@ -56,11 +55,10 @@ const StatDisplay = ({ value, icon, action }: { value: string | number, icon: Re
 );
 
 const LevelDisplay = ({ level, xp }: { level: number, xp: number }) => {
-    const avatarUrl = findImage('character_avatar', 'Avatar');
     return (
         <div className="relative flex items-center h-12 pr-4 bg-black/20 rounded-full shadow-inner border border-white/30 text-white">
-            <div className="relative w-12 h-12 rounded-full border-2 border-yellow-300 overflow-hidden flex-shrink-0">
-                <Image src={avatarUrl} alt="player avatar" fill className="object-cover" />
+            <div className="relative w-12 h-12 rounded-full border-2 border-yellow-300 overflow-hidden flex-shrink-0 bg-muted flex items-center justify-center">
+                 <span className='text-2xl'>🧑‍🎨</span>
             </div>
             <div className="flex flex-col ml-2">
                 <span className="text-sm font-bold leading-none">Level {level}</span>

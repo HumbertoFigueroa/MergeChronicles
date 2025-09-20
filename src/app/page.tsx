@@ -1,7 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 const GoogleIcon = () => (
     <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
@@ -10,32 +9,27 @@ const GoogleIcon = () => (
 );
 
 export default function Home() {
-  const heroImage = PlaceHolderImages.find((img) => img.id === 'hero_1');
-
   return (
     <main className="relative min-h-screen w-full flex flex-col items-center justify-center p-4 overflow-hidden">
-      <Image
-        src={heroImage?.imageUrl || 'https://picsum.photos/seed/1/1920/1080'}
-        alt="Romantic fashion illustration"
-        fill
-        className="object-cover z-0 brightness-50"
-        data-ai-hint="fashion game"
-        priority
-      />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent z-10"></div>
-      <div className="relative z-20 flex flex-col items-center text-center text-white">
-        <h1 className="font-headline text-5xl md:text-7xl lg:text-8xl font-bold drop-shadow-lg">
-          Fusion Historia
-        </h1>
-        <p className="mt-4 max-w-2xl text-lg md:text-xl text-primary-foreground/90 drop-shadow-md">
-          Unleash your inner designer and weave your own romance. Merge beautiful items, create stunning outfits, and watch your story unfold.
-        </p>
-        <Button asChild size="lg" className="mt-8 text-lg font-bold">
-          <Link href="/game" className='flex items-center justify-center'>
-            <GoogleIcon />
-            Continuar con Google
-          </Link>
-        </Button>
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-200 via-purple-200 to-pink-200">
+         <div className="absolute inset-0 bg-[url('/grid.svg')] bg-repeat opacity-5"></div>
+      </div>
+
+      <div className="relative z-20 flex flex-col items-center text-center text-gray-800">
+        <div className="bg-white/50 backdrop-blur-sm p-8 rounded-2xl shadow-2xl border">
+          <h1 className="font-headline text-5xl md:text-7xl lg:text-8xl font-bold drop-shadow-lg text-primary">
+            Emoji Fusion
+          </h1>
+          <p className="mt-4 max-w-2xl text-lg md:text-xl text-foreground/80 drop-shadow-md">
+            Combina emojis, cumple pedidos y descubre nuevos objetos. ¡Tu aventura de fusión te espera!
+          </p>
+          <Button asChild size="lg" className="mt-8 text-lg font-bold">
+            <Link href="/login" className='flex items-center justify-center'>
+              <GoogleIcon />
+              Empezar a Jugar
+            </Link>
+          </Button>
+        </div>
       </div>
     </main>
   );

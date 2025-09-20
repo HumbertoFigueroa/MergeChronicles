@@ -22,9 +22,9 @@ const initialBoard: BoardSlot[] = Array.from({ length: BOARD_SIZE }, (_, i) => (
   id: `cell-${i}`,
   item: null,
 }));
-initialBoard[0] = { ...initialBoard[0], item: ITEMS['shoes_1'] };
-initialBoard[1] = { ...initialBoard[1], item: ITEMS['shoes_1'] };
-initialBoard[2] = { ...initialBoard[2], item: ITEMS['clothing_1'] };
+initialBoard[0] = { ...initialBoard[0], item: ITEMS['animals_1'] };
+initialBoard[1] = { ...initialBoard[1], item: ITEMS['animals_1'] };
+initialBoard[2] = { ...initialBoard[2], item: ITEMS['food_1'] };
 
 export default function GameLayout() {
   const [board, setBoard] = useState<BoardSlot[]>(initialBoard);
@@ -99,7 +99,7 @@ export default function GameLayout() {
           title: "¡Fusión Exitosa!",
           description: (
             <div className="flex items-center">
-              <BookOpen className="mr-2 h-4 w-4 text-primary" /> ¡Creaste un {newItem.name}!
+              <BookOpen className="mr-2 h-4 w-4 text-primary" /> ¡Creaste un {newItem.name}! {newItem.emoji}
             </div>
           ),
         });
