@@ -7,7 +7,7 @@ import type { BoardSlot, Item, ItemType, Order } from '@/lib/types';
 import { ITEMS, MERGE_RULES, INITIAL_ORDERS } from '@/lib/game-data';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '../ui/button';
-import { ShoppingCart, ScrollText, BookOpen } from 'lucide-react';
+import { ShoppingCart, BookOpen } from 'lucide-react';
 import PlayerStats from './player-stats';
 import OrderDisplay from './order-display';
 import ShopDialog from './shop-dialog';
@@ -28,13 +28,6 @@ initialBoard[2] = { ...initialBoard[2], item: ITEMS['clothing_1'] };
 
 export default function GameLayout() {
   const [board, setBoard] = useState<BoardSlot[]>(initialBoard);
-  const [equippedItems, setEquippedItems] = useState<Partial<Record<ItemType, Item | null>>>({
-    clothing: null,
-    shoes: null,
-    jewelry: null,
-    makeup: null,
-    bags: null,
-  });
   const [mergingIndex, setMergingIndex] = useState<number | null>(null);
   const [appearingIndex, setAppearingIndex] = useState<number | null>(null);
   const [energy, setEnergy] = useState(80);
@@ -71,6 +64,8 @@ export default function GameLayout() {
 
     const newBoard = [...board];
     const sourceSlot = newBoard[sourceIndex];
+    
+    // Fix: Add a check to ensure sourceSlot is not undefined
     if (!sourceSlot || sourceIndex === targetIndex) return;
     
     const targetSlot = newBoard[targetIndex];
@@ -108,11 +103,6 @@ export default function GameLayout() {
             </div>
           ),
         });
-        
-        const currentEquipped = equippedItems[newItem.type];
-        if (!currentEquipped || newItem.level > currentEquipped.level) {
-          setEquippedItems(prev => ({...prev, [newItem.type]: newItem}));
-        }
       }
     } else {
       newBoard[targetIndex] = { ...targetSlot, item: sourceItem };
@@ -153,9 +143,24 @@ export default function GameLayout() {
     });
   };
 
-  const addGems = (amount: number) => {
-    setGems(g => g + amount);
-    toast({ title: "¡Gemas Añadidas!", description: `Recibiste ${amount} gemas.` });
+  const purchaseGems = (amount: number, price: string) => {
+    // In a real app, this would trigger the payment flow.
+    // Here we simulate getting a payment token and then confirming the purchase.
+    toast({
+        title: "Procesando compra...",
+        description: `Iniciando pago seguro para ${amount} gemas.`
+    });
+
+    // Simulate a delay for payment processing
+    setTimeout(() => {
+        // This is where you would handle the response from your payment provider using a token.
+        // For now, we'll just add the gems directly.
+        setGems(g => g + amount);
+        toast({
+          title: "¡Compra Exitosa!",
+          description: `Has añadido ${amount} gemas por ${price}.`
+        });
+    }, 1500);
   };
 
   const addEnergy = (amount: number) => {
@@ -179,15 +184,17 @@ export default function GameLayout() {
       <ShopDialog 
         isOpen={isShopOpen} 
         onOpenChange={setIsShopOpen}
-        onAddGems={addGems}
+        onPurchaseGems={purchaseGems}
         onAddEnergy={addEnergy}
         onGenerateItem={generateNewItem}
         onSpendGems={spendGems}
         gems={gems}
       />
-      {/* Desktop Layout */}
-      <main className="relative z-10 pt-16 hidden lg:grid grid-cols-12 gap-4 p-4 flex-grow">
-        <div className="lg:col-span-3 flex flex-col gap-4">
+      {/* Main content area */}
+      <main className="relative z-10 pt-16 flex flex-col lg:grid lg:grid-cols-12 gap-4 p-2 sm:p-4 flex-grow overflow-hidden">
+        
+        {/* Left Column (Desktop) / Hidden on Mobile */}
+        <div className="hidden lg:flex lg:col-span-3 flex-col gap-4">
             <Button asChild size="lg" className="h-20 text-lg">
                 <Link href="/story" className='flex-col'>
                     <BookOpen className="w-8 h-8 mb-1" />
@@ -197,51 +204,32 @@ export default function GameLayout() {
           <OrderDisplay orders={orders} onCompleteOrder={handleCompleteOrder} />
         </div>
 
-        <div className="lg:col-span-9 flex flex-col items-center justify-center gap-4">
-          <div className='w-full flex items-center justify-center gap-4 px-2'>
+        {/* Center/Main Column */}
+        <div className="lg:col-span-9 flex flex-col items-center gap-4 flex-grow min-h-0">
+          
+          {/* Top Bar with Stats & Shop */}
+          <div className='w-full flex items-center justify-center gap-2 px-1 flex-shrink-0'>
             <PlayerStats level={57} xp={75} energy={energy} maxEnergy={MAX_ENERGY} gems={gems} />
             <Button variant="secondary" size="icon" className='h-14 w-14 rounded-2xl flex-shrink-0' onClick={() => setIsShopOpen(true)}>
                 <ShoppingCart className="h-7 w-7" />
             </Button>
           </div>
-          <MergeBoard
-            board={board}
-            onDragStart={handleDragStart}
-            onDrop={handleDrop}
-            mergingIndex={mergingIndex}
-            appearingIndex={appearingIndex}
-          />
-        </div>
-      </main>
 
-      {/* Mobile Layout */}
-      <main className="relative z-10 pt-16 flex flex-col lg:hidden flex-grow p-2 sm:p-4 overflow-hidden">
-        <div className='w-full flex items-start justify-between gap-2 px-1 flex-shrink-0'>
-          <PlayerStats level={57} xp={75} energy={energy} maxEnergy={MAX_ENERGY} gems={gems} isMobile />
-          <div className="flex gap-2 flex-shrink-0">
-            <Button asChild variant="secondary" size="icon" className='h-12 w-12 rounded-2xl'>
-                <Link href="/story">
-                    <ScrollText className="h-6 w-6" />
-                </Link>
-            </Button>
-            <Button variant="secondary" size="icon" className='h-12 w-12 rounded-2xl' onClick={() => setIsShopOpen(true)}>
-                <ShoppingCart className="h-6 w-6" />
-            </Button>
+          {/* Mobile Orders Display */}
+          <div className='lg:hidden w-full my-2'>
+              <OrderDisplay orders={orders} onCompleteOrder={handleCompleteOrder} />
           </div>
-        </div>
-
-        <div className='my-2'>
-            <OrderDisplay orders={orders} onCompleteOrder={handleCompleteOrder} />
-        </div>
-
-        <div className="flex-grow flex flex-col items-center justify-center min-h-0 my-2">
-          <MergeBoard
-            board={board}
-            onDragStart={handleDragStart}
-            onDrop={handleDrop}
-            mergingIndex={mergingIndex}
-            appearingIndex={appearingIndex}
-          />
+          
+          {/* Merge Board */}
+          <div className="flex-grow flex flex-col items-center justify-center w-full min-h-0">
+            <MergeBoard
+              board={board}
+              onDragStart={handleDragStart}
+              onDrop={handleDrop}
+              mergingIndex={mergingIndex}
+              appearingIndex={appearingIndex}
+            />
+          </div>
         </div>
       </main>
     </div>
