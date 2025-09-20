@@ -8,7 +8,7 @@ import type { BoardSlot, Item, ItemType, Order } from '@/lib/types';
 import { ITEMS, MERGE_RULES, STORY_DIALOGUES, INITIAL_ORDERS } from '@/lib/game-data';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '../ui/button';
-import { Gift, ShoppingCart, ScrollText, BookOpen } from 'lucide-react';
+import { ShoppingCart, ScrollText, BookOpen } from 'lucide-react';
 import RewardedAd from './ad-placeholder';
 import PlayerStats from './player-stats';
 import OrderDisplay from './order-display';
@@ -215,9 +215,9 @@ export default function GameLayout() {
         </div>
 
         <div className="lg:col-span-6 flex flex-col items-center justify-center gap-4">
-          <div className='w-full max-w-lg flex items-center justify-between gap-4 px-2'>
-            <PlayerStats energy={energy} maxEnergy={MAX_ENERGY} gems={gems} />
-            <Button variant="secondary" size="icon" className='h-14 w-14 rounded-2xl' onClick={() => setIsShopOpen(true)}>
+          <div className='w-full flex items-center justify-center gap-4 px-2'>
+            <PlayerStats level={57} xp={75} energy={energy} maxEnergy={MAX_ENERGY} gems={gems} />
+            <Button variant="secondary" size="icon" className='h-14 w-14 rounded-2xl flex-shrink-0' onClick={() => setIsShopOpen(true)}>
                 <ShoppingCart className="h-7 w-7" />
             </Button>
           </div>
@@ -237,9 +237,9 @@ export default function GameLayout() {
 
       {/* Mobile Layout */}
       <main className="relative z-10 pt-16 flex flex-col lg:hidden flex-grow p-2 sm:p-4">
-        <div className='w-full flex items-start justify-between gap-4 px-2'>
-          <PlayerStats energy={energy} maxEnergy={MAX_ENERGY} gems={gems} />
-          <div className="flex gap-2">
+        <div className='w-full flex items-start justify-between gap-2 px-1'>
+          <PlayerStats level={57} xp={75} energy={energy} maxEnergy={MAX_ENERGY} gems={gems} isMobile />
+          <div className="flex gap-2 flex-shrink-0">
             <Button asChild variant="secondary" size="icon" className='h-12 w-12 rounded-2xl'>
                 <Link href="/story">
                     <ScrollText className="h-6 w-6" />
@@ -278,7 +278,7 @@ export default function GameLayout() {
                     </TabsTrigger>
                 </TabsList>
                 {activeTab && (
-                    <div className="fixed bottom-[72px] left-0 right-0 max-h-[45vh] overflow-y-auto p-4 bg-background/95 animate-accordion-down">
+                    <div className="fixed bottom-[72px] left-0 right-0 max-h-[45vh] overflow-y-auto p-4 bg-background/95 animate-in slide-in-from-bottom-full">
                         <TabsContent value="orders">
                             <OrderDisplay orders={orders} onCompleteOrder={handleCompleteOrder} />
                         </TabsContent>
