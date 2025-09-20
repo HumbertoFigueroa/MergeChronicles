@@ -5,7 +5,7 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function findImage(id: string, name: string): string {
-  const formattedName = name.replace(/\s/g, '+');
+export function findImage(id: string, name?: string): string {
+  const formattedName = name ? name.replace(/\s/g, '+') : id;
   return `https://placehold.co/200x200/FFFFFF/A149F8?text=${formattedName}&font=fredoka`;
 }

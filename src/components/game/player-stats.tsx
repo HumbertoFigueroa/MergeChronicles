@@ -56,7 +56,7 @@ const StatDisplay = ({ value, icon, action }: { value: string | number, icon: Re
 );
 
 const LevelDisplay = ({ level, xp }: { level: number, xp: number }) => {
-    const avatarUrl = findImage('character_avatar');
+    const avatarUrl = findImage('character_avatar', 'Avatar');
     return (
         <div className="relative flex items-center h-12 pr-4 bg-black/20 rounded-full shadow-inner border border-white/30 text-white">
             <div className="relative w-12 h-12 rounded-full border-2 border-yellow-300 overflow-hidden flex-shrink-0">
