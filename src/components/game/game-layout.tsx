@@ -11,7 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { adaptStory } from '@/ai/flows/adaptive-story-telling';
 import { Button } from '../ui/button';
 import { Sparkles, Gift } from 'lucide-react';
-import AdPlaceholder from './ad-placeholder';
+import RewardedAd from './ad-placeholder';
 
 const BOARD_SIZE = 20;
 
@@ -146,7 +146,7 @@ export default function GameLayout() {
     }
   };
   
-  const generateNewItem = () => {
+  const generateNewItem = useCallback(() => {
     const emptySlotIndex = board.findIndex(slot => !slot.item);
     if (emptySlotIndex !== -1) {
         const newBoard = [...board];
@@ -157,7 +157,7 @@ export default function GameLayout() {
     } else {
         toast({ variant: "destructive", title: "Board is full!", description: "Clear some space to get new items." });
     }
-  };
+  }, [board, toast]);
 
   return (
     <>
@@ -165,7 +165,7 @@ export default function GameLayout() {
       <main className="pt-16 min-h-screen grid grid-cols-1 lg:grid-cols-12 gap-4 p-4">
         <div className="lg:col-span-3 flex flex-col gap-4">
           <StoryPanel storyProgress={storyProgress} dialogue={dialogue} isThinking={isThinking} />
-          <AdPlaceholder />
+          <RewardedAd onReward={generateNewItem} />
         </div>
 
         <div className="lg:col-span-6 flex flex-col items-center justify-center gap-4">
