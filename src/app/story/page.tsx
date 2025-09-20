@@ -2,10 +2,11 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, BookOpen, Gem, Sparkles } from 'lucide-react';
-import { STORY_DIALOGUES } from '@/lib/game-data';
+import { LILY_STORY } from '@/lib/story-data';
 import GameBackground from '@/components/game/game-background';
 import { useToast } from '@/hooks/use-toast';
 
@@ -19,7 +20,7 @@ export default function StoryPage() {
 
   const handleUnlockChapter = () => {
     if (gems >= UNLOCK_COST) {
-      if (unlockedChapters < STORY_DIALOGUES.length) {
+      if (unlockedChapters < LILY_STORY.length) {
         setGems(g => g - UNLOCK_COST);
         setUnlockedChapters(u => u + 1);
         toast({
@@ -67,19 +68,25 @@ export default function StoryPage() {
                     <Card className="sticky top-24 shadow-2xl">
                         <CardHeader className="items-center text-center">
                              <div className="relative w-48 h-48 rounded-lg overflow-hidden mb-4 border-4 border-primary/50 bg-muted flex items-center justify-center">
-                                <span className='text-8xl'>🧑‍🎨</span>
+                                <Image
+                                    src="https://picsum.photos/seed/lily/400/400"
+                                    alt="Lily"
+                                    fill
+                                    className="object-cover"
+                                    data-ai-hint="happy girl"
+                                />
                             </div>
-                            <CardTitle className="font-headline text-2xl">Tu Historia</CardTitle>
-                            <CardDescription>Capítulos Revelados: {unlockedChapters} / {STORY_DIALOGUES.length}</CardDescription>
+                            <CardTitle className="font-headline text-2xl">La Historia de Lily</CardTitle>
+                            <CardDescription>Capítulos Revelados: {unlockedChapters} / {LILY_STORY.length}</CardDescription>
                         </CardHeader>
                         <CardContent>
                              <Button 
                                 onClick={handleUnlockChapter} 
                                 className="w-full text-lg" 
                                 size="lg"
-                                disabled={unlockedChapters >= STORY_DIALOGUES.length}
+                                disabled={unlockedChapters >= LILY_STORY.length}
                             >
-                                {unlockedChapters >= STORY_DIALOGUES.length ? (
+                                {unlockedChapters >= LILY_STORY.length ? (
                                     "Fin de la Historia (por ahora)"
                                 ) : (
                                     <>
@@ -97,17 +104,29 @@ export default function StoryPage() {
                 </div>
 
                 <div className="md:col-span-2 space-y-4">
-                    {STORY_DIALOGUES.slice(0, unlockedChapters).map((dialogue, index) => (
-                        <Card key={index} className="shadow-lg">
+                    {LILY_STORY.slice(0, unlockedChapters).map((chapter) => (
+                        <Card key={chapter.chapter} className="shadow-lg">
                             <CardHeader>
-                                <CardTitle className="text-xl">Capítulo {index + 1}</CardTitle>
+                                <CardTitle className="text-xl flex items-center justify-between">
+                                    <span>Capítulo {chapter.chapter}</span>
+                                    <span className="text-2xl">{chapter.emojis}</span>
+                                </CardTitle>
                             </CardHeader>
-                            <CardContent>
-                                <p className="text-card-foreground/90">{dialogue}</p>
+                            <CardContent className="flex flex-col sm:flex-row gap-4">
+                               <div className="relative w-full sm:w-32 h-32 rounded-lg overflow-hidden flex-shrink-0 bg-muted">
+                                    <Image
+                                        src={`https://picsum.photos/seed/story${chapter.chapter}/200/200`}
+                                        alt={`Ilustración para el capítulo ${chapter.chapter}`}
+                                        fill
+                                        className="object-cover"
+                                        data-ai-hint={chapter.illustration.split(' ').slice(0, 2).join(' ')}
+                                    />
+                                </div>
+                                <p className="text-card-foreground/90">{chapter.text}</p>
                             </CardContent>
                         </Card>
                     ))}
-                     {unlockedChapters < STORY_DIALOGUES.length && (
+                     {unlockedChapters < LILY_STORY.length && (
                         <Card className="border-dashed flex flex-col items-center justify-center p-8 text-center bg-muted/30">
                             <CardTitle className="text-xl mb-2">Capítulo Bloqueado</CardTitle>
                             <CardDescription>El siguiente capítulo de tu historia espera ser descubierto. ¡Usa tus gemas para revelar qué sucede a continuación!</CardDescription>

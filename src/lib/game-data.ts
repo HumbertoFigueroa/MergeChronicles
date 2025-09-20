@@ -101,15 +101,6 @@ export const MERGE_RULES: Record<string, string> = {
   food_1: 'food_2', food_2: 'food_3', food_3: 'food_4', food_4: 'food_5', food_5: 'food_6', food_6: 'food_7', food_7: 'food_8', food_8: 'food_9', food_9: 'food_10', food_10: 'food_11', food_11: 'food_12',
 };
 
-export const STORY_DIALOGUES: string[] = [
-    "Un huevo solitario... ¿Qué podría salir de aquí?",
-    "Con una bandera en mano, sientes el impulso de explorar el mundo y conocer nuevas culturas.",
-    "Este delantal de cocinero te queda perfecto. Te sientes listo para preparar un banquete.",
-    "Un abrigo elegante. Te da un aire de misterio y sofisticación. ¿A dónde te llevará?",
-    "Una manzana brillante y jugosa. Dicen que una al día mantiene al doctor en la lejanía... o quizás atrae nuevas aventuras.",
-    "Has desbloqueado al León, ¡el rey de la sabana! Tu zoológico personal está creciendo.",
-];
-
 export const INITIAL_ORDERS: Order[] = [
     {
         id: 'order-1',
