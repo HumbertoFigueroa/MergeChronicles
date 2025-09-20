@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import MergeBoard from './merge-board';
 import type { BoardSlot, Item, Order, ItemType } from '@/lib/types';
-import { ITEMS, MERGE_RULES, ALL_ORDERS } from '@/lib/game-data';
+import { ITEMS, MERGE_RULES } from '@/lib/game-data';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '../ui/button';
 import { ShoppingCart } from 'lucide-react';
@@ -22,8 +22,9 @@ export const MAX_ENERGY = 100;
 const ENERGY_COST_PER_ITEM = 1;
 const GEMS_PER_LEVEL = 5;
 const XP_PER_LEVEL = 10;
-const BASE_XP_PER_ORDER_LEVEL = 2;
+const MAX_ORDERS = 3;
 
+const CUSTOMER_EMOJIS = ['👩‍🌾', '🍓', '🧑‍🎨', '🐮', '🛹', '🧑‍⚕️', '🐖', '🍊', '👘', '🚲', '🧑‍🌾', '🐑', '🍌', '🚌', '👠', '🧑‍🍳', '🐕', '🍍', '🧑‍🔬', '👔', '🐈', '✈️', '🍎', '🧑‍🚀', '🐎', '🧤', '🍐', '🚀', '🐘', '🧑‍🚒', '🧥', '🍑'];
 
 const initialBoard: BoardSlot[] = Array.from({ length: BOARD_SIZE }, (_, i) => ({
   id: `cell-${i}`,
@@ -76,11 +77,12 @@ export default function GameLayout() {
     setXp(currentXp => {
       const newXp = currentXp + amount;
       if (newXp >= XP_PER_LEVEL) {
-        setLevel(currentLevel => currentLevel + 1);
-        setGems(currentGems => currentGems + GEMS_PER_LEVEL * (level + 1));
+        const newLevel = level + 1;
+        setLevel(newLevel);
+        setGems(currentGems => currentGems + GEMS_PER_LEVEL * newLevel);
         toast({
           title: "¡Subiste de nivel!",
-          description: `¡Alcanzaste el nivel ${level + 1}! Has ganado ${GEMS_PER_LEVEL * (level + 1)} gemas.`,
+          description: `¡Alcanzaste el nivel ${newLevel}! Has ganado ${GEMS_PER_LEVEL * newLevel} gemas.`,
         });
         return newXp % XP_PER_LEVEL;
       }
@@ -88,16 +90,59 @@ export default function GameLayout() {
     });
   };
 
-  useEffect(() => {
-    const availableOrders = ALL_ORDERS.filter(order => order.minLevel <= level);
-    const currentOrderIds = new Set(orders.map(o => o.id));
-    const newOrders = availableOrders.filter(o => !currentOrderIds.has(o.id));
-    
-    if (orders.length < 3 && newOrders.length > 0) {
-      const ordersToAdd = newOrders.slice(0, 3 - orders.length);
-      setOrders(current => [...current, ...ordersToAdd]);
+  const generateNewOrder = useCallback(() => {
+    let minItemLevel = 1;
+    let maxItemLevel = 4;
+
+    if (level >= 5 && level <= 9) {
+        minItemLevel = 3;
+        maxItemLevel = 6;
+    } else if (level >= 10 && level <= 14) {
+        minItemLevel = 3;
+        maxItemLevel = 8;
+    } else if (level >= 15 && level <= 19) {
+        minItemLevel = 3;
+        maxItemLevel = 10;
+    } else if (level >= 20 && level <= 29) {
+        minItemLevel = 4;
+        maxItemLevel = 11;
+    } else if (level >= 30) {
+        minItemLevel = 4;
+        maxItemLevel = 12;
     }
-  }, [level, orders]);
+
+    const availableItems = Object.values(ITEMS).filter(item => 
+        !item.isGenerator && item.level >= minItemLevel && item.level <= maxItemLevel
+    );
+
+    if (availableItems.length === 0) return null;
+
+    const randomItem = availableItems[Math.floor(Math.random() * availableItems.length)];
+    const randomCustomer = CUSTOMER_EMOJIS[Math.floor(Math.random() * CUSTOMER_EMOJIS.length)];
+    
+    const newOrder: Order = {
+        id: `order_${Date.now()}_${Math.random()}`,
+        customerEmoji: randomCustomer,
+        requiredItems: [{ itemId: randomItem.id, quantity: 1 }],
+    };
+
+    return newOrder;
+  }, [level]);
+
+  useEffect(() => {
+    setOrders(currentOrders => {
+      const newOrders = [...currentOrders];
+      while (newOrders.length < MAX_ORDERS) {
+          const newOrder = generateNewOrder();
+          if (newOrder) {
+              newOrders.push(newOrder);
+          } else {
+              break; 
+          }
+      }
+      return newOrders;
+    });
+  }, [level, orders.length, generateNewOrder]);
 
 
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>, index: number) => {
@@ -234,7 +279,7 @@ export default function GameLayout() {
   };
   
   const handleDeliverOrder = (orderId: string) => {
-    const orderToDeliver = orders.find(o => o.id === orderId && o.isCompletable);
+    const orderToDeliver = orders.find(o => o.id === orderId);
     if (!orderToDeliver) return;
 
     const requiredItemId = orderToDeliver.requiredItems[0].itemId;
@@ -243,7 +288,7 @@ export default function GameLayout() {
     if (itemIndexOnBoard !== -1) {
       const deliveredItem = board[itemIndexOnBoard].item!;
       const gemReward = deliveredItem.level * GEMS_PER_LEVEL;
-      const xpReward = deliveredItem.level * BASE_XP_PER_ORDER_LEVEL;
+      const xpReward = deliveredItem.level;
 
       setGems(g => g + gemReward);
       addXp(xpReward);
@@ -253,7 +298,7 @@ export default function GameLayout() {
         newBoard[itemIndexOnBoard] = { ...newBoard[itemIndexOnBoard], item: null };
         return newBoard;
       });
-
+      
       setOrders(currentOrders => currentOrders.filter(o => o.id !== orderId));
       
       toast({
@@ -388,5 +433,3 @@ export default function GameLayout() {
     </div>
   );
 }
-
-    

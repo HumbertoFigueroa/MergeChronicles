@@ -102,49 +102,5 @@ export const MERGE_RULES: Record<string, string> = {
   food_1: 'food_2', food_2: 'food_3', food_3: 'food_4', food_4: 'food_5', food_5: 'food_6', food_6: 'food_7', food_7: 'food_8', food_8: 'food_9', food_9: 'food_10', food_10: 'food_11', food_11: 'food_12',
 };
 
-export const ALL_ORDERS: Order[] = [
-  // Level 1-3 Orders
-  { id: 'order_1_1', customerEmoji: '👩‍🌾', requiredItems: [{ itemId: 'animals_3', quantity: 1 }], minLevel: 1 },
-  { id: 'order_1_2', customerEmoji: '🍓', requiredItems: [{ itemId: 'food_4', quantity: 1 }], minLevel: 1 },
-  { id: 'order_1_3', customerEmoji: '🧑‍🎨', requiredItems: [{ itemId: 'clothing_3', quantity: 1 }], minLevel: 2 },
-  { id: 'order_1_4', customerEmoji: '🐮', requiredItems: [{ itemId: 'animals_4', quantity: 1 }], minLevel: 2 },
-  { id: 'order_1_5', customerEmoji: '🛹', requiredItems: [{ itemId: 'vehicles_3', quantity: 1 }], minLevel: 3 },
-  { id: 'order_1_6', customerEmoji: '🧑‍⚕️', requiredItems: [{ itemId: 'professions_3', quantity: 1 }], minLevel: 3 },
-  
-  // Level 4-6 Orders
-  { id: 'order_2_1', customerEmoji: '🐖', requiredItems: [{ itemId: 'animals_5', quantity: 1 }], minLevel: 4 },
-  { id: 'order_2_2', customerEmoji: '🍊', requiredItems: [{ itemId: 'food_5', quantity: 1 }], minLevel: 4 },
-  { id: 'order_2_3', customerEmoji: '👘', requiredItems: [{ itemId: 'clothing_5', quantity: 1 }], minLevel: 5 },
-  { id: 'order_2_4', customerEmoji: '🚲', requiredItems: [{ itemId: 'vehicles_5', quantity: 1 }], minLevel: 5 },
-  { id: 'order_2_5', customerEmoji: '🧑‍🌾', requiredItems: [{ itemId: 'professions_5', quantity: 1 }], minLevel: 6 },
-  { id: 'order_2_6', customerEmoji: '🐑', requiredItems: [{ itemId: 'animals_6', quantity: 1 }], minLevel: 6 },
-
-  // Level 7-9 Orders
-  { id: 'order_3_1', customerEmoji: '🍌', requiredItems: [{ itemId: 'food_7', quantity: 1 }], minLevel: 7 },
-  { id: 'order_3_2', customerEmoji: '🚌', requiredItems: [{ itemId: 'vehicles_7', quantity: 1 }], minLevel: 7 },
-  { id: 'order_3_3', customerEmoji: '👠', requiredItems: [{ itemId: 'clothing_6', quantity: 1 }], minLevel: 8 },
-  { id: 'order_3_4', customerEmoji: '🧑‍🍳', requiredItems: [{ itemId: 'professions_6', quantity: 1 }], minLevel: 8 },
-  { id: 'order_3_5', customerEmoji: '🐕', requiredItems: [{ itemId: 'animals_7', quantity: 1 }], minLevel: 9 },
-  { id: 'order_3_6', customerEmoji: '🍍', requiredItems: [{ itemId: 'food_8', quantity: 1 }], minLevel: 9 },
-  
-  // Level 10-14 Orders
-  { id: 'order_4_1', customerEmoji: '🧑‍🔬', requiredItems: [{ itemId: 'professions_8', quantity: 1 }], minLevel: 10 },
-  { id: 'order_4_2', customerEmoji: '👔', requiredItems: [{ itemId: 'clothing_8', quantity: 1 }], minLevel: 10 },
-  { id: 'order_4_3', customerEmoji: '🐈', requiredItems: [{ itemId: 'animals_8', quantity: 1 }], minLevel: 11 },
-  { id: 'order_4_4', customerEmoji: '✈️', requiredItems: [{ itemId: 'vehicles_9', quantity: 1 }], minLevel: 12 },
-  { id: 'order_4_5', customerEmoji: '🍎', requiredItems: [{ itemId: 'food_9', quantity: 1 }], minLevel: 13 },
-  { id: 'order_4_6', customerEmoji: '🧑‍🚀', requiredItems: [{ itemId: 'professions_10', quantity: 1 }], minLevel: 14 },
-  
-  // Level 15+ Orders
-  { id: 'order_5_1', customerEmoji: '🐎', requiredItems: [{ itemId: 'animals_10', quantity: 1 }], minLevel: 15 },
-  { id: 'order_5_2', customerEmoji: '🧤', requiredItems: [{ itemId: 'clothing_10', quantity: 1 }], minLevel: 16 },
-  { id: 'order_5_3', customerEmoji: '🍐', requiredItems: [{ itemId: 'food_11', quantity: 1 }], minLevel: 17 },
-  { id: 'order_5_4', customerEmoji: '🚀', requiredItems: [{ itemId: 'vehicles_12', quantity: 1 }], minLevel: 18 },
-  { id: 'order_5_5', customerEmoji: '🐘', requiredItems: [{ itemId: 'animals_11', quantity: 1 }], minLevel: 19 },
-  { id: 'order_5_6', customerEmoji: '🧑‍🚒', requiredItems: [{ itemId: 'professions_12', quantity: 1 }], minLevel: 20 },
-  { id: 'order_5_7', customerEmoji: '🧥', requiredItems: [{ itemId: 'clothing_12', quantity: 1 }], minLevel: 21 },
-  { id: 'order_5_8', customerEmoji: '🍑', requiredItems: [{ itemId: 'food_12', quantity: 1 }], minLevel: 22 },
-];
-
-    
-
+// No longer using a static list of orders. They will be generated dynamically.
+export const ALL_ORDERS: Order[] = [];
