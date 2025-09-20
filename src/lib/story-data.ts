@@ -32,7 +32,8 @@ export const LILY_STORY: StoryChapter[] = [
     illustration: 'Vista exterior de la casa de Lily durante una noche de tormenta. Rayos iluminan el cielo oscuro, el viento dobla los árboles y la lluvia cae con fuerza. El estilo es caricaturesco pero con un tono dramático.'
   },
   {
-    chapter: 5 emojis: '😱💨🌸💥',
+    chapter: 5,
+    emojis: '😱💨🌸💥',
     text: 'Una ráfaga de viento abrió la ventana y derribó la pequeña maceta de Lily.',
     illustration: 'Interior de la habitación de Lily. La ventana está abierta de golpe por el viento, y la pequeña maceta con la flor está cayendo al suelo. La expresión de Lily es de sorpresa y miedo. Estilo de dibujos animados, colores pastel.'
   },
@@ -77,5 +78,5 @@ export const LILY_STORY: StoryChapter[] = [
     emojis: '🌟+🌸⬛=🌸✨',
     text: 'Esa semilla, decía la leyenda, podría devolver la vida a cualquier flor mágica.',
     illustration: 'Dos paneles. En el primero, una mano deja caer la semilla brillante sobre una flor gris. En el segundo, la misma flor ahora brilla con una luz radiante. Estilo simple y claro, como un diagrama mágico.'
-  },
-Sono qui per aiutarti.
+  }
+];
