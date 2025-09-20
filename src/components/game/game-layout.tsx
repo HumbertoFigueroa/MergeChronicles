@@ -261,7 +261,6 @@ export default function GameLayout() {
         setTimeout(() => setMergingIndex(null), 400);
 
         setBoard(newBoard);
-        addXp(sourceItem.level); // Grant XP on merge
 
         toast({
           title: "¡Fusión Exitosa!",
@@ -282,50 +281,48 @@ export default function GameLayout() {
   const placeNewItem = useCallback((itemId: string, preferredIndex?: number): boolean => {
     let placed = false;
     let placedIndex = -1;
+    let success = false;
     
     setBoard(currentBoard => {
       const newBoard = [...currentBoard];
       const itemToPlace = ITEMS[itemId];
       if (!itemToPlace) {
-        placed = false;
         return currentBoard;
       }
 
-      if (preferredIndex !== undefined) {
-        const adjacentIndexes = [
-          preferredIndex - 7, preferredIndex + 7,
-          (preferredIndex % 7 !== 0) ? preferredIndex - 1 : -1,
-          ((preferredIndex + 1) % 7 !== 0) ? preferredIndex + 1 : -1,
-        ].filter(i => i >= 0 && i < BOARD_SIZE && !newBoard[i].item);
-        
-        if (adjacentIndexes.length > 0) {
-          const index = adjacentIndexes[Math.floor(Math.random() * adjacentIndexes.length)];
-          newBoard[index] = {...newBoard[index], item: itemToPlace};
-          placedIndex = index;
-          placed = true;
-          return newBoard;
+      const findEmptySlot = (startIndex?: number): number => {
+        if (startIndex !== undefined) {
+            const adjacentIndexes = [
+              startIndex - 7, startIndex + 7,
+              (startIndex % 7 !== 0) ? startIndex - 1 : -1,
+              ((startIndex + 1) % 7 !== 0) ? startIndex + 1 : -1,
+            ].filter(i => i >= 0 && i < BOARD_SIZE && !newBoard[i].item);
+            
+            if (adjacentIndexes.length > 0) {
+              return adjacentIndexes[Math.floor(Math.random() * adjacentIndexes.length)];
+            }
         }
-      }
+        return newBoard.findIndex(slot => !slot.item);
+      };
 
-      const emptySlotIndex = newBoard.findIndex(slot => !slot.item);
+      const emptySlotIndex = findEmptySlot(preferredIndex);
+
       if (emptySlotIndex !== -1) {
         newBoard[emptySlotIndex] = {...newBoard[emptySlotIndex], item: itemToPlace};
         placedIndex = emptySlotIndex;
-        placed = true;
+        success = true;
         return newBoard;
       }
       
-      placed = false;
       return currentBoard;
     });
 
-    if (placed && placedIndex !== -1) {
+    if (success && placedIndex !== -1) {
         setAppearingIndex(placedIndex);
         setTimeout(() => setAppearingIndex(null), 500);
-        return true;
     }
     
-    return placed;
+    return success;
   }, []);
 
   const handleGeneratorClick = (index: number) => {
@@ -351,10 +348,7 @@ export default function GameLayout() {
 
     for (let i = 0; i < multiplier; i++) {
         const itemToGenerateId = getRandomItemForMultiplier(multiplier, clickedItem.type);
-        const success = placeNewItem(itemToGenerateId, index);
-        if (!success) {
-            break; 
-        }
+        placeNewItem(itemToGenerateId, index);
     }
   };
   
@@ -513,5 +507,3 @@ export default function GameLayout() {
     </div>
   );
 }
-
-    
