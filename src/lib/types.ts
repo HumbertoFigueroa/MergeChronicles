@@ -21,5 +21,6 @@ export interface Order {
         itemId: string;
         quantity: number;
     }[];
+    minLevel: number;
     isCompletable?: boolean;
 }

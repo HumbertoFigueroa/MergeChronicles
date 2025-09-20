@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Gem, Zap, Gift, CreditCard, ShoppingBag } from 'lucide-react';
+import { Gem, Zap, CreditCard, ShoppingBag } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface ShopDialogProps {
@@ -18,7 +18,6 @@ interface ShopDialogProps {
   onOpenChange: (isOpen: boolean) => void;
   onPurchaseGems: (amount: number, price: string) => void;
   onAddEnergy: (amount: number) => void;
-  onGenerateItem: (itemId: string) => void;
   onSpendGems: (amount: number) => boolean;
   gems: number;
 }
@@ -54,7 +53,7 @@ const ShopItem = ({ title, description, icon, actionText, onAction, cost, disabl
     </Card>
 );
 
-const GemPurchaseItem = ({ gemsAmount, price, onPurchase }: { gemsAmount: number; price: string; onPurchase: (amount: number, price: string) => void; }) => (
+const GemPurchaseItem = ({ gemsAmount, price, onPurchase, disabled }: { gemsAmount: number; price: string; onPurchase: (amount: number, price: string) => void; disabled?: boolean; }) => (
     <Card className='text-center flex flex-col'>
         <CardHeader className='pb-2'>
              <div className='w-16 h-16 mx-auto flex items-center justify-center mb-2'>
@@ -65,7 +64,7 @@ const GemPurchaseItem = ({ gemsAmount, price, onPurchase }: { gemsAmount: number
         </CardHeader>
         <CardContent className='flex-grow' />
         <CardFooter>
-            <Button onClick={() => onPurchase(gemsAmount, price)} className='w-full font-bold text-lg'>
+            <Button onClick={() => onPurchase(gemsAmount, price)} className='w-full font-bold text-lg' disabled={disabled}>
                 {price}
             </Button>
         </CardFooter>
@@ -78,20 +77,13 @@ export default function ShopDialog({
   onOpenChange,
   onPurchaseGems,
   onAddEnergy,
-  onGenerateItem,
   onSpendGems,
   gems
 }: ShopDialogProps) {
 
   const handleBuyEnergy = () => {
-    if (onSpendGems(10)) {
-        onAddEnergy(50);
-    }
-  }
-
-  const handleBuyItem = () => {
-    if (onSpendGems(20)) {
-        onGenerateItem('clothing_1');
+    if (onSpendGems(30)) {
+        onAddEnergy(100);
     }
   }
     
@@ -115,27 +107,18 @@ export default function ShopDialog({
         <Tabs defaultValue="spend" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="spend"><Gem className="mr-2"/>Gastar Gemas</TabsTrigger>
-                <TabsTrigger value="buy"><CreditCard className="mr-2"/>Comprar Gemas</TabsTrigger>
+                <TabsTrigger value="buy" disabled><CreditCard className="mr-2"/>Comprar Gemas</TabsTrigger>
             </TabsList>
             <TabsContent value="spend" className="mt-4">
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <ShopItem 
                         title="Recarga de Energía"
-                        description="Obtén 50 de energía al instante."
+                        description="Obtén 100 de energía al instante."
                         icon={<Zap className='w-6 h-6 text-yellow-500'/>}
                         actionText="Comprar"
                         onAction={handleBuyEnergy}
-                        cost={10}
-                        disabled={gems < 10}
-                    />
-                     <ShopItem 
-                        title="Caja de Sastre"
-                        description="Recibe un objeto de Ropa de nivel 1."
-                        icon={<Gift className='w-6 h-6 text-red-500'/>}
-                        actionText="Comprar"
-                        onAction={handleBuyItem}
-                        cost={20}
-                        disabled={gems < 20}
+                        cost={30}
+                        disabled={gems < 30}
                     />
                 </div>
             </TabsContent>
@@ -147,11 +130,12 @@ export default function ShopDialog({
                             gemsAmount={pkg.gems}
                             price={pkg.price}
                             onPurchase={onPurchaseGems}
+                            disabled={true}
                         />
                     ))}
                 </div>
                  <p className="text-xs text-center text-muted-foreground pt-4">
-                    Las compras son procesadas de forma segura. Este es un entorno de simulación.
+                    Las compras de gemas están deshabilitadas temporalmente.
                 </p>
             </TabsContent>
         </Tabs>

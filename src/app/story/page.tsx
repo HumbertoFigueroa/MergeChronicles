@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
@@ -10,14 +10,39 @@ import { ArrowLeft, BookOpen, Gem, Sparkles, Lock } from 'lucide-react';
 import { LILY_STORY_CHAPTERS } from '@/lib/story-data';
 import GameBackground from '@/components/game/game-background';
 import { useToast } from '@/hooks/use-toast';
+import { useSearchParams, useRouter } from 'next/navigation';
 
 const UNLOCK_COST = 15;
 const TOTAL_MINI_STORIES = LILY_STORY_CHAPTERS.flatMap(c => c.stories).length;
 
 export default function StoryPage() {
-  const [unlockedMiniStories, setUnlockedMiniStories] = useState(10); // Start with chapter 1 unlocked
-  const [gems, setGems] = useState(150); // Placeholder for player gems
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  // Initialize state from URL or use defaults
+  const [unlockedMiniStories, setUnlockedMiniStories] = useState(() => {
+    const p = searchParams.get('unlocked');
+    return p ? parseInt(p, 10) : 1;
+  });
+  const [gems, setGems] = useState(() => {
+    const g = searchParams.get('gems');
+    return g ? parseInt(g, 10) : 25;
+  });
+  const [playerLevel, setPlayerLevel] = useState(() => {
+    const l = searchParams.get('level');
+    return l ? parseInt(l, 10) : 1;
+  });
+
   const { toast } = useToast();
+
+  // Effect to update URL when state changes
+  useEffect(() => {
+    const params = new URLSearchParams();
+    params.set('gems', gems.toString());
+    params.set('unlocked', unlockedMiniStories.toString());
+    params.set('level', playerLevel.toString());
+    router.replace(`/story?${params.toString()}`);
+  }, [unlockedMiniStories, gems, playerLevel, router]);
 
   const handleUnlockStory = () => {
     if (gems >= UNLOCK_COST) {
@@ -44,6 +69,19 @@ export default function StoryPage() {
     }
   };
 
+  const createGameLink = () => {
+    const params = new URLSearchParams();
+    params.set('gems', gems.toString());
+    params.set('unlocked', unlockedMiniStories.toString());
+    params.set('level', playerLevel.toString());
+    // Also pass XP and energy if they were passed to this page
+    const xp = searchParams.get('xp');
+    const energy = searchParams.get('energy');
+    if (xp) params.set('xp', xp);
+    if (energy) params.set('energy', energy);
+    return `/game?${params.toString()}`;
+  };
+
   let storyCounter = 0;
 
   return (
@@ -52,7 +90,7 @@ export default function StoryPage() {
         <div className="relative z-10 w-full max-w-4xl p-4 sm:p-8">
             <div className="absolute top-4 left-4 sm:top-8 sm:left-8">
                 <Button asChild variant="secondary" size="icon" className="h-12 w-12 rounded-full">
-                    <Link href="/game">
+                    <Link href={createGameLink()}>
                         <ArrowLeft />
                     </Link>
                 </Button>
@@ -109,8 +147,22 @@ export default function StoryPage() {
                 <div className="md:col-span-2 space-y-2">
                     <Accordion type="multiple" defaultValue={['chapter-1']} className="w-full">
                         {LILY_STORY_CHAPTERS.map((chapter, chapterIndex) => {
-                            const chapterBaseCount = chapterIndex * 10;
-                            const isChapterAccessible = unlockedMiniStories > chapterBaseCount;
+                            const isChapterUnlocked = playerLevel >= chapter.unlockLevel;
+
+                            if (!isChapterUnlocked) {
+                                return (
+                                     <AccordionItem value={`chapter-${chapter.chapter}`} key={chapter.chapter} disabled>
+                                        <AccordionTrigger className='font-headline text-2xl bg-card/50 px-4 rounded-lg text-muted-foreground/50'>
+                                            <Lock className='mr-2' />
+                                            Capítulo {chapter.chapter}: {chapter.title} (Nivel {chapter.unlockLevel})
+                                        </AccordionTrigger>
+                                        <AccordionContent>
+                                        </AccordionContent>
+                                    </AccordionItem>
+                                )
+                            }
+                            
+                            const chapterBaseCount = (chapter.chapter - 1) * 10;
                             
                             return (
                                 <AccordionItem value={`chapter-${chapter.chapter}`} key={chapter.chapter}>
@@ -120,8 +172,8 @@ export default function StoryPage() {
                                     <AccordionContent className='pt-2'>
                                         <div className="space-y-4 p-1">
                                             {chapter.stories.map((story, storyIndex) => {
-                                                const currentStoryIndex = chapterBaseCount + storyIndex + 1;
                                                 storyCounter++;
+                                                const currentStoryIndex = chapterBaseCount + storyIndex + 1;
                                                 if (currentStoryIndex > unlockedMiniStories) {
                                                     return (
                                                         <Card key={storyCounter} className="border-dashed flex flex-col items-center justify-center p-6 text-center bg-muted/30">

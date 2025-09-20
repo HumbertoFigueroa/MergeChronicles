@@ -8,6 +8,7 @@ import { ENERGY_REGEN_RATE } from './game-layout';
 interface PlayerStatsProps {
   level: number;
   xp: number;
+  xpNeeded: number;
   energy: number;
   maxEnergy: number;
   gems: number;
@@ -55,7 +56,7 @@ const StatDisplay = ({ value, icon, action }: { value: string | number, icon: Re
     </div>
 );
 
-const LevelDisplay = ({ level, xp }: { level: number, xp: number }) => {
+const LevelDisplay = ({ level, xp, xpNeeded }: { level: number, xp: number, xpNeeded: number }) => {
     return (
         <div className="relative flex items-center h-12 pr-4 bg-black/20 rounded-full shadow-inner border border-white/30 text-white">
             <div className="relative w-12 h-12 rounded-full border-2 border-yellow-300 overflow-hidden flex-shrink-0 bg-muted flex items-center justify-center">
@@ -63,7 +64,7 @@ const LevelDisplay = ({ level, xp }: { level: number, xp: number }) => {
             </div>
             <div className="flex flex-col ml-2">
                 <span className="text-sm font-bold leading-none">Level {level}</span>
-                <Progress value={xp} className="h-2 w-16 bg-white/30" />
+                <Progress value={(xp/xpNeeded) * 100} className="h-2 w-16 bg-white/30" />
             </div>
         </div>
     )
@@ -76,8 +77,8 @@ const EnergyTimer = ({ nextEnergyTime }: { nextEnergyTime: number }) => {
         const interval = setInterval(() => {
             const newTimeLeft = nextEnergyTime - Date.now();
             if (newTimeLeft <= 0) {
-                setTimeLeft(0);
-                clearInterval(interval);
+                // Timer will be reset by parent component when energy is gained
+                setTimeLeft(0); 
             } else {
                 setTimeLeft(newTimeLeft);
             }
@@ -101,37 +102,30 @@ const EnergyTimer = ({ nextEnergyTime }: { nextEnergyTime: number }) => {
 };
 
 
-export default function PlayerStats({ level, xp, energy, maxEnergy, gems, isMobile = false }: PlayerStatsProps) {
+export default function PlayerStats({ level, xp, xpNeeded, energy, maxEnergy, gems, isMobile = false }: PlayerStatsProps) {
     const energyPercentage = (energy / maxEnergy) * 100;
-    const [lastEnergyUpdateTime, setLastEnergyUpdateTime] = useState(Date.now());
     const [nextEnergyTime, setNextEnergyTime] = useState(0);
 
     useEffect(() => {
+        let timer: NodeJS.Timeout;
         if (energy < maxEnergy) {
-            const now = Date.now();
-            const timeSinceLastUpdate = now - lastEnergyUpdateTime;
-            const elapsedPeriods = Math.floor(timeSinceLastUpdate / ENERGY_REGEN_RATE);
-            const gainedEnergy = elapsedPeriods;
-
-            if (gainedEnergy > 0) {
-                // This logic is handled in GameLayout, this is just for timer sync
-            }
-
-            const timeOfLastTick = lastEnergyUpdateTime + elapsedPeriods * ENERGY_REGEN_RATE;
-            setNextEnergyTime(timeOfLastTick + ENERGY_REGEN_RATE);
-
+            const updateTimer = () => {
+                setNextEnergyTime(Date.now() + ENERGY_REGEN_RATE);
+            };
+            updateTimer(); // Set it immediately
+            timer = setInterval(updateTimer, ENERGY_REGEN_RATE);
         }
-    }, [energy, maxEnergy, lastEnergyUpdateTime]);
 
-    useEffect(() => {
-        setLastEnergyUpdateTime(Date.now());
-    }, [energy]);
+        return () => {
+            if (timer) clearInterval(timer);
+        };
+    }, [energy, maxEnergy]);
 
 
     if (isMobile) {
         return (
             <div className='flex flex-col items-start gap-2 w-full'>
-                <LevelDisplay level={level} xp={xp} />
+                <LevelDisplay level={level} xp={xp} xpNeeded={xpNeeded} />
                 <div className="flex gap-2 w-full">
                     <StatDisplay value={gems} icon={<GemIcon />} />
                     <div className="flex-grow flex flex-col">
@@ -157,7 +151,7 @@ export default function PlayerStats({ level, xp, energy, maxEnergy, gems, isMobi
 
     return (
         <div className='flex items-center justify-center gap-2 w-full'>
-            <LevelDisplay level={level} xp={xp} />
+            <LevelDisplay level={level} xp={xp} xpNeeded={xpNeeded} />
             <div className="flex items-center gap-2 bg-black/20 rounded-full p-1 h-10 shadow-inner border border-white/30 text-white">
                 <div className='w-8 h-8 flex items-center justify-center p-1.5'><GemIcon /></div>
                 <span className="text-lg font-bold drop-shadow-md pr-3">{gems}</span>

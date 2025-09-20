@@ -8,12 +8,14 @@ export interface MiniStory {
 export interface StoryChapter {
   chapter: number;
   title: string;
+  unlockLevel: number;
   stories: MiniStory[];
 }
 
 export const LILY_STORY_CHAPTERS: StoryChapter[] = [
   {
     chapter: 1,
+    unlockLevel: 1,
     title: "El Brillo Perdido",
     stories: [
       {
@@ -80,6 +82,7 @@ export const LILY_STORY_CHAPTERS: StoryChapter[] = [
   },
   {
     chapter: 2,
+    unlockLevel: 10,
     title: "La Semilla de Luz Estelar",
     stories: [
       {
@@ -146,6 +149,7 @@ export const LILY_STORY_CHAPTERS: StoryChapter[] = [
   },
   {
     chapter: 3,
+    unlockLevel: 20,
     title: "El Arroyo Melodioso",
     stories: [
       {
@@ -212,6 +216,7 @@ export const LILY_STORY_CHAPTERS: StoryChapter[] = [
   },
   {
     chapter: 4,
+    unlockLevel: 30,
     title: "El Secreto del Girasol",
     stories: [
       {
@@ -278,6 +283,7 @@ export const LILY_STORY_CHAPTERS: StoryChapter[] = [
   },
   {
     chapter: 5,
+    unlockLevel: 40,
     title: "El Bosque Susurrante",
     stories: [
       {
@@ -344,6 +350,7 @@ export const LILY_STORY_CHAPTERS: StoryChapter[] = [
   },
   {
     chapter: 6,
+    unlockLevel: 50,
     title: "El Lago de los Reflejos",
     stories: [
       {
@@ -410,6 +417,7 @@ export const LILY_STORY_CHAPTERS: StoryChapter[] = [
   },
   {
     chapter: 7,
+    unlockLevel: 60,
     title: "La Cueva de los Ecos",
     stories: [
       {
@@ -476,6 +484,7 @@ export const LILY_STORY_CHAPTERS: StoryChapter[] = [
   },
   {
     chapter: 8,
+    unlockLevel: 70,
     title: "La Cima de la Montaña",
     stories: [
       {
@@ -542,6 +551,7 @@ export const LILY_STORY_CHAPTERS: StoryChapter[] = [
   },
   {
     chapter: 9,
+    unlockLevel: 80,
     title: "La Creación de la Semilla",
     stories: [
       {
@@ -608,6 +618,7 @@ export const LILY_STORY_CHAPTERS: StoryChapter[] = [
   },
   {
     chapter: 10,
+    unlockLevel: 90,
     title: "Un Brillo Más Fuerte",
     stories: [
       {
