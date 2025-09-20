@@ -4,11 +4,9 @@ import React, { useState, useEffect, useCallback } from 'react';
 import GameHeader from './game-header';
 import CharacterDisplay from './character-display';
 import MergeBoard from './merge-board';
-import StoryPanel from './story-panel';
 import type { BoardSlot, Item, ItemType, Order } from '@/lib/types';
 import { ITEMS, MERGE_RULES, STORY_DIALOGUES, INITIAL_ORDERS } from '@/lib/game-data';
 import { useToast } from '@/hooks/use-toast';
-import { adaptStory } from '@/ai/flows/adaptive-story-telling';
 import { Button } from '../ui/button';
 import { Sparkles, Gift, ShoppingCart, ScrollText } from 'lucide-react';
 import RewardedAd from './ad-placeholder';
@@ -19,6 +17,7 @@ import GameBackground from './game-background';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { User, Scroll } from 'lucide-react';
+import Link from 'next/link';
 
 const BOARD_SIZE = 70; // 7 columns x 10 rows
 const ENERGY_REGEN_RATE = 1.5 * 60 * 1000; // 1.5 minutes in ms
@@ -39,14 +38,8 @@ export default function GameLayout() {
     shoe: null,
     accessory: null,
   });
-  const [storyProgress, setStoryProgress] = useState('Chapter 1: The Beginning');
-  const [dialogue, setDialogue] = useState<string | null>(
-    'Welcome to Fusion Historia! Start by merging two identical items.'
-  );
-  const [playerUnderstanding, setPlayerUnderstanding] = useState(10);
   const [mergingIndex, setMergingIndex] = useState<number | null>(null);
   const [appearingIndex, setAppearingIndex] = useState<number | null>(null);
-  const [isThinking, setIsThinking] = useState(false);
   const [energy, setEnergy] = useState(80);
   const [gems, setGems] = useState(25);
   const [orders, setOrders] = useState<Order[]>(INITIAL_ORDERS.slice(0, 1));
@@ -67,41 +60,6 @@ export default function GameLayout() {
 
     return () => clearInterval(timer);
   }, []);
-
-  const handleStoryCheck = useCallback(async () => {
-    setIsThinking(true);
-    setDialogue(null);
-
-    const inventory = board
-      .map(slot => slot.item?.name)
-      .filter(Boolean)
-      .join(', ');
-      
-    const storyToTry = STORY_DIALOGUES[Math.floor(Math.random() * STORY_DIALOGUES.length)];
-
-    try {
-        const result = await adaptStory({
-            playerInventory: inventory || 'empty',
-            playerStoryProgress: storyProgress,
-            playerUnderstandingScore: playerUnderstanding,
-            dialogueSnippet: storyToTry,
-        });
-
-        if (result.shouldPresentDialogue) {
-            setDialogue(result.reasoning + " " + storyToTry);
-            setPlayerUnderstanding(p => Math.max(0, p - 10)); // reduce understanding so we don't spam
-        }
-    } catch (error) {
-        console.error("AI flow error:", error);
-        toast({
-            variant: "destructive",
-            title: "AI Error",
-            description: "Could not fetch the next story part."
-        });
-    } finally {
-        setIsThinking(false);
-    }
-  }, [board, storyProgress, playerUnderstanding, toast]);
 
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>, index: number) => {
     e.dataTransfer.setData('sourceIndex', index.toString());
@@ -146,7 +104,6 @@ export default function GameLayout() {
         setTimeout(() => setMergingIndex(null), 400);
 
         setBoard(newBoard);
-        setPlayerUnderstanding(p => Math.min(100, p + 5));
 
         toast({
           title: "Merge Successful!",
@@ -160,12 +117,6 @@ export default function GameLayout() {
         if (newItem.level > (equippedItems[newItem.type]?.level ?? 0)) {
           setEquippedItems(prev => ({...prev, [newItem.type]: newItem}));
         }
-
-        // Check for story progression
-        if(Math.random() < 0.3) { // 30% chance to check story on merge
-            handleStoryCheck();
-        }
-
       }
     } else {
       // Not mergeable, swap items
@@ -253,7 +204,12 @@ export default function GameLayout() {
       {/* Desktop Layout */}
       <main className="relative z-10 pt-16 hidden lg:grid grid-cols-1 lg:grid-cols-12 gap-4 p-4 flex-grow">
         <div className="lg:col-span-3 flex flex-col gap-4">
-          <StoryPanel storyProgress={storyProgress} dialogue={dialogue} isThinking={isThinking} />
+            <Button asChild className="h-24 text-xl animate-pulse">
+                <Link href="/story">
+                    <Sparkles className="mr-2" />
+                    Continue Story
+                </Link>
+            </Button>
           <OrderDisplay orders={orders} onCompleteOrder={handleCompleteOrder} />
           <RewardedAd onReward={() => generateNewItem()} />
         </div>
@@ -284,16 +240,11 @@ export default function GameLayout() {
         <div className='w-full flex items-start justify-between gap-4 px-2'>
           <PlayerStats energy={energy} maxEnergy={MAX_ENERGY} gems={gems} />
           <div className="flex gap-2">
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="secondary" size="icon" className='h-12 w-12 rounded-2xl'>
+            <Button asChild variant="secondary" size="icon" className='h-12 w-12 rounded-2xl'>
+                <Link href="/story">
                     <ScrollText className="h-6 w-6" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="left" className="w-[85vw] max-w-md">
-                <StoryPanel storyProgress={storyProgress} dialogue={dialogue} isThinking={isThinking} />
-              </SheetContent>
-            </Sheet>
+                </Link>
+            </Button>
             <Button variant="secondary" size="icon" className='h-12 w-12 rounded-2xl' onClick={() => setIsShopOpen(true)}>
                 <ShoppingCart className="h-6 w-6" />
             </Button>
