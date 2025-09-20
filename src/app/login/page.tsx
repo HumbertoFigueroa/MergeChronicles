@@ -28,13 +28,16 @@ export default function LoginPage() {
         src={bgImage}
         alt="Fashion sketches"
         fill
-        className="object-cover z-0 brightness-[.2]"
+        className="object-cover z-0 brightness-50"
+        data-ai-hint="fashion studio"
       />
-      <Card className="w-full max-w-md z-10 shadow-2xl">
+      <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent z-10"></div>
+      
+      <Card className="w-full max-w-md z-20 shadow-2xl">
         <CardHeader className="text-center">
-          <CardTitle className="font-headline text-3xl">Welcome Back</CardTitle>
+          <CardTitle className="font-headline text-4xl">¡Te damos la bienvenida!</CardTitle>
           <CardDescription>
-            Log in or create an account to save your progress.
+            Inicia sesión para guardar tu progreso en la moda.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -42,36 +45,36 @@ export default function LoginPage() {
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input id="email" type="email" placeholder="you@example.com" className="pl-10" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input id="email" type="email" placeholder="tu@email.com" className="pl-10" />
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">Contraseña</Label>
               <div className="relative">
-                <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input id="password" type="password" placeholder="••••••••" className="pl-10" />
               </div>
             </div>
-            <Button asChild className="w-full font-bold">
-                <Link href="/game">Continue with Email</Link>
+            <Button asChild className="w-full font-bold" size="lg">
+                <Link href="/game">Continuar con Email</Link>
             </Button>
           </form>
           <div className="my-4 flex items-center">
             <Separator className="flex-1" />
-            <span className="mx-4 text-xs text-muted-foreground">OR</span>
+            <span className="mx-4 text-xs text-muted-foreground">O</span>
             <Separator className="flex-1" />
           </div>
           <Button variant="outline" className="w-full font-bold">
             <Link href="/game" className='flex items-center justify-center w-full'>
                 <GoogleIcon />
-                Continue with Google
+                Continuar con Google
             </Link>
           </Button>
-          <p className="mt-4 text-center text-xs text-muted-foreground">
-            By continuing, you agree to our{' '}
-            <Link href="#" className="underline">
-              Terms of Service
+          <p className="mt-6 text-center text-xs text-muted-foreground">
+            Al continuar, aceptas nuestros{' '}
+            <Link href="#" className="underline hover:text-primary">
+              Términos de Servicio
             </Link>
             .
           </p>
@@ -80,3 +83,5 @@ export default function LoginPage() {
     </div>
   );
 }
+
+    
