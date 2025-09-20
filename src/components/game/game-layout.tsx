@@ -10,12 +10,15 @@ import { ITEMS, MERGE_RULES, STORY_DIALOGUES, INITIAL_ORDERS } from '@/lib/game-
 import { useToast } from '@/hooks/use-toast';
 import { adaptStory } from '@/ai/flows/adaptive-story-telling';
 import { Button } from '../ui/button';
-import { Sparkles, Gift, ShoppingCart } from 'lucide-react';
+import { Sparkles, Gift, ShoppingCart, ScrollText } from 'lucide-react';
 import RewardedAd from './ad-placeholder';
 import PlayerStats from './player-stats';
 import OrderDisplay from './order-display';
 import ShopDialog from './shop-dialog';
 import GameBackground from './game-background';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { User, Scroll } from 'lucide-react';
 
 const BOARD_SIZE = 70; // 7 columns x 10 rows
 const ENERGY_REGEN_RATE = 1.5 * 60 * 1000; // 1.5 minutes in ms
@@ -226,7 +229,7 @@ export default function GameLayout() {
   }
 
   return (
-    <div className="relative min-h-screen w-full">
+    <div className="relative min-h-screen w-full flex flex-col">
       <GameBackground />
       <GameHeader />
       <ShopDialog 
@@ -238,7 +241,8 @@ export default function GameLayout() {
         onSpendGems={spendGems}
         gems={gems}
       />
-      <main className="relative z-10 pt-16 min-h-screen grid grid-cols-1 lg:grid-cols-12 gap-4 p-4">
+      {/* Desktop Layout */}
+      <main className="relative z-10 pt-16 hidden lg:grid grid-cols-1 lg:grid-cols-12 gap-4 p-4 flex-grow">
         <div className="lg:col-span-3 flex flex-col gap-4">
           <StoryPanel storyProgress={storyProgress} dialogue={dialogue} isThinking={isThinking} />
           <OrderDisplay orders={orders} onCompleteOrder={handleCompleteOrder} />
@@ -267,6 +271,65 @@ export default function GameLayout() {
 
         <div className="lg:col-span-3">
           <CharacterDisplay equippedItems={equippedItems} />
+        </div>
+      </main>
+
+      {/* Mobile Layout */}
+      <main className="relative z-10 pt-16 flex flex-col lg:hidden flex-grow p-2 sm:p-4">
+        <div className='w-full flex items-start justify-between gap-4 px-2'>
+          <PlayerStats energy={energy} maxEnergy={MAX_ENERGY} gems={gems} />
+          <div className="flex gap-2">
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="secondary" size="icon" className='h-12 w-12 rounded-2xl'>
+                    <ScrollText className="h-6 w-6" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-[85vw] max-w-md">
+                <StoryPanel storyProgress={storyProgress} dialogue={dialogue} isThinking={isThinking} />
+              </SheetContent>
+            </Sheet>
+            <Button variant="secondary" size="icon" className='h-12 w-12 rounded-2xl' onClick={() => setIsShopOpen(true)}>
+                <ShoppingCart className="h-6 w-6" />
+            </Button>
+          </div>
+        </div>
+
+        <div className="flex-grow flex flex-col items-center justify-center gap-2 my-2">
+          <MergeBoard
+            board={board}
+            onDragStart={handleDragStart}
+            onDrop={handleDrop}
+            mergingIndex={mergingIndex}
+            appearingIndex={appearingIndex}
+          />
+        </div>
+
+        <div className="pb-20">
+             <RewardedAd onReward={() => generateNewItem()} />
+        </div>
+        
+        <div className="fixed bottom-0 left-0 right-0 z-50 p-2 bg-background/80 backdrop-blur-sm border-t">
+            <Tabs defaultValue="orders" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="orders" className="py-3 text-sm">
+                        <Scroll className="mr-2" />
+                        Orders
+                    </TabsTrigger>
+                    <TabsTrigger value="character" className="py-3 text-sm">
+                        <User className="mr-2" />
+                        Character
+                    </TabsTrigger>
+                </TabsList>
+                <div className="fixed bottom-[80px] left-0 right-0 max-h-[40vh] overflow-y-auto p-4 bg-background/95">
+                    <TabsContent value="orders">
+                        <OrderDisplay orders={orders} onCompleteOrder={handleCompleteOrder} />
+                    </TabsContent>
+                    <TabsContent value="character">
+                         <CharacterDisplay equippedItems={equippedItems} />
+                    </TabsContent>
+                </div>
+            </Tabs>
         </div>
       </main>
     </div>
