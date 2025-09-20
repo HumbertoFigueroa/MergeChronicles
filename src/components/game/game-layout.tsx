@@ -10,10 +10,11 @@ import { ITEMS, MERGE_RULES, STORY_DIALOGUES, INITIAL_ORDERS } from '@/lib/game-
 import { useToast } from '@/hooks/use-toast';
 import { adaptStory } from '@/ai/flows/adaptive-story-telling';
 import { Button } from '../ui/button';
-import { Sparkles, Gift } from 'lucide-react';
+import { Sparkles, Gift, ShoppingCart } from 'lucide-react';
 import RewardedAd from './ad-placeholder';
 import PlayerStats from './player-stats';
 import OrderDisplay from './order-display';
+import ShopDialog from './shop-dialog';
 
 const BOARD_SIZE = 70; // 7 columns x 10 rows
 const ENERGY_REGEN_RATE = 1.5 * 60 * 1000; // 1.5 minutes in ms
@@ -45,6 +46,7 @@ export default function GameLayout() {
   const [energy, setEnergy] = useState(80);
   const [gems, setGems] = useState(25);
   const [orders, setOrders] = useState<Order[]>(INITIAL_ORDERS.slice(0, 1));
+  const [isShopOpen, setIsShopOpen] = useState(false);
 
   const { toast } = useToast();
 
@@ -168,16 +170,22 @@ export default function GameLayout() {
     }
   };
   
-  const generateNewItem = useCallback(() => {
+  const generateNewItem = useCallback((itemId?: string) => {
     const emptySlotIndex = board.findIndex(slot => !slot.item);
     if (emptySlotIndex !== -1) {
         const newBoard = [...board];
-        const randomItemKey = Object.keys(ITEMS).filter(k => ITEMS[k].level === 1)[Math.floor(Math.random() * 3)];
-        newBoard[emptySlotIndex] = {...newBoard[emptySlotIndex], item: ITEMS[randomItemKey]};
+        const itemToGenerate = itemId ? ITEMS[itemId] : ITEMS[Object.keys(ITEMS).filter(k => ITEMS[k].level === 1)[Math.floor(Math.random() * 3)]];
+        
+        if (!itemToGenerate) {
+            toast({ variant: "destructive", title: "Error", description: "Could not find the item to generate." });
+            return;
+        }
+
+        newBoard[emptySlotIndex] = {...newBoard[emptySlotIndex], item: itemToGenerate};
         setBoard(newBoard);
         setAppearingIndex(emptySlotIndex);
         setTimeout(() => setAppearingIndex(null), 500);
-        toast({ title: "A new item has arrived!", description: `You received a ${ITEMS[randomItemKey].name}.` });
+        toast({ title: "A new item has arrived!", description: `You received a ${itemToGenerate.name}.` });
     } else {
         toast({ variant: "destructive", title: "Board is full!", description: "Clear some space to get new items." });
     }
@@ -197,19 +205,52 @@ export default function GameLayout() {
     setOrders([INITIAL_ORDERS[nextOrderIndex]]);
   };
 
+  const addGems = (amount: number) => {
+    setGems(g => g + amount);
+    toast({ title: "Gems Added!", description: `You received ${amount} gems.` });
+  };
+
+  const addEnergy = (amount: number) => {
+    setEnergy(e => Math.min(MAX_ENERGY, e + amount));
+     toast({ title: "Energy Added!", description: `You received ${amount} energy.` });
+  };
+  
+  const spendGems = (amount: number): boolean => {
+    if (gems >= amount) {
+        setGems(g => g - amount);
+        return true;
+    }
+    toast({ variant: 'destructive', title: 'Not enough gems!', description: 'You need more gems to make this purchase.' });
+    return false;
+  }
 
   return (
     <>
       <GameHeader />
+      <ShopDialog 
+        isOpen={isShopOpen} 
+        onOpenChange={setIsShopOpen}
+        onAddGems={addGems}
+        onAddEnergy={addEnergy}
+        onGenerateItem={generateNewItem}
+        onSpendGems={spendGems}
+        gems={gems}
+      />
       <main className="pt-16 min-h-screen grid grid-cols-1 lg:grid-cols-12 gap-4 p-4">
         <div className="lg:col-span-3 flex flex-col gap-4">
           <StoryPanel storyProgress={storyProgress} dialogue={dialogue} isThinking={isThinking} />
           <OrderDisplay orders={orders} onCompleteOrder={handleCompleteOrder} />
-          <RewardedAd onReward={generateNewItem} />
+          <RewardedAd onReward={() => generateNewItem()} />
         </div>
 
         <div className="lg:col-span-6 flex flex-col items-center justify-center gap-4">
-          <PlayerStats energy={energy} maxEnergy={MAX_ENERGY} gems={gems} />
+          <div className='w-full max-w-2xl flex items-center justify-between gap-4'>
+            <PlayerStats energy={energy} maxEnergy={MAX_ENERGY} gems={gems} />
+            <Button variant="outline" size="lg" onClick={() => setIsShopOpen(true)}>
+                <ShoppingCart className="mr-2 h-5 w-5" />
+                Tienda
+            </Button>
+          </div>
           <MergeBoard
             board={board}
             onDragStart={handleDragStart}
@@ -217,7 +258,7 @@ export default function GameLayout() {
             mergingIndex={mergingIndex}
             appearingIndex={appearingIndex}
           />
-          <Button onClick={generateNewItem}>
+          <Button onClick={() => generateNewItem()}>
               <Gift className="mr-2 h-4 w-4" />
               Get New Item
           </Button>
