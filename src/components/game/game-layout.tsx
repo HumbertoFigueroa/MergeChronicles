@@ -138,7 +138,7 @@ export default function GameLayout() {
         newBoard[sourceIndex] = { ...sourceSlot, item: null };
 
         setMergingIndex(targetIndex);
-        setTimeout(() => setMergingIndex(null), 300);
+        setTimeout(() => setMergingIndex(null), 400);
 
         setBoard(newBoard);
         setPlayerUnderstanding(p => Math.min(100, p + 5));
@@ -244,11 +244,10 @@ export default function GameLayout() {
         </div>
 
         <div className="lg:col-span-6 flex flex-col items-center justify-center gap-4">
-          <div className='w-full max-w-2xl flex items-center justify-between gap-4'>
+          <div className='w-full max-w-lg flex items-center justify-between gap-4 px-2'>
             <PlayerStats energy={energy} maxEnergy={MAX_ENERGY} gems={gems} />
-            <Button variant="outline" size="lg" onClick={() => setIsShopOpen(true)}>
-                <ShoppingCart className="mr-2 h-5 w-5" />
-                Tienda
+            <Button variant="secondary" size="icon" className='h-14 w-14 rounded-2xl' onClick={() => setIsShopOpen(true)}>
+                <ShoppingCart className="h-7 w-7" />
             </Button>
           </div>
           <MergeBoard
@@ -258,8 +257,8 @@ export default function GameLayout() {
             mergingIndex={mergingIndex}
             appearingIndex={appearingIndex}
           />
-          <Button onClick={() => generateNewItem()}>
-              <Gift className="mr-2 h-4 w-4" />
+          <Button onClick={() => generateNewItem()} size="lg">
+              <Gift className="mr-2 h-6 w-6" />
               Get New Item
           </Button>
         </div>
