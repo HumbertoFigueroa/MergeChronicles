@@ -1,3 +1,95 @@
+
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "hero_1",
+      "description": "Hero image for the landing page",
+      "imageUrl": "https://picsum.photos/seed/hero1/1920/1080",
+      "imageHint": "romantic fashion"
+    },
+    {
+      "id": "login_bg",
+      "description": "Background for the login page",
+      "imageUrl": "https://picsum.photos/seed/loginbg/1920/1080",
+      "imageHint": "fashion sketch"
+    },
+    {
+      "id": "character_avatar",
+      "description": "Default character avatar",
+      "imageUrl": "https://picsum.photos/seed/avatar1/400/600",
+      "imageHint": "fashion model"
+    },
+    {
+      "id": "sandal_1",
+      "description": "Level 1 Shoe: Plain Sandal",
+      "imageUrl": "https://picsum.photos/seed/sandal1/200/200",
+      "imageHint": "simple sandal"
+    },
+    {
+      "id": "heels_2",
+      "description": "Level 2 Shoe: Strappy Heels",
+      "imageUrl": "https://picsum.photos/seed/heels2/200/200",
+      "imageHint": "strappy heels"
+    },
+    {
+      "id": "pump_3",
+      "description": "Level 3 Shoe: Elegant Pump",
+      "imageUrl": "https://picsum.photos/seed/pump3/200/200",
+      "imageHint": "elegant pump"
+    },
+    {
+      "id": "boot_4",
+      "description": "Level 4 Shoe: Designer Boot",
+      "imageUrl": "https://picsum.photos/seed/boot4/200/200",
+      "imageHint": "designer boot"
+    },
+    {
+      "id": "fabric_1",
+      "description": "Level 1 Dress: Fabric Scraps",
+      "imageUrl": "https://picsum.photos/seed/fabric1/200/200",
+      "imageHint": "fabric scraps"
+    },
+    {
+      "id": "tunic_2",
+      "description": "Level 2 Dress: Simple Tunic",
+      "imageUrl": "https://picsum.photos/seed/tunic2/200/200",
+      "imageHint": "simple tunic"
+    },
+    {
+      "id": "cocktail_3",
+      "description": "Level 3 Dress: Cocktail Dress",
+      "imageUrl": "https://picsum.photos/seed/cocktail3/200/200",
+      "imageHint": "cocktail dress"
+    },
+    {
+      "id": "gown_4",
+      "description": "Level 4 Dress: Evening Gown",
+      "imageUrl": "https://picsum.photos/seed/gown4/200/200",
+      "imageHint": "evening gown"
+    },
+    {
+      "id": "gem_1",
+      "description": "Level 1 Accessory: Small Gem",
+      "imageUrl": "https://picsum.photos/seed/gem1/200/200",
+      "imageHint": "small gem"
+    },
+    {
+      "id": "necklace_2",
+      "description": "Level 2 Accessory: Gemstone Necklace",
+      "imageUrl": "https://picsum.photos/seed/necklace2/200/200",
+      "imageHint": "gemstone necklace"
+    },
+    {
+      "id": "tiara_3",
+      "description": "Level 3 Accessory: Diamond Tiara",
+      "imageUrl": "https://picsum.photos/seed/tiara3/200/200",
+      "imageHint": "diamond tiara"
+    },
+    {
+      "id": "crown_4",
+      "description": "Level 4 Accessory: Royal Crown",
+      "imageUrl": "https://picsum.photos/seed/crown4/200/200",
+      "imageHint": "royal crown"
+    }
+  ]
 }
