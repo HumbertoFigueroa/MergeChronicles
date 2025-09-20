@@ -5,43 +5,46 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, BookOpen, Gem, Sparkles } from 'lucide-react';
-import { LILY_STORY } from '@/lib/story-data';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { ArrowLeft, BookOpen, Gem, Sparkles, Lock } from 'lucide-react';
+import { LILY_STORY_CHAPTERS } from '@/lib/story-data';
 import GameBackground from '@/components/game/game-background';
 import { useToast } from '@/hooks/use-toast';
 
 const UNLOCK_COST = 15;
+const TOTAL_MINI_STORIES = LILY_STORY_CHAPTERS.flatMap(c => c.stories).length;
 
 export default function StoryPage() {
-  // This state would eventually come from a player data store (like Firestore)
-  const [unlockedChapters, setUnlockedChapters] = useState(1);
-  const [gems, setGems] = useState(25); // Placeholder for player gems
+  const [unlockedMiniStories, setUnlockedMiniStories] = useState(10); // Start with chapter 1 unlocked
+  const [gems, setGems] = useState(150); // Placeholder for player gems
   const { toast } = useToast();
 
-  const handleUnlockChapter = () => {
+  const handleUnlockStory = () => {
     if (gems >= UNLOCK_COST) {
-      if (unlockedChapters < LILY_STORY.length) {
+      if (unlockedMiniStories < TOTAL_MINI_STORIES) {
         setGems(g => g - UNLOCK_COST);
-        setUnlockedChapters(u => u + 1);
+        setUnlockedMiniStories(u => u + 1);
         toast({
-          title: "¡Capítulo Desbloqueado!",
+          title: "¡Nuevo Recuerdo Desbloqueado!",
           description: "Has revelado una nueva parte de la historia."
         });
       } else {
         toast({
           variant: "default",
           title: "La historia hasta ahora...",
-          description: "Has desbloqueado todos los capítulos disponibles."
+          description: "Has desbloqueado todos los recuerdos disponibles."
         });
       }
     } else {
       toast({
         variant: "destructive",
         title: "¡No hay suficientes gemas!",
-        description: `Necesitas ${UNLOCK_COST} gemas para desbloquear el siguiente capítulo.`
+        description: `Necesitas ${UNLOCK_COST} gemas para desbloquear el siguiente recuerdo.`
       });
     }
   };
+
+  let storyCounter = 0;
 
   return (
     <div className="relative min-h-screen w-full flex flex-col items-center">
@@ -60,7 +63,7 @@ export default function StoryPage() {
                     <BookOpen className="h-12 w-12" />
                     Tu Aventura
                 </h1>
-                <p className="mt-2 text-primary-foreground/90 drop-shadow-md">Desvela los secretos de tu mundo, capítulo a capítulo.</p>
+                <p className="mt-2 text-primary-foreground/90 drop-shadow-md">Desvela los secretos de tu mundo, recuerdo a recuerdo.</p>
             </header>
 
             <main className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -77,21 +80,21 @@ export default function StoryPage() {
                                 />
                             </div>
                             <CardTitle className="font-headline text-2xl">La Historia de Lily</CardTitle>
-                            <CardDescription>Capítulos Revelados: {unlockedChapters} / {LILY_STORY.length}</CardDescription>
+                            <CardDescription>Recuerdos: {unlockedMiniStories} / {TOTAL_MINI_STORIES}</CardDescription>
                         </CardHeader>
                         <CardContent>
                              <Button 
-                                onClick={handleUnlockChapter} 
+                                onClick={handleUnlockStory} 
                                 className="w-full text-lg" 
                                 size="lg"
-                                disabled={unlockedChapters >= LILY_STORY.length}
+                                disabled={unlockedMiniStories >= TOTAL_MINI_STORIES}
                             >
-                                {unlockedChapters >= LILY_STORY.length ? (
+                                {unlockedMiniStories >= TOTAL_MINI_STORIES ? (
                                     "Fin de la Historia (por ahora)"
                                 ) : (
                                     <>
                                         <Sparkles className="mr-2" />
-                                        Desbloquear Capítulo
+                                        Desbloquear Recuerdo
                                         <Gem className="ml-2" /> {UNLOCK_COST}
                                     </>
                                 )}
@@ -103,35 +106,59 @@ export default function StoryPage() {
                     </Card>
                 </div>
 
-                <div className="md:col-span-2 space-y-4">
-                    {LILY_STORY.slice(0, unlockedChapters).map((chapter) => (
-                        <Card key={chapter.chapter} className="shadow-lg">
-                            <CardHeader>
-                                <CardTitle className="text-xl flex items-center justify-between">
-                                    <span>Capítulo {chapter.chapter}</span>
-                                    <span className="text-2xl">{chapter.emojis}</span>
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="flex flex-col sm:flex-row gap-4">
-                               <div className="relative w-full sm:w-32 h-32 rounded-lg overflow-hidden flex-shrink-0 bg-muted">
-                                    <Image
-                                        src={`https://picsum.photos/seed/story${chapter.chapter}/200/200`}
-                                        alt={`Ilustración para el capítulo ${chapter.chapter}`}
-                                        fill
-                                        className="object-cover"
-                                        data-ai-hint={chapter.illustration.split(' ').slice(0, 2).join(' ')}
-                                    />
-                                </div>
-                                <p className="text-card-foreground/90">{chapter.text}</p>
-                            </CardContent>
-                        </Card>
-                    ))}
-                     {unlockedChapters < LILY_STORY.length && (
-                        <Card className="border-dashed flex flex-col items-center justify-center p-8 text-center bg-muted/30">
-                            <CardTitle className="text-xl mb-2">Capítulo Bloqueado</CardTitle>
-                            <CardDescription>El siguiente capítulo de tu historia espera ser descubierto. ¡Usa tus gemas para revelar qué sucede a continuación!</CardDescription>
-                        </Card>
-                     )}
+                <div className="md:col-span-2 space-y-2">
+                    <Accordion type="multiple" defaultValue={['chapter-1']} className="w-full">
+                        {LILY_STORY_CHAPTERS.map((chapter, chapterIndex) => {
+                            const chapterBaseCount = chapterIndex * 10;
+                            const isChapterAccessible = unlockedMiniStories > chapterBaseCount;
+                            
+                            return (
+                                <AccordionItem value={`chapter-${chapter.chapter}`} key={chapter.chapter}>
+                                    <AccordionTrigger className='font-headline text-2xl bg-card/80 px-4 rounded-lg'>
+                                        Capítulo {chapter.chapter}: {chapter.title}
+                                    </AccordionTrigger>
+                                    <AccordionContent className='pt-2'>
+                                        <div className="space-y-4 p-1">
+                                            {chapter.stories.map((story, storyIndex) => {
+                                                const currentStoryIndex = chapterBaseCount + storyIndex + 1;
+                                                storyCounter++;
+                                                if (currentStoryIndex > unlockedMiniStories) {
+                                                    return (
+                                                        <Card key={storyCounter} className="border-dashed flex flex-col items-center justify-center p-6 text-center bg-muted/30">
+                                                            <Lock className='w-8 h-8 text-muted-foreground mb-2' />
+                                                            <CardTitle className="text-lg">Recuerdo Bloqueado</CardTitle>
+                                                        </Card>
+                                                    );
+                                                }
+                                                return (
+                                                    <Card key={storyCounter} className="shadow-lg">
+                                                        <CardHeader>
+                                                            <CardTitle className="text-base flex items-center justify-between">
+                                                                <span>Recuerdo {story.part}</span>
+                                                                <span className="text-xl">{story.emojis}</span>
+                                                            </CardTitle>
+                                                        </CardHeader>
+                                                        <CardContent className="flex flex-col sm:flex-row gap-4">
+                                                            <div className="relative w-full sm:w-24 h-24 rounded-lg overflow-hidden flex-shrink-0 bg-muted">
+                                                                <Image
+                                                                    src={`https://picsum.photos/seed/story${storyCounter}/200/200`}
+                                                                    alt={`Ilustración para el recuerdo ${storyCounter}`}
+                                                                    fill
+                                                                    className="object-cover"
+                                                                    data-ai-hint={story.illustration.split(' ').slice(0, 2).join(' ')}
+                                                                />
+                                                            </div>
+                                                            <p className="text-card-foreground/90 text-sm">{story.text}</p>
+                                                        </CardContent>
+                                                    </Card>
+                                                );
+                                            })}
+                                        </div>
+                                    </AccordionContent>
+                                </AccordionItem>
+                            );
+                        })}
+                    </Accordion>
                 </div>
             </main>
         </div>
