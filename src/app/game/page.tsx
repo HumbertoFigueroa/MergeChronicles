@@ -13,5 +13,5 @@ export default function GamePage() {
     unlockedStoryParts: 1,
   });
 
-  return <GameLayout gameState={gameState} setGameState={setGameState} />;
+  return <GameLayout />;
 }
