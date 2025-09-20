@@ -2,6 +2,7 @@ import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
 import type { Item } from '@/lib/types';
 import { cn } from '@/lib/utils';
+import { Sparkles } from 'lucide-react';
 
 interface MergeItemProps {
   item: Item;

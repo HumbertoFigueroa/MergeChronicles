@@ -8,7 +8,7 @@ import type { BoardSlot, Item, ItemType, Order } from '@/lib/types';
 import { ITEMS, MERGE_RULES, STORY_DIALOGUES, INITIAL_ORDERS } from '@/lib/game-data';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '../ui/button';
-import { Sparkles, Gift, ShoppingCart, ScrollText } from 'lucide-react';
+import { Gift, ShoppingCart, ScrollText, BookOpen } from 'lucide-react';
 import RewardedAd from './ad-placeholder';
 import PlayerStats from './player-stats';
 import OrderDisplay from './order-display';
@@ -109,7 +109,7 @@ export default function GameLayout() {
           title: "Merge Successful!",
           description: (
             <div className="flex items-center">
-              <Sparkles className="mr-2 h-4 w-4 text-primary" /> You created a {newItem.name}!
+              <BookOpen className="mr-2 h-4 w-4 text-primary" /> You created a {newItem.name}!
             </div>
           ),
         });
@@ -204,10 +204,10 @@ export default function GameLayout() {
       {/* Desktop Layout */}
       <main className="relative z-10 pt-16 hidden lg:grid grid-cols-1 lg:grid-cols-12 gap-4 p-4 flex-grow">
         <div className="lg:col-span-3 flex flex-col gap-4">
-            <Button asChild className="h-24 text-xl animate-pulse">
-                <Link href="/story">
-                    <Sparkles className="mr-2" />
-                    Continue Story
+            <Button asChild size="lg" className="h-20 text-lg animate-pulse">
+                <Link href="/story" className='flex-col'>
+                    <BookOpen className="w-8 h-8 mb-1" />
+                    Story
                 </Link>
             </Button>
           <OrderDisplay orders={orders} onCompleteOrder={handleCompleteOrder} />
