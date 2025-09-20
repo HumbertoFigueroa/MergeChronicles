@@ -51,6 +51,7 @@ export default function GameLayout() {
   const [gems, setGems] = useState(25);
   const [orders, setOrders] = useState<Order[]>(INITIAL_ORDERS.slice(0, 1));
   const [isShopOpen, setIsShopOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<string | undefined>(undefined);
 
   const { toast } = useToast();
 
@@ -227,6 +228,14 @@ export default function GameLayout() {
     toast({ variant: 'destructive', title: 'Not enough gems!', description: 'You need more gems to make this purchase.' });
     return false;
   }
+  
+  const handleTabChange = (value: string) => {
+    if (activeTab === value) {
+        setActiveTab(undefined);
+    } else {
+        setActiveTab(value);
+    }
+  }
 
   return (
     <div className="relative min-h-screen w-full flex flex-col">
@@ -263,10 +272,6 @@ export default function GameLayout() {
             mergingIndex={mergingIndex}
             appearingIndex={appearingIndex}
           />
-          <Button onClick={() => generateNewItem()} size="lg">
-              <Gift className="mr-2 h-6 w-6" />
-              Get New Item
-          </Button>
         </div>
 
         <div className="lg:col-span-3">
@@ -305,12 +310,12 @@ export default function GameLayout() {
           />
         </div>
 
-        <div className="pb-20">
+        <div className={activeTab ? 'pb-0' : 'pb-20'}>
              <RewardedAd onReward={() => generateNewItem()} />
         </div>
         
         <div className="fixed bottom-0 left-0 right-0 z-50 p-2 bg-background/80 backdrop-blur-sm border-t">
-            <Tabs defaultValue="orders" className="w-full">
+            <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
                 <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="orders" className="py-3 text-sm">
                         <Scroll className="mr-2" />
@@ -321,14 +326,16 @@ export default function GameLayout() {
                         Character
                     </TabsTrigger>
                 </TabsList>
-                <div className="fixed bottom-[80px] left-0 right-0 max-h-[40vh] overflow-y-auto p-4 bg-background/95">
-                    <TabsContent value="orders">
-                        <OrderDisplay orders={orders} onCompleteOrder={handleCompleteOrder} />
-                    </TabsContent>
-                    <TabsContent value="character">
-                         <CharacterDisplay equippedItems={equippedItems} />
-                    </TabsContent>
-                </div>
+                {activeTab && (
+                    <div className="fixed bottom-[72px] left-0 right-0 max-h-[45vh] overflow-y-auto p-4 bg-background/95 animate-accordion-down">
+                        <TabsContent value="orders">
+                            <OrderDisplay orders={orders} onCompleteOrder={handleCompleteOrder} />
+                        </TabsContent>
+                        <TabsContent value="character">
+                             <CharacterDisplay equippedItems={equippedItems} />
+                        </TabsContent>
+                    </div>
+                )}
             </Tabs>
         </div>
       </main>
