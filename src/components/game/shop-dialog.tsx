@@ -130,7 +130,7 @@ export default function ShopDialog({
                     />
                      <ShopItem 
                         title="Caja de Sastre"
-                        description="Recibe un generador de tela nivel 1."
+                        description="Recibe un objeto de Ropa de nivel 1."
                         icon={<Gift className='w-6 h-6 text-red-500'/>}
                         actionText="Comprar"
                         onAction={handleBuyItem}

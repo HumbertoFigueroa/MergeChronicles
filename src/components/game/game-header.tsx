@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { LogIn, User, Settings, LogOut } from 'lucide-react';
+import { User, Settings, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -15,7 +15,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 export default function GameHeader() {
-  const loggedIn = false; // Placeholder for auth state
+  const loggedIn = true; // Always show player avatar on game screen
 
   return (
     <header className="fixed top-0 left-0 right-0 z-40 bg-card/80 backdrop-blur-sm border-b">
@@ -61,14 +61,7 @@ export default function GameHeader() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-          ) : (
-            <Button asChild variant="ghost">
-              <Link href="/login">
-                <LogIn className="mr-2 h-4 w-4" />
-                Login / Sign Up
-              </Link>
-            </Button>
-          )}
+          ) : null}
         </div>
       </div>
     </header>

@@ -7,16 +7,18 @@ import type { BoardSlot, Item, ItemType, Order } from '@/lib/types';
 import { ITEMS, MERGE_RULES, INITIAL_ORDERS } from '@/lib/game-data';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '../ui/button';
-import { ShoppingCart, BookOpen } from 'lucide-react';
+import { ShoppingCart, BookOpen, PlusCircle } from 'lucide-react';
 import PlayerStats from './player-stats';
 import OrderDisplay from './order-display';
 import ShopDialog from './shop-dialog';
 import GameBackground from './game-background';
 import Link from 'next/link';
+import GeneratorControls from './generator-controls';
 
 const BOARD_SIZE = 56; // 7 columns x 8 rows
 const ENERGY_REGEN_RATE = 1.5 * 60 * 1000; // 1.5 minutes in ms
 const MAX_ENERGY = 100;
+const ENERGY_COST_PER_ITEM = 10;
 
 const initialBoard: BoardSlot[] = Array.from({ length: BOARD_SIZE }, (_, i) => ({
   id: `cell-${i}`,
@@ -34,6 +36,9 @@ export default function GameLayout() {
   const [gems, setGems] = useState(25);
   const [orders, setOrders] = useState<Order[]>(INITIAL_ORDERS);
   const [isShopOpen, setIsShopOpen] = useState(false);
+  
+  const [selectedGenerator, setSelectedGenerator] = useState<ItemType>('animals');
+  const [multiplier, setMultiplier] = useState<1 | 2 | 4>(1);
 
   const { toast } = useToast();
 
@@ -65,7 +70,6 @@ export default function GameLayout() {
     const newBoard = [...board];
     const sourceSlot = newBoard[sourceIndex];
     
-    // Fix: Add a check to ensure sourceSlot is not undefined
     if (!sourceSlot || sourceIndex === targetIndex) return;
     
     const targetSlot = newBoard[targetIndex];
@@ -111,28 +115,59 @@ export default function GameLayout() {
     }
   };
   
-  const generateNewItem = useCallback((itemId?: string) => {
-    const emptySlotIndex = board.findIndex(slot => !slot.item);
-    if (emptySlotIndex !== -1) {
-        const newBoard = [...board];
-        const itemToGenerate = itemId 
-          ? ITEMS[itemId] 
-          : ITEMS[Object.keys(ITEMS).filter(k => ITEMS[k].level === 1)[Math.floor(Math.random() * 5)]];
-        
-        if (!itemToGenerate) {
-            toast({ variant: "destructive", title: "Error", description: "No se pudo encontrar el ítem a generar." });
-            return;
+  const placeNewItem = useCallback((itemId: string) => {
+    let placed = false;
+    setBoard(currentBoard => {
+        const emptySlotIndex = currentBoard.findIndex(slot => !slot.item);
+        if (emptySlotIndex !== -1) {
+            const newBoard = [...currentBoard];
+            const itemToGenerate = ITEMS[itemId];
+            
+            if (itemToGenerate) {
+                newBoard[emptySlotIndex] = {...newBoard[emptySlotIndex], item: itemToGenerate};
+                setAppearingIndex(emptySlotIndex);
+                setTimeout(() => setAppearingIndex(null), 500);
+                placed = true;
+                return newBoard;
+            }
         }
+        return currentBoard;
+    });
+    return placed;
+  }, []);
 
-        newBoard[emptySlotIndex] = {...newBoard[emptySlotIndex], item: itemToGenerate};
-        setBoard(newBoard);
-        setAppearingIndex(emptySlotIndex);
-        setTimeout(() => setAppearingIndex(null), 500);
-        toast({ title: "¡Ha llegado un nuevo objeto!", description: `Recibiste un ${itemToGenerate.name}.` });
-    } else {
-        toast({ variant: "destructive", title: "¡Tablero lleno!", description: "Libera algo de espacio para obtener nuevos objetos." });
+  const handleGenerateItem = () => {
+    const totalCost = ENERGY_COST_PER_ITEM * multiplier;
+    if (energy < totalCost) {
+      toast({ variant: "destructive", title: "¡No hay suficiente energía!", description: `Necesitas ${totalCost} de energía.` });
+      return;
     }
-  }, [board, toast]);
+
+    let itemsGenerated = 0;
+    for (let i = 0; i < multiplier; i++) {
+        const success = placeNewItem(`${selectedGenerator}_1`);
+        if (success) {
+            itemsGenerated++;
+        } else {
+            toast({ variant: "destructive", title: "¡Tablero lleno!", description: "Libera algo de espacio." });
+            break; 
+        }
+    }
+
+    if (itemsGenerated > 0) {
+        setEnergy(e => e - (ENERGY_COST_PER_ITEM * itemsGenerated));
+        const item = ITEMS[`${selectedGenerator}_1`];
+        toast({ title: "¡Nuevos objetos generados!", description: `Creaste ${itemsGenerated} x ${item.name} ${item.emoji}` });
+    }
+  };
+
+  const cycleMultiplier = () => {
+    setMultiplier(m => {
+        if (m === 1) return 2;
+        if (m === 2) return 4;
+        return 1;
+    });
+  };
   
   const handleCompleteOrder = (completedOrder: Order) => {
     setOrders(prevOrders => prevOrders.filter(order => order.id !== completedOrder.id));
@@ -144,17 +179,12 @@ export default function GameLayout() {
   };
 
   const purchaseGems = (amount: number, price: string) => {
-    // In a real app, this would trigger the payment flow.
-    // Here we simulate getting a payment token and then confirming the purchase.
     toast({
         title: "Procesando compra...",
         description: `Iniciando pago seguro para ${amount} gemas.`
     });
 
-    // Simulate a delay for payment processing
     setTimeout(() => {
-        // This is where you would handle the response from your payment provider using a token.
-        // For now, we'll just add the gems directly.
         setGems(g => g + amount);
         toast({
           title: "¡Compra Exitosa!",
@@ -186,14 +216,12 @@ export default function GameLayout() {
         onOpenChange={setIsShopOpen}
         onPurchaseGems={purchaseGems}
         onAddEnergy={addEnergy}
-        onGenerateItem={generateNewItem}
+        onGenerateItem={placeNewItem}
         onSpendGems={spendGems}
         gems={gems}
       />
-      {/* Main content area */}
       <main className="relative z-10 pt-16 flex flex-col lg:grid lg:grid-cols-12 gap-4 p-2 sm:p-4 flex-grow overflow-hidden">
         
-        {/* Left Column (Desktop) / Hidden on Mobile */}
         <div className="hidden lg:flex lg:col-span-3 flex-col gap-4">
             <Button asChild size="lg" className="h-20 text-lg">
                 <Link href="/story" className='flex-col'>
@@ -204,10 +232,8 @@ export default function GameLayout() {
           <OrderDisplay orders={orders} onCompleteOrder={handleCompleteOrder} />
         </div>
 
-        {/* Center/Main Column */}
         <div className="lg:col-span-9 flex flex-col items-center gap-4 flex-grow min-h-0">
           
-          {/* Top Bar with Stats & Shop */}
           <div className='w-full flex items-center justify-center gap-2 px-1 flex-shrink-0'>
             <PlayerStats level={57} xp={75} energy={energy} maxEnergy={MAX_ENERGY} gems={gems} />
             <Button variant="secondary" size="icon" className='h-14 w-14 rounded-2xl flex-shrink-0' onClick={() => setIsShopOpen(true)}>
@@ -215,12 +241,10 @@ export default function GameLayout() {
             </Button>
           </div>
 
-          {/* Mobile Orders Display */}
           <div className='lg:hidden w-full my-2'>
               <OrderDisplay orders={orders} onCompleteOrder={handleCompleteOrder} />
           </div>
           
-          {/* Merge Board */}
           <div className="flex-grow flex flex-col items-center justify-center w-full min-h-0">
             <MergeBoard
               board={board}
@@ -229,6 +253,19 @@ export default function GameLayout() {
               mergingIndex={mergingIndex}
               appearingIndex={appearingIndex}
             />
+          </div>
+          
+          <div className='flex flex-col items-center gap-2 w-full max-w-2xl mx-auto'>
+            <GeneratorControls
+                selectedType={selectedGenerator}
+                onTypeSelect={setSelectedGenerator}
+                multiplier={multiplier}
+                onMultiplierChange={cycleMultiplier}
+            />
+            <Button size="lg" className="w-full" onClick={handleGenerateItem}>
+                <PlusCircle className="mr-2"/>
+                Añadir Ítem ({ENERGY_COST_PER_ITEM * multiplier} Energía)
+            </Button>
           </div>
         </div>
       </main>
