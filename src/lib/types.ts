@@ -20,7 +20,4 @@ export interface Order {
         itemId: string;
         quantity: number;
     }[];
-    reward: {
-        gems: number;
-    };
 }

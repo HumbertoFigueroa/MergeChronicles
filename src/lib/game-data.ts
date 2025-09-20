@@ -106,22 +106,18 @@ export const INITIAL_ORDERS: Order[] = [
     {
         id: 'order-1',
         customerEmoji: '👩‍🌾',
-        requiredItems: [{ itemId: 'animals_2', quantity: 1 }],
-        reward: { gems: 5 }
+        requiredItems: [{ itemId: 'animals_3', quantity: 1 }],
     },
     {
         id: 'order-2',
         customerEmoji: '👨‍🎨',
-        requiredItems: [{ itemId: 'clothing_3', quantity: 2 }],
-        reward: { gems: 10 }
+        requiredItems: [{ itemId: 'clothing_2', quantity: 1 }],
     },
     {
         id: 'order-3',
         customerEmoji: '👸',
         requiredItems: [
-            { itemId: 'food_4', quantity: 1 },
-            { itemId: 'animals_4', quantity: 1 }
+            { itemId: 'food_5', quantity: 1 },
         ],
-        reward: { gems: 25 }
     }
 ];

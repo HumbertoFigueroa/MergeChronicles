@@ -19,6 +19,7 @@ const BOARD_SIZE = 56; // 7 columns x 8 rows
 const ENERGY_REGEN_RATE = 1.5 * 60 * 1000; // 1.5 minutes in ms
 const MAX_ENERGY = 100;
 const ENERGY_COST_PER_ITEM = 10;
+const GEMS_PER_LEVEL = 5;
 
 const initialBoard: BoardSlot[] = Array.from({ length: BOARD_SIZE }, (_, i) => ({
   id: `cell-${i}`,
@@ -169,14 +170,54 @@ export default function GameLayout() {
     });
   };
   
-  const handleCompleteOrder = (completedOrder: Order) => {
-    setOrders(prevOrders => prevOrders.filter(order => order.id !== completedOrder.id));
-    setGems(g => g + completedOrder.reward.gems);
-    toast({
-      title: "¡Orden Completada!",
-      description: `¡Ganaste ${completedOrder.reward.gems} gemas!`,
-    });
-  };
+  useEffect(() => {
+    const checkOrders = () => {
+      const boardItems = new Map<string, number>();
+      board.forEach((slot, index) => {
+        if (slot.item) {
+          boardItems.set(slot.item.id, index);
+        }
+      });
+
+      let ordersCompleted = false;
+      const updatedOrders = [...orders];
+      const completedOrderIds = new Set<string>();
+
+      updatedOrders.forEach(order => {
+        if (completedOrderIds.has(order.id)) return;
+
+        const requiredItem = order.requiredItems[0]; // Assuming one item per order for now
+        if (boardItems.has(requiredItem.itemId)) {
+          const itemIndex = boardItems.get(requiredItem.itemId)!;
+          const deliveredItem = board[itemIndex].item!;
+          const reward = deliveredItem.level * GEMS_PER_LEVEL;
+
+          setGems(g => g + reward);
+          setBoard(b => {
+            const newBoard = [...b];
+            newBoard[itemIndex] = { ...newBoard[itemIndex], item: null };
+            return newBoard;
+          });
+          
+          toast({
+            title: "¡Orden Completada!",
+            description: `¡Entregaste un ${deliveredItem.name} y ganaste ${reward} gemas!`,
+          });
+          
+          completedOrderIds.add(order.id);
+          ordersCompleted = true;
+        }
+      });
+
+      if (ordersCompleted) {
+        setOrders(currentOrders => currentOrders.filter(o => !completedOrderIds.has(o.id)));
+      }
+    };
+
+    checkOrders();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [board]);
+
 
   const purchaseGems = (amount: number, price: string) => {
     toast({
@@ -229,7 +270,7 @@ export default function GameLayout() {
                     Historia
                 </Link>
             </Button>
-          <OrderDisplay orders={orders} onCompleteOrder={handleCompleteOrder} />
+          <OrderDisplay orders={orders} />
         </div>
 
         <div className="lg:col-span-9 flex flex-col items-center gap-4 flex-grow min-h-0">
@@ -242,7 +283,7 @@ export default function GameLayout() {
           </div>
 
           <div className='lg:hidden w-full my-2'>
-              <OrderDisplay orders={orders} onCompleteOrder={handleCompleteOrder} />
+              <OrderDisplay orders={orders} />
           </div>
           
           <div className="flex-grow flex flex-col items-center justify-center w-full min-h-0">
@@ -255,17 +296,24 @@ export default function GameLayout() {
             />
           </div>
           
-          <div className='flex flex-col items-center gap-2 w-full max-w-2xl mx-auto'>
+          <div className='flex items-center justify-between gap-4 w-full max-w-2xl mx-auto'>
             <GeneratorControls
                 selectedType={selectedGenerator}
                 onTypeSelect={setSelectedGenerator}
-                multiplier={multiplier}
-                onMultiplierChange={cycleMultiplier}
             />
-            <Button size="lg" className="w-full" onClick={handleGenerateItem}>
-                <PlusCircle className="mr-2"/>
-                Añadir Ítem ({ENERGY_COST_PER_ITEM * multiplier} Energía)
-            </Button>
+            <div className='flex items-center gap-2'>
+                <Button
+                    variant="outline"
+                    onClick={cycleMultiplier}
+                    className="w-20 font-bold text-lg"
+                >
+                    x{multiplier}
+                </Button>
+                <Button size="lg" className="w-full" onClick={handleGenerateItem}>
+                    <PlusCircle className="mr-2"/>
+                    Añadir Ítem ({ENERGY_COST_PER_ITEM * multiplier})
+                </Button>
+            </div>
           </div>
         </div>
       </main>
