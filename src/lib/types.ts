@@ -20,4 +20,5 @@ export interface Order {
         itemId: string;
         quantity: number;
     }[];
+    isCompletable?: boolean;
 }

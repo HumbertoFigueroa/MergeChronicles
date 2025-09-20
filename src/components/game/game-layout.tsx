@@ -169,54 +169,43 @@ export default function GameLayout() {
     });
   };
   
+  const handleDeliverOrder = (orderId: string) => {
+    const orderToDeliver = orders.find(o => o.id === orderId && o.isCompletable);
+    if (!orderToDeliver) return;
+
+    const requiredItemId = orderToDeliver.requiredItems[0].itemId;
+    const itemIndexOnBoard = board.findIndex(slot => slot.item?.id === requiredItemId);
+
+    if (itemIndexOnBoard !== -1) {
+      const deliveredItem = board[itemIndexOnBoard].item!;
+      const reward = deliveredItem.level * GEMS_PER_LEVEL;
+
+      setGems(g => g + reward);
+      setBoard(b => {
+        const newBoard = [...b];
+        newBoard[itemIndexOnBoard] = { ...newBoard[itemIndexOnBoard], item: null };
+        return newBoard;
+      });
+
+      setOrders(currentOrders => currentOrders.filter(o => o.id !== orderId));
+      
+      toast({
+        title: "¡Orden Completada!",
+        description: `¡Entregaste un ${deliveredItem.name} y ganaste ${reward} gemas!`,
+      });
+    }
+  };
+
   useEffect(() => {
-    const checkOrders = () => {
-      const boardItems = new Map<string, number>();
-      board.forEach((slot, index) => {
-        if (slot.item) {
-          boardItems.set(slot.item.id, index);
-        }
-      });
-
-      let ordersCompleted = false;
-      const updatedOrders = [...orders];
-      const completedOrderIds = new Set<string>();
-
-      updatedOrders.forEach(order => {
-        if (completedOrderIds.has(order.id)) return;
-
-        const requiredItem = order.requiredItems[0]; // Assuming one item per order for now
-        if (boardItems.has(requiredItem.itemId)) {
-          const itemIndex = boardItems.get(requiredItem.itemId)!;
-          const deliveredItem = board[itemIndex].item!;
-          const reward = deliveredItem.level * GEMS_PER_LEVEL;
-
-          setGems(g => g + reward);
-          setBoard(b => {
-            const newBoard = [...b];
-            newBoard[itemIndex] = { ...newBoard[itemIndex], item: null };
-            return newBoard;
-          });
-          
-          toast({
-            title: "¡Orden Completada!",
-            description: `¡Entregaste un ${deliveredItem.name} y ganaste ${reward} gemas!`,
-          });
-          
-          completedOrderIds.add(order.id);
-          ordersCompleted = true;
-        }
-      });
-
-      if (ordersCompleted) {
-        setOrders(currentOrders => currentOrders.filter(o => !completedOrderIds.has(o.id)));
-      }
-    };
-
-    checkOrders();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    const boardItemIds = new Set(board.map(slot => slot.item?.id).filter(Boolean));
+    
+    setOrders(currentOrders => 
+      currentOrders.map(order => {
+        const isCompletable = order.requiredItems.every(req => boardItemIds.has(req.itemId));
+        return { ...order, isCompletable };
+      })
+    );
   }, [board]);
-
 
   const purchaseGems = (amount: number, price: string) => {
     toast({
@@ -260,7 +249,7 @@ export default function GameLayout() {
         onSpendGems={spendGems}
         gems={gems}
       />
-      <main className="relative z-10 pt-4 flex flex-col lg:grid lg:grid-cols-12 gap-4 p-2 sm:p-4 flex-grow overflow-hidden">
+      <main className="relative z-10 pt-4 flex flex-col lg:flex-row gap-4 p-2 sm:p-4 flex-grow overflow-hidden">
         
         <div className="hidden lg:flex lg:col-span-3 flex-col gap-4">
             <Button asChild size="lg" className="h-20 text-lg">
@@ -269,10 +258,9 @@ export default function GameLayout() {
                     Historia
                 </Link>
             </Button>
-          <OrderDisplay orders={orders} />
         </div>
 
-        <div className="lg:col-span-9 flex flex-col items-center gap-4 flex-grow min-h-0">
+        <div className="flex flex-col items-center gap-4 flex-grow min-h-0 w-full lg:col-span-9">
           
           <div className='w-full flex items-center justify-center gap-2 px-1 flex-shrink-0'>
             <PlayerStats level={57} xp={75} energy={energy} maxEnergy={MAX_ENERGY} gems={gems} />
@@ -281,8 +269,8 @@ export default function GameLayout() {
             </Button>
           </div>
 
-          <div className='lg:hidden w-full my-2'>
-              <OrderDisplay orders={orders} />
+          <div className='w-full my-2'>
+              <OrderDisplay orders={orders} onDeliverOrder={handleDeliverOrder} />
           </div>
           
           <div className="flex-grow flex flex-col items-center justify-center w-full min-h-0">
