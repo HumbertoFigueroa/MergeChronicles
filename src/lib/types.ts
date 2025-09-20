@@ -1,4 +1,4 @@
-export type ItemType = 'shoe' | 'dress' | 'accessory';
+export type ItemType = 'jewelry' | 'makeup' | 'shoes' | 'clothing' | 'bags';
 
 export interface Item {
   id: string;

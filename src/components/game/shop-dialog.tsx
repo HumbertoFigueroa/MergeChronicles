@@ -131,7 +131,7 @@ export default function ShopDialog({
 
   const handleBuyItem = () => {
     if (onSpendGems(20)) {
-        onGenerateItem('fabric_1');
+        onGenerateItem('clothing_1');
     }
   }
     

@@ -27,16 +27,18 @@ const initialBoard: BoardSlot[] = Array.from({ length: BOARD_SIZE }, (_, i) => (
   id: `cell-${i}`,
   item: null,
 }));
-initialBoard[0] = { ...initialBoard[0], item: ITEMS['sandal_1'] };
-initialBoard[1] = { ...initialBoard[1], item: ITEMS['sandal_1'] };
-initialBoard[2] = { ...initialBoard[2], item: ITEMS['fabric_1'] };
+initialBoard[0] = { ...initialBoard[0], item: ITEMS['shoes_1'] };
+initialBoard[1] = { ...initialBoard[1], item: ITEMS['shoes_1'] };
+initialBoard[2] = { ...initialBoard[2], item: ITEMS['clothing_1'] };
 
 export default function GameLayout() {
   const [board, setBoard] = useState<BoardSlot[]>(initialBoard);
-  const [equippedItems, setEquippedItems] = useState<Record<ItemType, Item | null>>({
-    dress: null,
-    shoe: null,
-    accessory: null,
+  const [equippedItems, setEquippedItems] = useState<Partial<Record<ItemType, Item | null>>>({
+    clothing: null,
+    shoes: null,
+    jewelry: null,
+    makeup: null,
+    bags: null,
   });
   const [mergingIndex, setMergingIndex] = useState<number | null>(null);
   const [appearingIndex, setAppearingIndex] = useState<number | null>(null);
@@ -114,7 +116,8 @@ export default function GameLayout() {
           ),
         });
         
-        if (newItem.level > (equippedItems[newItem.type]?.level ?? 0)) {
+        const currentEquipped = equippedItems[newItem.type];
+        if (!currentEquipped || newItem.level > currentEquipped.level) {
           setEquippedItems(prev => ({...prev, [newItem.type]: newItem}));
         }
       }
@@ -130,7 +133,9 @@ export default function GameLayout() {
     const emptySlotIndex = board.findIndex(slot => !slot.item);
     if (emptySlotIndex !== -1) {
         const newBoard = [...board];
-        const itemToGenerate = itemId ? ITEMS[itemId] : ITEMS[Object.keys(ITEMS).filter(k => ITEMS[k].level === 1)[Math.floor(Math.random() * 3)]];
+        const itemToGenerate = itemId 
+          ? ITEMS[itemId] 
+          : ITEMS[Object.keys(ITEMS).filter(k => ITEMS[k].level === 1)[Math.floor(Math.random() * 5)]];
         
         if (!itemToGenerate) {
             toast({ variant: "destructive", title: "Error", description: "Could not find the item to generate." });
