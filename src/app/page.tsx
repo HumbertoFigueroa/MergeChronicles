@@ -1,6 +1,17 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
+import { Mail } from 'lucide-react';
 
 const GoogleIcon = () => (
     <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
@@ -8,29 +19,61 @@ const GoogleIcon = () => (
     </svg>
 );
 
-export default function Home() {
+export default function HomePage() {
+  const bgImage = "https://picsum.photos/seed/login_bg/1200/800";
   return (
-    <main className="relative min-h-screen w-full flex flex-col items-center justify-center p-4 overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-200 via-purple-200 to-pink-200">
-         <div className="absolute inset-0 bg-[url('/grid.svg')] bg-repeat opacity-5"></div>
-      </div>
-
-      <div className="relative z-20 flex flex-col items-center text-center text-gray-800">
-        <div className="bg-white/50 backdrop-blur-sm p-8 rounded-2xl shadow-2xl border">
-          <h1 className="font-headline text-5xl md:text-7xl lg:text-8xl font-bold drop-shadow-lg text-primary">
-            Emoji Fusion
-          </h1>
-          <p className="mt-4 max-w-2xl text-lg md:text-xl text-foreground/80 drop-shadow-md">
-            Combina emojis, cumple pedidos y descubre nuevos objetos. ¡Tu aventura de fusión te espera!
-          </p>
-          <Button asChild size="lg" className="mt-8 text-lg font-bold">
-            <Link href="/login" className='flex items-center justify-center'>
-              <GoogleIcon />
-              Empezar a Jugar
+    <div className="relative flex min-h-screen items-center justify-center p-4">
+      <Image
+        src={bgImage}
+        alt="Fashion sketches"
+        fill
+        className="object-cover z-0 brightness-50"
+        data-ai-hint="fashion studio"
+      />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent z-10"></div>
+      
+      <Card className="w-full max-w-md z-20 shadow-2xl">
+        <CardHeader className="text-center">
+          <CardTitle className="font-headline text-4xl">¡Te damos la bienvenida!</CardTitle>
+          <CardDescription>
+            Inicia sesión para guardar tu progreso en la moda.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+           <Button variant="outline" className="w-full font-bold" size="lg">
+            <Link href="/game" className='flex items-center justify-center w-full'>
+                <GoogleIcon />
+                Continuar con Google
             </Link>
           </Button>
-        </div>
-      </div>
-    </main>
+          <div className="my-4 flex items-center">
+            <Separator className="flex-1" />
+            <span className="mx-4 text-xs text-muted-foreground">O</span>
+            <Separator className="flex-1" />
+          </div>
+          <form className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input id="email" type="email" placeholder="tu@email.com" className="pl-10" />
+              </div>
+            </div>
+            
+            <Button asChild className="w-full font-bold">
+                <Link href="/game">Continuar con Email</Link>
+            </Button>
+          </form>
+          
+          <p className="mt-6 text-center text-xs text-muted-foreground">
+            Al continuar, aceptas nuestros{' '}
+            <Link href="#" className="underline hover:text-primary">
+              Términos de Servicio
+            </Link>
+            .
+          </p>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
