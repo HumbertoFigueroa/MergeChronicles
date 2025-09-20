@@ -1,3 +1,4 @@
+
 import type { Item, ItemType, Order } from './types';
 
 const createItem = (id: string, name: string, level: number, type: ItemType, emoji: string, isGenerator: boolean = false): Item => ({
@@ -144,3 +145,5 @@ export const ALL_ORDERS: Order[] = [
   { id: 'order_5_7', customerEmoji: '🧥', requiredItems: [{ itemId: 'clothing_12', quantity: 1 }], minLevel: 21 },
   { id: 'order_5_8', customerEmoji: '🍑', requiredItems: [{ itemId: 'food_12', quantity: 1 }], minLevel: 22 },
 ];
+
+    
