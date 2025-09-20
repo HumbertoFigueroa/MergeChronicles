@@ -77,6 +77,31 @@ const getXpNeededForLevel = (level: number): number => {
     return currentXp;
 };
 
+const getRandomItemForMultiplier = (multiplier: Multiplier, itemType: ItemType): string => {
+    const rand = Math.random();
+
+    if (multiplier === 1) { // 80% Lvl 1, 20% Lvl 2
+        const level = rand < 0.8 ? 1 : 2;
+        return `${itemType}_${level}`;
+    }
+    
+    if (multiplier === 2) { // 10% Lvl 1, 70% Lvl 2, 20% Lvl 3
+        if (rand < 0.1) return `${itemType}_1`;
+        if (rand < 0.8) return `${itemType}_2`; // 0.1 + 0.7
+        return `${itemType}_3`;
+    }
+
+    if (multiplier === 4) { // 10% Lvl 3, 50% Lvl 4, 25% Lvl 5, 15% Lvl 6
+        if (rand < 0.1) return `${itemType}_3`;
+        if (rand < 0.6) return `${itemType}_4`; // 0.1 + 0.5
+        if (rand < 0.85) return `${itemType}_5`; // 0.6 + 0.25
+        return `${itemType}_6`;
+    }
+
+    // Default fallback to level 1, should not be reached
+    return `${itemType}_1`;
+};
+
 
 export default function GameLayout() {
   const router = useRouter();
@@ -290,13 +315,16 @@ export default function GameLayout() {
 
   const handleGeneratorClick = (index: number) => {
     const clickedItem = board[index].item;
-    if (!clickedItem || !clickedItem.isGenerator || clickedItem.type !== selectedGeneratorType) {
+    if (!clickedItem || !clickedItem.isGenerator) {
         if(clickedItem?.isGenerator) {
             setSelectedGeneratorType(clickedItem.type);
             toast({ title: `Generador de ${clickedItem.type} seleccionado.`});
         }
         return;
     };
+    
+    // Always select the generator type when clicked
+    setSelectedGeneratorType(clickedItem.type);
 
     const totalEnergyCost = ENERGY_COST_PER_ITEM * multiplier;
     if (energy < totalEnergyCost) {
@@ -304,12 +332,16 @@ export default function GameLayout() {
       return;
     }
 
-    const itemToGenerateId = `${clickedItem.type}_1`;
     let itemsPlaced = 0;
-    for (let i = 0; i < multiplier; i++) {
+    let totalItemsToGenerate = multiplier;
+    let generatedItemsCount: Record<string, number> = {};
+
+    for (let i = 0; i < totalItemsToGenerate; i++) {
+        const itemToGenerateId = getRandomItemForMultiplier(multiplier, clickedItem.type);
         const success = placeNewItem(itemToGenerateId, index);
         if (success) {
             itemsPlaced++;
+            generatedItemsCount[itemToGenerateId] = (generatedItemsCount[itemToGenerateId] || 0) + 1;
         } else {
             toast({ variant: "destructive", title: "¡Tablero lleno!", description: "Libera algo de espacio." });
             break; 
@@ -318,8 +350,13 @@ export default function GameLayout() {
 
     if (itemsPlaced > 0) {
       setEnergy(e => e - (ENERGY_COST_PER_ITEM * itemsPlaced));
-      const generatedItem = ITEMS[itemToGenerateId];
-      toast({ title: "¡Nuevos objetos generados!", description: `Creaste ${itemsPlaced} x ${generatedItem.name} ${generatedItem.emoji}` });
+      
+      const toastDescription = Object.entries(generatedItemsCount).map(([itemId, count]) => {
+          const item = ITEMS[itemId];
+          return `${count} x ${item.name} ${item.emoji}`;
+      }).join(', ');
+
+      toast({ title: "¡Nuevos objetos generados!", description: toastDescription });
     }
   };
   
@@ -478,3 +515,5 @@ export default function GameLayout() {
     </div>
   );
 }
+
+    
