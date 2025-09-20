@@ -41,40 +41,43 @@ type Multiplier = 1 | 2 | 4;
 
 const getXpNeededForLevel = (level: number): number => {
     if (level === 1) return 10;
-    let xpNeeded = 10;
-    for (let i = 2; i <= level; i++) {
-        if (i <= 2) { // level 2 needs 12
-            xpNeeded = 12;
-        } else if (i <= 10) { // level 3-10
+    
+    let xpNeeded = 10; // XP for level 1 to reach 2
+    let currentLevel = 1;
+
+    while (currentLevel < level) {
+        currentLevel++;
+        if (currentLevel <= 2) {
+             xpNeeded = 12;
+        } else if (currentLevel <= 10) {
             xpNeeded += 2;
-        } else if (i <= 30) { // level 11-30
+        } else if (currentLevel <= 30) {
             xpNeeded += 3;
-        } else if (i <= 50) { // level 31-50
+        } else if (currentLevel <= 50) {
             xpNeeded += 4;
-        } else { // level 51+
+        } else {
             xpNeeded += 5;
         }
     }
-    // For level 3, the loop runs for i=2 (xp=12), then i=3 (xp=12+2=14), which is correct.
-    // The value we return is for reaching the *next* level.
-    if (level === 2) return 12;
     
-    let currentXp = 10;
-    let nextLevelXp = 12;
+    // The loop calculates the XP needed to REACH the next level, so we need a special calculation for returning the value for the current level.
+    if (level === 2) return 12;
 
-    for (let l = 2; l <= level; l++) {
-        currentXp = nextLevelXp;
-        if (l < 10) {
-            nextLevelXp += 2;
-        } else if (l < 30) {
-            nextLevelXp += 3;
-        } else if (l < 50) {
-            nextLevelXp += 4;
-        } else {
-            nextLevelXp += 5;
-        }
+    let baseXP = 10;
+    let nextLevelXP = 12;
+    for (let l = 2; l < level; l++) {
+      baseXP = nextLevelXP;
+      if (l < 10) {
+        nextLevelXP += 2;
+      } else if (l < 30) {
+        nextLevelXP += 3;
+      } else if (l < 50) {
+        nextLevelXP += 4;
+      } else {
+        nextLevelXP += 5;
+      }
     }
-    return currentXp;
+    return level > 1 ? nextLevelXP : 10;
 };
 
 const getRandomItemForMultiplier = (multiplier: Multiplier, itemType: ItemType): string => {
@@ -258,6 +261,7 @@ export default function GameLayout() {
         setTimeout(() => setMergingIndex(null), 400);
 
         setBoard(newBoard);
+        addXp(sourceItem.level); // Grant XP on merge
 
         toast({
           title: "¡Fusión Exitosa!",
@@ -277,39 +281,46 @@ export default function GameLayout() {
   
   const placeNewItem = useCallback((itemId: string, preferredIndex?: number): boolean => {
     let placed = false;
+    let placedIndex = -1;
     setBoard(currentBoard => {
       const newBoard = [...currentBoard];
       const itemToPlace = ITEMS[itemId];
       if (!itemToPlace) return currentBoard;
 
+      // Try to place in adjacent empty slots first
       if (preferredIndex !== undefined) {
         const adjacentIndexes = [
-            preferredIndex - 7, preferredIndex + 7,
-            (preferredIndex % 7 !== 0) ? preferredIndex - 1 : -1, 
-            ((preferredIndex + 1) % 7 !== 0) ? preferredIndex + 1 : -1,
+            preferredIndex - 7, preferredIndex + 7, // Up, Down
+            (preferredIndex % 7 !== 0) ? preferredIndex - 1 : -1, // Left
+            ((preferredIndex + 1) % 7 !== 0) ? preferredIndex + 1 : -1, // Right
         ].filter(i => i >= 0 && i < BOARD_SIZE && !newBoard[i].item);
         
         if (adjacentIndexes.length > 0) {
             const index = adjacentIndexes[Math.floor(Math.random() * adjacentIndexes.length)];
             newBoard[index] = {...newBoard[index], item: itemToPlace};
-            setAppearingIndex(index);
-            setTimeout(() => setAppearingIndex(null), 500);
+            placedIndex = index;
             placed = true;
             return newBoard;
         }
       }
 
+      // If no adjacent slots, find any empty slot
       const emptySlotIndex = newBoard.findIndex(slot => !slot.item);
       if (emptySlotIndex !== -1) {
           newBoard[emptySlotIndex] = {...newBoard[emptySlotIndex], item: itemToPlace};
-          setAppearingIndex(emptySlotIndex);
-          setTimeout(() => setAppearingIndex(null), 500);
+          placedIndex = emptySlotIndex;
           placed = true;
           return newBoard;
       }
       
       return currentBoard;
     });
+
+    if (placed && placedIndex !== -1) {
+      setAppearingIndex(placedIndex);
+      setTimeout(() => setAppearingIndex(null), 500);
+    }
+    
     return placed;
   }, []);
 
@@ -323,14 +334,19 @@ export default function GameLayout() {
         return;
     };
     
-    // Always select the generator type when clicked
-    setSelectedGeneratorType(clickedItem.type);
+    if (clickedItem.type !== selectedGeneratorType) {
+        setSelectedGeneratorType(clickedItem.type);
+        toast({ title: `Generador de ${clickedItem.name} seleccionado.`});
+        return;
+    }
 
     const totalEnergyCost = ENERGY_COST_PER_ITEM * multiplier;
     if (energy < totalEnergyCost) {
       toast({ variant: "destructive", title: "¡No hay suficiente energía!", description: `Necesitas ${totalEnergyCost} de energía.` });
       return;
     }
+
+    setEnergy(e => e - totalEnergyCost);
 
     let itemsPlaced = 0;
     let totalItemsToGenerate = multiplier;
@@ -349,14 +365,12 @@ export default function GameLayout() {
     }
 
     if (itemsPlaced > 0) {
-      setEnergy(e => e - (ENERGY_COST_PER_ITEM * itemsPlaced));
-      
       const toastDescription = Object.entries(generatedItemsCount).map(([itemId, count]) => {
           const item = ITEMS[itemId];
           return `${count} x ${item.name} ${item.emoji}`;
       }).join(', ');
 
-      toast({ title: "¡Nuevos objetos generados!", description: toastDescription });
+      toast({ title: `¡${itemsPlaced} objeto(s) generado(s)!`, description: toastDescription });
     }
   };
   
@@ -515,5 +529,7 @@ export default function GameLayout() {
     </div>
   );
 }
+
+    
 
     
