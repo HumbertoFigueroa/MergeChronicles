@@ -1,3 +1,4 @@
+
 {
   "placeholderImages": [
     { "id": "hero_1", "description": "Hero image for the landing page", "imageUrl": "https://picsum.photos/seed/hero1/1920/1080", "imageHint": "romantic fashion" },
@@ -70,3 +71,5 @@
     { "id": "bags_12", "description": "Lvl 12 Bags", "imageUrl": "https://picsum.photos/seed/bags12/200/200", "imageHint": "couture bag" }
   ]
 }
+
+    
