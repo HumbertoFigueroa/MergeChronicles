@@ -28,7 +28,7 @@ export default function StoryPage() {
     const g = searchParams.get('gems');
     return g ? parseInt(g, 10) : 25;
   });
-    const [coins, setCoins] = useState(() => {
+  const [coins, setCoins] = useState(() => {
     const c = searchParams.get('coins');
     return c ? parseInt(c, 10) : 0;
   });
