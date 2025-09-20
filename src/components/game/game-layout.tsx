@@ -15,6 +15,7 @@ import RewardedAd from './ad-placeholder';
 import PlayerStats from './player-stats';
 import OrderDisplay from './order-display';
 import ShopDialog from './shop-dialog';
+import GameBackground from './game-background';
 
 const BOARD_SIZE = 70; // 7 columns x 10 rows
 const ENERGY_REGEN_RATE = 1.5 * 60 * 1000; // 1.5 minutes in ms
@@ -225,7 +226,8 @@ export default function GameLayout() {
   }
 
   return (
-    <>
+    <div className="relative min-h-screen w-full">
+      <GameBackground />
       <GameHeader />
       <ShopDialog 
         isOpen={isShopOpen} 
@@ -236,7 +238,7 @@ export default function GameLayout() {
         onSpendGems={spendGems}
         gems={gems}
       />
-      <main className="pt-16 min-h-screen grid grid-cols-1 lg:grid-cols-12 gap-4 p-4">
+      <main className="relative z-10 pt-16 min-h-screen grid grid-cols-1 lg:grid-cols-12 gap-4 p-4">
         <div className="lg:col-span-3 flex flex-col gap-4">
           <StoryPanel storyProgress={storyProgress} dialogue={dialogue} isThinking={isThinking} />
           <OrderDisplay orders={orders} onCompleteOrder={handleCompleteOrder} />
@@ -267,6 +269,6 @@ export default function GameLayout() {
           <CharacterDisplay equippedItems={equippedItems} />
         </div>
       </main>
-    </>
+    </div>
   );
 }
