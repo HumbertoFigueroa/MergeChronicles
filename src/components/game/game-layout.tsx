@@ -73,11 +73,14 @@ export default function GameLayout() {
     if (sourceIndexStr === null) return;
 
     const sourceIndex = parseInt(sourceIndexStr, 10);
-    if (sourceIndex === targetIndex) return;
+    if (isNaN(sourceIndex) || sourceIndex === targetIndex) return;
 
     const newBoard = [...board];
     const sourceSlot = newBoard[sourceIndex];
     const targetSlot = newBoard[targetIndex];
+
+    // Added guard clause to prevent crash
+    if (!sourceSlot) return;
 
     if (!sourceSlot.item) return;
 
