@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import GameHeader from './game-header';
 import MergeBoard from './merge-board';
 import type { BoardSlot, Item, ItemType, Order } from '@/lib/types';
 import { ITEMS, MERGE_RULES, INITIAL_ORDERS } from '@/lib/game-data';
@@ -251,7 +250,6 @@ export default function GameLayout() {
   return (
     <div className="relative min-h-screen w-full flex flex-col">
       <GameBackground />
-      <GameHeader />
       <ShopDialog 
         isOpen={isShopOpen} 
         onOpenChange={setIsShopOpen}
@@ -261,7 +259,7 @@ export default function GameLayout() {
         onSpendGems={spendGems}
         gems={gems}
       />
-      <main className="relative z-10 pt-16 flex flex-col lg:grid lg:grid-cols-12 gap-4 p-2 sm:p-4 flex-grow overflow-hidden">
+      <main className="relative z-10 pt-4 flex flex-col lg:grid lg:grid-cols-12 gap-4 p-2 sm:p-4 flex-grow overflow-hidden">
         
         <div className="hidden lg:flex lg:col-span-3 flex-col gap-4">
             <Button asChild size="lg" className="h-20 text-lg">
