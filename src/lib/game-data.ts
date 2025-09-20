@@ -13,7 +13,7 @@ const createItem = (id: string, name: string, level: number, type: ItemType, emo
 export const ITEMS: Record<string, Item> = {
   // Generators
   generator_animals: createItem('generator_animals', 'Nido de Animales', 0, 'animals', '🥚', true),
-  generator_flags: createItem('generator_flags', 'Poste de Banderas', 0, 'flags', '🏁', true),
+  generator_vehicles: createItem('generator_vehicles', 'Taller', 0, 'vehicles', '🔧', true),
   generator_professions: createItem('generator_professions', 'Maletín de Trabajo', 0, 'professions', '💼', true),
   generator_clothing: createItem('generator_clothing', 'Armario', 0, 'clothing', '🚪', true),
   generator_food: createItem('generator_food', 'Cesta de Comida', 0, 'food', '🧺', true),
@@ -32,19 +32,19 @@ export const ITEMS: Record<string, Item> = {
   animals_11: createItem('animals_11', 'Tigre', 11, 'animals', '🐅'),
   animals_12: createItem('animals_12', 'León', 12, 'animals', '🦁'),
 
-  // Flags
-  flags_1: createItem('flags_1', 'Bandera Blanca', 1, 'flags', '🏳️'),
-  flags_2: createItem('flags_2', 'Bandera ONU', 2, 'flags', '🇺🇳'),
-  flags_3: createItem('flags_3', 'Bandera España', 3, 'flags', '🇪🇸'),
-  flags_4: createItem('flags_4', 'Bandera México', 4, 'flags', '🇲🇽'),
-  flags_5: createItem('flags_5', 'Bandera Argentina', 5, 'flags', '🇦🇷'),
-  flags_6: createItem('flags_6', 'Bandera Colombia', 6, 'flags', '🇨🇴'),
-  flags_7: createItem('flags_7', 'Bandera Perú', 7, 'flags', '🇵🇪'),
-  flags_8: createItem('flags_8', 'Bandera Venezuela', 8, 'flags', '🇻🇪'),
-  flags_9: createItem('flags_9', 'Bandera Chile', 9, 'flags', '🇨🇱'),
-  flags_10: createItem('flags_10', 'Bandera Ecuador', 10, 'flags', '🇪🇨'),
-  flags_11: createItem('flags_11', 'Bandera Bolivia', 11, 'flags', '🇧🇴'),
-  flags_12: createItem('flags_12', 'Bandera Pirata', 12, 'flags', '🏴‍☠️'),
+  // Vehicles
+  vehicles_1: createItem('vehicles_1', 'Monopatín', 1, 'vehicles', '🛹'),
+  vehicles_2: createItem('vehicles_2', 'Patinete', 2, 'vehicles', '🛴'),
+  vehicles_3: createItem('vehicles_3', 'Bicicleta', 3, 'vehicles', '🚲'),
+  vehicles_4: createItem('vehicles_4', 'Moto', 4, 'vehicles', '🛵'),
+  vehicles_5: createItem('vehicles_5', 'Coche', 5, 'vehicles', '🚗'),
+  vehicles_6: createItem('vehicles_6', 'Taxi', 6, 'vehicles', '🚕'),
+  vehicles_7: createItem('vehicles_7', 'Autobús', 7, 'vehicles', '🚌'),
+  vehicles_8: createItem('vehicles_8', 'Camión', 8, 'vehicles', '🚚'),
+  vehicles_9: createItem('vehicles_9', 'Tren', 9, 'vehicles', '🚆'),
+  vehicles_10: createItem('vehicles_10', 'Avión', 10, 'vehicles', '✈️'),
+  vehicles_11: createItem('vehicles_11', 'Helicóptero', 11, 'vehicles', '🚁'),
+  vehicles_12: createItem('vehicles_12', 'Cohete', 12, 'vehicles', '🚀'),
 
   // Professions
   professions_1: createItem('professions_1', 'Estudiante', 1, 'professions', '🧑‍🎓'),
@@ -92,8 +92,8 @@ export const ITEMS: Record<string, Item> = {
 export const MERGE_RULES: Record<string, string> = {
   // Animals
   animals_1: 'animals_2', animals_2: 'animals_3', animals_3: 'animals_4', animals_4: 'animals_5', animals_5: 'animals_6', animals_6: 'animals_7', animals_7: 'animals_8', animals_8: 'animals_9', animals_9: 'animals_10', animals_10: 'animals_11', animals_11: 'animals_12',
-  // Flags
-  flags_1: 'flags_2', flags_2: 'flags_3', flags_3: 'flags_4', flags_4: 'flags_5', flags_5: 'flags_6', flags_6: 'flags_7', flags_7: 'flags_8', flags_8: 'flags_9', flags_9: 'flags_10', flags_10: 'flags_11', flags_11: 'flags_12',
+  // Vehicles
+  vehicles_1: 'vehicles_2', vehicles_2: 'vehicles_3', vehicles_3: 'vehicles_4', vehicles_4: 'vehicles_5', vehicles_5: 'vehicles_6', vehicles_6: 'vehicles_7', vehicles_7: 'vehicles_8', vehicles_8: 'vehicles_9', vehicles_9: 'vehicles_10', vehicles_10: 'vehicles_11', vehicles_11: 'vehicles_12',
   // Professions
   professions_1: 'professions_2', professions_2: 'professions_3', professions_3: 'professions_4', professions_4: 'professions_5', professions_5: 'professions_6', professions_6: 'professions_7', professions_7: 'professions_8', professions_8: 'professions_9', professions_9: 'professions_10', professions_10: 'professions_11', professions_11: 'professions_12',
   // Clothing
@@ -108,20 +108,20 @@ export const ALL_ORDERS: Order[] = [
   { id: 'order_1_2', customerEmoji: '🍓', requiredItems: [{ itemId: 'food_4', quantity: 1 }], minLevel: 1 },
   { id: 'order_1_3', customerEmoji: '🧑‍🎨', requiredItems: [{ itemId: 'clothing_3', quantity: 1 }], minLevel: 2 },
   { id: 'order_1_4', customerEmoji: '🐮', requiredItems: [{ itemId: 'animals_4', quantity: 1 }], minLevel: 2 },
-  { id: 'order_1_5', customerEmoji: '🇪🇸', requiredItems: [{ itemId: 'flags_3', quantity: 1 }], minLevel: 3 },
+  { id: 'order_1_5', customerEmoji: '🛹', requiredItems: [{ itemId: 'vehicles_3', quantity: 1 }], minLevel: 3 },
   { id: 'order_1_6', customerEmoji: '🧑‍⚕️', requiredItems: [{ itemId: 'professions_3', quantity: 1 }], minLevel: 3 },
   
   // Level 4-6 Orders
   { id: 'order_2_1', customerEmoji: '🐖', requiredItems: [{ itemId: 'animals_5', quantity: 1 }], minLevel: 4 },
   { id: 'order_2_2', customerEmoji: '🍊', requiredItems: [{ itemId: 'food_5', quantity: 1 }], minLevel: 4 },
   { id: 'order_2_3', customerEmoji: '👘', requiredItems: [{ itemId: 'clothing_5', quantity: 1 }], minLevel: 5 },
-  { id: 'order_2_4', customerEmoji: '🇲🇽', requiredItems: [{ itemId: 'flags_5', quantity: 1 }], minLevel: 5 },
+  { id: 'order_2_4', customerEmoji: '🚲', requiredItems: [{ itemId: 'vehicles_5', quantity: 1 }], minLevel: 5 },
   { id: 'order_2_5', customerEmoji: '🧑‍🌾', requiredItems: [{ itemId: 'professions_5', quantity: 1 }], minLevel: 6 },
   { id: 'order_2_6', customerEmoji: '🐑', requiredItems: [{ itemId: 'animals_6', quantity: 1 }], minLevel: 6 },
 
   // Level 7-9 Orders
   { id: 'order_3_1', customerEmoji: '🍌', requiredItems: [{ itemId: 'food_7', quantity: 1 }], minLevel: 7 },
-  { id: 'order_3_2', customerEmoji: '🇨🇴', requiredItems: [{ itemId: 'flags_7', quantity: 1 }], minLevel: 7 },
+  { id: 'order_3_2', customerEmoji: '🚌', requiredItems: [{ itemId: 'vehicles_7', quantity: 1 }], minLevel: 7 },
   { id: 'order_3_3', customerEmoji: '👠', requiredItems: [{ itemId: 'clothing_6', quantity: 1 }], minLevel: 8 },
   { id: 'order_3_4', customerEmoji: '🧑‍🍳', requiredItems: [{ itemId: 'professions_6', quantity: 1 }], minLevel: 8 },
   { id: 'order_3_5', customerEmoji: '🐕', requiredItems: [{ itemId: 'animals_7', quantity: 1 }], minLevel: 9 },
@@ -131,7 +131,7 @@ export const ALL_ORDERS: Order[] = [
   { id: 'order_4_1', customerEmoji: '🧑‍🔬', requiredItems: [{ itemId: 'professions_8', quantity: 1 }], minLevel: 10 },
   { id: 'order_4_2', customerEmoji: '👔', requiredItems: [{ itemId: 'clothing_8', quantity: 1 }], minLevel: 10 },
   { id: 'order_4_3', customerEmoji: '🐈', requiredItems: [{ itemId: 'animals_8', quantity: 1 }], minLevel: 11 },
-  { id: 'order_4_4', customerEmoji: '🇨🇱', requiredItems: [{ itemId: 'flags_9', quantity: 1 }], minLevel: 12 },
+  { id: 'order_4_4', customerEmoji: '✈️', requiredItems: [{ itemId: 'vehicles_9', quantity: 1 }], minLevel: 12 },
   { id: 'order_4_5', customerEmoji: '🍎', requiredItems: [{ itemId: 'food_9', quantity: 1 }], minLevel: 13 },
   { id: 'order_4_6', customerEmoji: '🧑‍🚀', requiredItems: [{ itemId: 'professions_10', quantity: 1 }], minLevel: 14 },
   
@@ -139,7 +139,7 @@ export const ALL_ORDERS: Order[] = [
   { id: 'order_5_1', customerEmoji: '🐎', requiredItems: [{ itemId: 'animals_10', quantity: 1 }], minLevel: 15 },
   { id: 'order_5_2', customerEmoji: '🧤', requiredItems: [{ itemId: 'clothing_10', quantity: 1 }], minLevel: 16 },
   { id: 'order_5_3', customerEmoji: '🍐', requiredItems: [{ itemId: 'food_11', quantity: 1 }], minLevel: 17 },
-  { id: 'order_5_4', customerEmoji: '🏴‍☠️', requiredItems: [{ itemId: 'flags_12', quantity: 1 }], minLevel: 18 },
+  { id: 'order_5_4', customerEmoji: '🚀', requiredItems: [{ itemId: 'vehicles_12', quantity: 1 }], minLevel: 18 },
   { id: 'order_5_5', customerEmoji: '🐘', requiredItems: [{ itemId: 'animals_11', quantity: 1 }], minLevel: 19 },
   { id: 'order_5_6', customerEmoji: '🧑‍🚒', requiredItems: [{ itemId: 'professions_12', quantity: 1 }], minLevel: 20 },
   { id: 'order_5_7', customerEmoji: '🧥', requiredItems: [{ itemId: 'clothing_12', quantity: 1 }], minLevel: 21 },
@@ -147,3 +147,4 @@ export const ALL_ORDERS: Order[] = [
 ];
 
     
+

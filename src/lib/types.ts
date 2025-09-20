@@ -1,4 +1,4 @@
-export type ItemType = 'animals' | 'flags' | 'professions' | 'clothing' | 'food';
+export type ItemType = 'animals' | 'vehicles' | 'professions' | 'clothing' | 'food';
 
 export interface Item {
   id: string;

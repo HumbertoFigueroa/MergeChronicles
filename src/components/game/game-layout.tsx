@@ -34,7 +34,7 @@ initialBoard[2] = { ...initialBoard[2], item: ITEMS['generator_animals'] };
 initialBoard[3] = { ...initialBoard[3], item: ITEMS['generator_food'] };
 initialBoard[4] = { ...initialBoard[4], item: ITEMS['generator_clothing'] };
 initialBoard[10] = { ...initialBoard[10], item: ITEMS['generator_professions'] };
-initialBoard[11] = { ...initialBoard[11], item: ITEMS['generator_flags'] };
+initialBoard[11] = { ...initialBoard[11], item: ITEMS['generator_vehicles'] };
 
 
 type Multiplier = 1 | 2 | 4;
@@ -362,8 +362,8 @@ export default function GameLayout() {
                   <ToggleGroupItem value="animals" aria-label="Toggle Animals" className='w-12 h-12 text-2xl rounded-xl'>
                       {ITEMS.generator_animals.emoji}
                   </ToggleGroupItem>
-                  <ToggleGroupItem value="flags" aria-label="Toggle Flags" className='w-12 h-12 text-2xl rounded-xl'>
-                      {ITEMS.generator_flags.emoji}
+                  <ToggleGroupItem value="vehicles" aria-label="Toggle Vehicles" className='w-12 h-12 text-2xl rounded-xl'>
+                      {ITEMS.generator_vehicles.emoji}
                   </ToggleGroupItem>
                   <ToggleGroupItem value="professions" aria-label="Toggle Professions" className='w-12 h-12 text-2xl rounded-xl'>
                       {ITEMS.generator_professions.emoji}
