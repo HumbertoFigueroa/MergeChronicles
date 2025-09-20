@@ -1,4 +1,5 @@
 import { Progress } from '@/components/ui/progress';
+import { cn } from '@/lib/utils';
 
 interface PlayerStatsProps {
   energy: number;
@@ -9,7 +10,7 @@ interface PlayerStatsProps {
 const GemIcon = () => (
     <svg width="28" height="24" viewBox="0 0 28 24" fill="none" xmlns="http://www.w3.org/2000/svg" className='drop-shadow-lg'>
         <path d="M7.77778 0L0 8.57143L14 24L28 8.57143L20.2222 0H7.77778Z" fill="url(#gem-gradient-1)"/>
-        <path d="M7.77778 0L14 10.2857L20.2222 0H7.77778Z" fill="url(#gem-gradient-2)"/>
+        <path d="M14 0L7.77778 10.2857L20.2222 0H7.77778Z" fill="url(#gem-gradient-2)"/>
         <path d="M0 8.57143L7.77778 0H4.66667L0 8.57143Z" fill="#A149F8"/>
         <path d="M28 8.57143L20.2222 0H23.3333L28 8.57143Z" fill="#E286FF"/>
         <path d="M14 24L7.77778 10.2857L0 8.57143L14 24Z" fill="url(#gem-gradient-3)"/>
