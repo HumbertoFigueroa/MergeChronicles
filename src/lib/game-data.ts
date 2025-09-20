@@ -1,14 +1,22 @@
 import type { Item, ItemType, Order } from './types';
 
-const createItem = (id: string, name: string, level: number, type: ItemType, emoji: string): Item => ({
+const createItem = (id: string, name: string, level: number, type: ItemType, emoji: string, isGenerator: boolean = false): Item => ({
   id,
   name,
   level,
   type,
   emoji,
+  isGenerator,
 });
 
 export const ITEMS: Record<string, Item> = {
+  // Generators
+  generator_animals: createItem('generator_animals', 'Nido de Animales', 0, 'animals', '🥚', true),
+  generator_flags: createItem('generator_flags', 'Poste de Banderas', 0, 'flags', '🚩', true),
+  generator_professions: createItem('generator_professions', 'Maletín de Trabajo', 0, 'professions', '💼', true),
+  generator_clothing: createItem('generator_clothing', 'Armario', 0, 'clothing', '🚪', true),
+  generator_food: createItem('generator_food', 'Cesta de Comida', 0, 'food', '🧺', true),
+
   // Animals
   animals_1: createItem('animals_1', 'Huevo', 1, 'animals', '🐣'),
   animals_2: createItem('animals_2', 'Pollo', 2, 'animals', '🐔'),

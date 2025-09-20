@@ -8,11 +8,12 @@ interface MergeBoardProps {
   board: BoardSlot[];
   onDragStart: (e: React.DragEvent<HTMLDivElement>, index: number) => void;
   onDrop: (e: React.DragEvent<HTMLDivElement>, index: number) => void;
+  onItemClick: (index: number) => void;
   mergingIndex: number | null;
   appearingIndex: number | null;
 }
 
-export default function MergeBoard({ board, onDragStart, onDrop, mergingIndex, appearingIndex }: MergeBoardProps) {
+export default function MergeBoard({ board, onDragStart, onDrop, onItemClick, mergingIndex, appearingIndex }: MergeBoardProps) {
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
   };
@@ -24,6 +25,7 @@ export default function MergeBoard({ board, onDragStart, onDrop, mergingIndex, a
           key={slot.id}
           onDragOver={handleDragOver}
           onDrop={(e) => onDrop(e, index)}
+          onClick={() => onItemClick(index)}
           className={cn(
               "rounded-md bg-white/20 transition-colors aspect-square",
               slot.item && 'bg-transparent'

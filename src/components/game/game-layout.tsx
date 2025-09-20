@@ -2,31 +2,33 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import MergeBoard from './merge-board';
-import type { BoardSlot, Item, ItemType, Order } from '@/lib/types';
+import type { BoardSlot, Item } from '@/lib/types';
 import { ITEMS, MERGE_RULES, INITIAL_ORDERS } from '@/lib/game-data';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '../ui/button';
-import { ShoppingCart, BookOpen, PlusCircle } from 'lucide-react';
+import { ShoppingCart, BookOpen } from 'lucide-react';
 import PlayerStats from './player-stats';
 import OrderDisplay from './order-display';
 import ShopDialog from './shop-dialog';
 import GameBackground from './game-background';
 import Link from 'next/link';
-import GeneratorControls from './generator-controls';
 
 const BOARD_SIZE = 56; // 7 columns x 8 rows
 export const ENERGY_REGEN_RATE = 1.5 * 60 * 1000; // 1.5 minutes in ms
 export const MAX_ENERGY = 100;
-const ENERGY_COST_PER_ITEM = 1;
+const ENERGY_COST_PER_GENERATION = 1;
 const GEMS_PER_LEVEL = 5;
 
 const initialBoard: BoardSlot[] = Array.from({ length: BOARD_SIZE }, (_, i) => ({
   id: `cell-${i}`,
   item: null,
 }));
-initialBoard[0] = { ...initialBoard[0], item: ITEMS['animals_1'] };
-initialBoard[1] = { ...initialBoard[1], item: ITEMS['animals_1'] };
-initialBoard[2] = { ...initialBoard[2], item: ITEMS['food_1'] };
+
+// Place generators on the board
+initialBoard[2] = { ...initialBoard[2], item: ITEMS['generator_animals'] };
+initialBoard[3] = { ...initialBoard[3], item: ITEMS['generator_food'] };
+initialBoard[4] = { ...initialBoard[4], item: ITEMS['generator_clothing'] };
+
 
 export default function GameLayout() {
   const [board, setBoard] = useState<BoardSlot[]>(initialBoard);
@@ -37,9 +39,6 @@ export default function GameLayout() {
   const [orders, setOrders] = useState<Order[]>(INITIAL_ORDERS);
   const [isShopOpen, setIsShopOpen] = useState(false);
   
-  const [selectedGenerator, setSelectedGenerator] = useState<ItemType>('animals');
-  const [multiplier, setMultiplier] = useState<1 | 2 | 4>(1);
-
   const { toast } = useToast();
 
   useEffect(() => {
@@ -76,6 +75,7 @@ export default function GameLayout() {
 
     if (!sourceSlot.item) return;
 
+    // If target is empty, move the item
     if (!targetSlot.item) {
       newBoard[targetIndex] = { ...targetSlot, item: sourceSlot.item };
       newBoard[sourceIndex] = { ...sourceSlot, item: null };
@@ -86,7 +86,8 @@ export default function GameLayout() {
     const sourceItem = sourceSlot.item;
     const targetItem = targetSlot.item;
 
-    if (sourceItem.id === targetItem.id && MERGE_RULES[sourceItem.id]) {
+    // If both are not generators and can be merged
+    if (!sourceItem.isGenerator && !targetItem.isGenerator && sourceItem.id === targetItem.id && MERGE_RULES[sourceItem.id]) {
       const newItemId = MERGE_RULES[sourceItem.id];
       const newItem = ITEMS[newItemId];
 
@@ -108,65 +109,72 @@ export default function GameLayout() {
           ),
         });
       }
-    } else {
+    } else { // Otherwise, swap items
       newBoard[targetIndex] = { ...targetSlot, item: sourceItem };
       newBoard[sourceIndex] = { ...sourceSlot, item: targetItem };
       setBoard(newBoard);
     }
   };
   
-  const placeNewItem = useCallback((itemId: string) => {
+  const placeNewItem = useCallback((itemId: string, preferredIndex?: number): boolean => {
     let placed = false;
     setBoard(currentBoard => {
-        const emptySlotIndex = currentBoard.findIndex(slot => !slot.item);
-        if (emptySlotIndex !== -1) {
-            const newBoard = [...currentBoard];
-            const itemToGenerate = ITEMS[itemId];
-            
-            if (itemToGenerate) {
-                newBoard[emptySlotIndex] = {...newBoard[emptySlotIndex], item: itemToGenerate};
-                setAppearingIndex(emptySlotIndex);
-                setTimeout(() => setAppearingIndex(null), 500);
-                placed = true;
-                return newBoard;
-            }
+      const newBoard = [...currentBoard];
+      const itemToPlace = ITEMS[itemId];
+      if (!itemToPlace) return currentBoard;
+
+      // Try to place adjacent to the generator first
+      if (preferredIndex !== undefined) {
+        const adjacentIndexes = [
+            preferredIndex - 7, preferredIndex + 7, // Above, Below
+            (preferredIndex % 7 !== 0) ? preferredIndex - 1 : -1, // Left
+            ((preferredIndex + 1) % 7 !== 0) ? preferredIndex + 1 : -1, // Right
+        ].filter(i => i >= 0 && i < BOARD_SIZE && !newBoard[i].item);
+        
+        if (adjacentIndexes.length > 0) {
+            const index = adjacentIndexes[0];
+            newBoard[index] = {...newBoard[index], item: itemToPlace};
+            setAppearingIndex(index);
+            setTimeout(() => setAppearingIndex(null), 500);
+            placed = true;
+            return newBoard;
         }
-        return currentBoard;
+      }
+
+      // If no adjacent slot, find any empty slot
+      const emptySlotIndex = newBoard.findIndex(slot => !slot.item);
+      if (emptySlotIndex !== -1) {
+          newBoard[emptySlotIndex] = {...newBoard[emptySlotIndex], item: itemToPlace};
+          setAppearingIndex(emptySlotIndex);
+          setTimeout(() => setAppearingIndex(null), 500);
+          placed = true;
+          return newBoard;
+      }
+      
+      return currentBoard; // No changes if board is full
     });
     return placed;
   }, []);
 
-  const handleGenerateItem = () => {
-    const totalCost = ENERGY_COST_PER_ITEM * multiplier;
-    if (energy < totalCost) {
-      toast({ variant: "destructive", title: "¡No hay suficiente energía!", description: `Necesitas ${totalCost} de energía.` });
+  const handleItemClick = (index: number) => {
+    const clickedItem = board[index].item;
+    if (!clickedItem || !clickedItem.isGenerator) return;
+
+    if (energy < ENERGY_COST_PER_GENERATION) {
+      toast({ variant: "destructive", title: "¡No hay suficiente energía!", description: `Necesitas ${ENERGY_COST_PER_GENERATION} de energía.` });
       return;
     }
 
-    let itemsGenerated = 0;
-    for (let i = 0; i < multiplier; i++) {
-        const success = placeNewItem(`${selectedGenerator}_1`);
-        if (success) {
-            itemsGenerated++;
-        } else {
-            toast({ variant: "destructive", title: "¡Tablero lleno!", description: "Libera algo de espacio." });
-            break; 
-        }
-    }
+    const itemToGenerateId = `${clickedItem.type}_1`;
+    const success = placeNewItem(itemToGenerateId, index);
 
-    if (itemsGenerated > 0) {
-        setEnergy(e => e - (ENERGY_COST_PER_ITEM * itemsGenerated));
-        const item = ITEMS[`${selectedGenerator}_1`];
-        toast({ title: "¡Nuevos objetos generados!", description: `Creaste ${itemsGenerated} x ${item.name} ${item.emoji}` });
+    if (success) {
+      setEnergy(e => e - ENERGY_COST_PER_GENERATION);
+      const generatedItem = ITEMS[itemToGenerateId];
+      toast({ title: "¡Nuevo objeto generado!", description: `Creaste 1 x ${generatedItem.name} ${generatedItem.emoji}` });
+    } else {
+      toast({ variant: "destructive", title: "¡Tablero lleno!", description: "Libera algo de espacio." });
     }
-  };
-
-  const cycleMultiplier = () => {
-    setMultiplier(m => {
-        if (m === 1) return 2;
-        if (m === 2) return 4;
-        return 1;
-    });
   };
   
   const handleDeliverOrder = (orderId: string) => {
@@ -245,7 +253,7 @@ export default function GameLayout() {
         onOpenChange={setIsShopOpen}
         onPurchaseGems={purchaseGems}
         onAddEnergy={addEnergy}
-        onGenerateItem={placeNewItem}
+        onGenerateItem={(itemId) => placeNewItem(itemId)}
         onSpendGems={spendGems}
         gems={gems}
       />
@@ -278,29 +286,10 @@ export default function GameLayout() {
               board={board}
               onDragStart={handleDragStart}
               onDrop={handleDrop}
+              onItemClick={handleItemClick}
               mergingIndex={mergingIndex}
               appearingIndex={appearingIndex}
             />
-          </div>
-          
-          <div className='flex items-center justify-between gap-4 w-full max-w-2xl mx-auto'>
-            <GeneratorControls
-                selectedType={selectedGenerator}
-                onTypeSelect={setSelectedGenerator}
-            />
-            <div className='flex items-center gap-2'>
-                <Button
-                    variant="outline"
-                    onClick={cycleMultiplier}
-                    className="w-20 font-bold text-lg"
-                >
-                    x{multiplier}
-                </Button>
-                <Button size="lg" className="w-full" onClick={handleGenerateItem}>
-                    <PlusCircle className="mr-2"/>
-                    Añadir Ítem ({ENERGY_COST_PER_ITEM * multiplier})
-                </Button>
-            </div>
           </div>
         </div>
       </main>

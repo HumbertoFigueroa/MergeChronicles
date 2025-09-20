@@ -12,12 +12,18 @@ interface MergeItemProps {
 }
 
 export default function MergeItem({ item, onDragStart, isMerging, isAppearing }: MergeItemProps) {
+  const handleDrag = (e: React.DragEvent<HTMLDivElement>) => {
+    e.stopPropagation(); // Prevents click event from firing on drag
+    onDragStart(e);
+  };
+  
   return (
     <div
       draggable
-      onDragStart={onDragStart}
+      onDragStart={handleDrag}
       className={cn(
-          "w-full h-full p-1.5 flex flex-col items-center justify-center cursor-grab active:cursor-grabbing rounded-lg bg-card/50 hover:bg-accent/50 transition-all duration-200 ease-in-out will-change-transform",
+          "w-full h-full p-1.5 flex flex-col items-center justify-center rounded-lg bg-card/50 transition-all duration-200 ease-in-out will-change-transform",
+          item.isGenerator ? "cursor-pointer hover:bg-green-300/50" : "cursor-grab active:cursor-grabbing hover:bg-accent/50",
           isMerging && "animate-merge-pop",
           isAppearing && "animate-appear"
       )}
@@ -27,9 +33,11 @@ export default function MergeItem({ item, onDragStart, isMerging, isAppearing }:
           {item.emoji}
         </span>
       </div>
-      <Badge variant="secondary" className="mt-1 text-xs">
-        Lvl {item.level}
-      </Badge>
+      {!item.isGenerator && (
+        <Badge variant="secondary" className="mt-1 text-xs">
+          Lvl {item.level}
+        </Badge>
+      )}
     </div>
   );
 }

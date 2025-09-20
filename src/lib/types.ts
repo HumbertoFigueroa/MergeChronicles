@@ -6,6 +6,7 @@ export interface Item {
   level: number;
   type: ItemType;
   emoji: string;
+  isGenerator?: boolean;
 }
 
 export interface BoardSlot {
