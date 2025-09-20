@@ -10,9 +10,12 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Gem, Zap, Gift, Video, Wallet } from 'lucide-react';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Gem, Zap, Gift, Video, Wallet, CreditCard } from 'lucide-react';
 import { useState } from 'react';
-import { Loader2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 interface ShopDialogProps {
   isOpen: boolean;
@@ -23,24 +26,6 @@ interface ShopDialogProps {
   onSpendGems: (amount: number) => boolean;
   gems: number;
 }
-
-const GemIcon = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg width="28" height="24" viewBox="0 0 28 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
-        <path d="M7.77778 0L0 8.57143L14 24L28 8.57143L20.2222 0H7.77778Z" fill="url(#gem-gradient-1)"/>
-        <path d="M14 0L7.77778 10.2857L20.2222 0H7.77778Z" fill="url(#gem-gradient-2)"/>
-        <path d="M0 8.57143L7.77778 0H4.66667L0 8.57143Z" fill="#A149F8"/>
-        <path d="M28 8.57143L20.2222 0H23.3333L28 8.57143Z" fill="#E286FF"/>
-        <path d="M14 24L7.77778 10.2857L0 8.57143L14 24Z" fill="url(#gem-gradient-3)"/>
-        <path d="M14 24L20.2222 10.2857L28 8.57143L14 24Z" fill="url(#gem-gradient-4)"/>
-        <defs>
-            <linearGradient id="gem-gradient-1" x1="14" y1="0" x2="14" y2="24" gradientUnits="userSpaceOnUse"><stop stopColor="#D96CFF"/><stop offset="1" stopColor="#A149F8"/></linearGradient>
-            <linearGradient id="gem-gradient-2" x1="14" y1="0" x2="14" y2="10.2857" gradientUnits="userSpaceOnUse"><stop stopColor="#F4B5FF"/><stop offset="1" stopColor="#E286FF"/></linearGradient>
-            <linearGradient id="gem-gradient-3" x1="7" y1="8.57143" x2="7" y2="24" gradientUnits="userSpaceOnUse"><stop stopColor="#D96CFF"/><stop offset="1" stopColor="#7328CB"/></linearGradient>
-            <linearGradient id="gem-gradient-4" x1="21" y1="8.57143" x2="21" y2="24" gradientUnits="userSpaceOnUse"><stop stopColor="#D96CFF"/><stop offset="1" stopColor="#7328CB"/></linearGradient>
-        </defs>
-    </svg>
-);
-
 
 const ShopItem = ({ title, description, icon, actionText, onAction, cost, disabled }: {
     title: string;
@@ -73,45 +58,72 @@ const ShopItem = ({ title, description, icon, actionText, onAction, cost, disabl
     </Card>
 );
 
-const AdButton = ({ onReward, rewardText, children } : { onReward: () => void, rewardText: string, children: React.ReactNode }) => {
-    const [isLoading, setIsLoading] = useState(false);
+const PurchaseForm = ({ onPurchase }: { onPurchase: (amount: number) => void }) => {
+    const { toast } = useToast();
+    const [selectedPackage, setSelectedPackage] = useState<{gems: number, price: string} | null>({gems: 550, price: '$4.99'});
 
-    const handleAdClick = () => {
-        setIsLoading(true);
-        setTimeout(() => {
-            onReward();
-            setIsLoading(false);
-        }, 1500);
+    const packages = [
+        { gems: 100, price: '$0.99' },
+        { gems: 550, price: '$4.99' },
+        { gems: 1200, price: '$9.99' },
+        { gems: 2500, price: '$19.99' },
+    ];
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (selectedPackage) {
+            // Simulate successful payment
+            onPurchase(selectedPackage.gems);
+            toast({
+                title: "¡Compra Exitosa!",
+                description: `Has comprado ${selectedPackage.gems} gemas por ${selectedPackage.price}.`
+            });
+        }
     };
 
     return (
-        <Button onClick={handleAdClick} disabled={isLoading} className='w-full'>
-             {isLoading ? (
-                <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Cargando...
-                </>
-            ) : (
-                <>
-                    <Video className='mr-2' /> {children} <span className='font-bold ml-1'>{rewardText}</span>
-                </>
-            )}
-        </Button>
-    )
+        <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+                <Label htmlFor="gem-package">Paquete de Gemas</Label>
+                <Select 
+                    defaultValue={JSON.stringify(selectedPackage)} 
+                    onValueChange={(value) => setSelectedPackage(JSON.parse(value))}
+                >
+                    <SelectTrigger id="gem-package">
+                        <SelectValue placeholder="Selecciona un paquete" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {packages.map(p => (
+                            <SelectItem key={p.gems} value={JSON.stringify(p)}>
+                                {p.gems} Gemas - {p.price}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            </div>
+            <div>
+                <Label htmlFor="card-number">Número de Tarjeta</Label>
+                <Input id="card-number" placeholder="0000 0000 0000 0000" />
+            </div>
+            <div className="flex gap-4">
+                <div className="flex-1">
+                    <Label htmlFor="expiry">Expiración</Label>
+                    <Input id="expiry" placeholder="MM/YY" />
+                </div>
+                <div className="flex-1">
+                    <Label htmlFor="cvc">CVC</Label>
+                    <Input id="cvc" placeholder="123" />
+                </div>
+            </div>
+            <Button type="submit" className="w-full">
+                <CreditCard className="mr-2" /> Pagar {selectedPackage?.price}
+            </Button>
+            <p className="text-xs text-center text-muted-foreground pt-2">
+                Esto es una simulación. No se realizará ningún cargo real.
+            </p>
+        </form>
+    );
 };
-
-const GemPurchaseCard = ({ amount, price, onPurchase, color = 'primary' }: { amount: number, price: string, onPurchase: () => void, color?: string }) => (
-    <div className='flex flex-col items-center justify-between p-3 rounded-2xl bg-white/80 border-2 border-primary/30 shadow-lg h-full'>
-        <GemIcon className='w-16 h-auto drop-shadow-lg' />
-        <div className='text-center my-2'>
-            <p className='font-bold text-xl text-primary-foreground drop-shadow-md'>{amount} Gems</p>
-        </div>
-        <Button onClick={onPurchase} size="sm" className='w-full font-bold'>
-            {price}
-        </Button>
-    </div>
-);
-
 
 export default function ShopDialog({
   isOpen,
@@ -137,38 +149,36 @@ export default function ShopDialog({
     
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl">
+      <DialogContent className="max-w-xl">
         <DialogHeader>
           <DialogTitle className="font-headline text-3xl">Tienda</DialogTitle>
           <DialogDescription>
-            Usa tus gemas para comprar items y energía, o mira anuncios para ganar recompensas.
+            Usa tus gemas o compra nuevas para acelerar tu progreso.
           </DialogDescription>
         </DialogHeader>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4">
             {/* Real Money Purchases */}
-            <Card className='md:col-span-2 bg-gradient-to-r from-yellow-200 to-orange-200'>
+            <Card className='md:col-span-1 bg-gradient-to-br from-yellow-100 to-orange-200'>
                  <CardHeader>
-                    <CardTitle className='flex items-center gap-2'><Wallet/>Comprar Gemas</CardTitle>
-                    <CardDescription>¡Acelera tu progreso con estos paquetes de gemas!</CardDescription>
+                    <CardTitle className='flex items-center gap-2'><Wallet/> Comprar Gemas</CardTitle>
+                    <CardDescription>¡Acelera tu progreso!</CardDescription>
                 </CardHeader>
-                <CardContent className='grid grid-cols-2 md:grid-cols-4 gap-4'>
-                    <GemPurchaseCard amount={100} price="$0.99" onPurchase={() => onAddGems(100)} />
-                    <GemPurchaseCard amount={550} price="$4.99" onPurchase={() => onAddGems(550)} />
-                    <GemPurchaseCard amount={1200} price="$9.99" onPurchase={() => onAddGems(1200)} />
-                    <GemPurchaseCard amount={2500} price="$19.99" onPurchase={() => onAddGems(2500)} />
+                <CardContent>
+                    <PurchaseForm onPurchase={onAddGems} />
                 </CardContent>
             </Card>
 
             {/* Gem Purchases */}
-            <Card className='md:col-span-2'>
+            <Card className='md:col-span-1'>
                  <CardHeader>
-                    <CardTitle className='flex items-center gap-2'><Gem className='text-blue-500'/>Comprar con Gemas</CardTitle>
+                    <CardTitle className='flex items-center gap-2'><Gem className='text-blue-500'/> Gastar Gemas</CardTitle>
+                     <CardDescription>Usa tus gemas que tanto te costó ganar.</CardDescription>
                 </CardHeader>
-                <CardContent className='grid sm:grid-cols-2 gap-4'>
+                <CardContent className='flex flex-col gap-4 pt-6'>
                     <ShopItem 
                         title="Recarga de Energía"
-                        description="Obtén 50 de energía para seguir fusionando."
+                        description="Obtén 50 de energía."
                         icon={<Zap className='w-6 h-6 text-yellow-500'/>}
                         actionText="Comprar"
                         onAction={handleBuyEnergy}
@@ -177,25 +187,13 @@ export default function ShopDialog({
                     />
                      <ShopItem 
                         title="Caja de Sastre"
-                        description="Recibe un generador de tela de nivel 1."
+                        description="Un generador de tela nivel 1."
                         icon={<Gift className='w-6 h-6 text-red-500'/>}
                         actionText="Comprar"
                         onAction={handleBuyItem}
                         cost={20}
                         disabled={gems < 20}
                     />
-                </CardContent>
-            </Card>
-
-            {/* Ad Rewards */}
-            <Card className='md:col-span-2'>
-                 <CardHeader>
-                    <CardTitle className='flex items-center gap-2'><Video/>Recompensas Gratis</CardTitle>
-                    <CardDescription>¡Mira un anuncio rápido para ganar premios!</CardDescription>
-                </CardHeader>
-                <CardContent className='grid sm:grid-cols-2 gap-4'>
-                    <AdButton onReward={() => onAddGems(5)} rewardText="+5 Gemas">Ver Anuncio</AdButton>
-                    <AdButton onReward={() => onAddEnergy(30)} rewardText="+30 Energía">Ver Anuncio</AdButton>
                 </CardContent>
             </Card>
         </div>

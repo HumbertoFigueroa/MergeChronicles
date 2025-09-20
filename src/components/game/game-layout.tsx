@@ -8,7 +8,6 @@ import { ITEMS, MERGE_RULES, INITIAL_ORDERS } from '@/lib/game-data';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '../ui/button';
 import { ShoppingCart, ScrollText, BookOpen } from 'lucide-react';
-import RewardedAd from './ad-placeholder';
 import PlayerStats from './player-stats';
 import OrderDisplay from './order-display';
 import ShopDialog from './shop-dialog';
@@ -212,7 +211,6 @@ export default function GameLayout() {
             mergingIndex={mergingIndex}
             appearingIndex={appearingIndex}
           />
-           <RewardedAd onReward={() => generateNewItem()} />
         </div>
       </main>
 
@@ -244,10 +242,6 @@ export default function GameLayout() {
             mergingIndex={mergingIndex}
             appearingIndex={appearingIndex}
           />
-        </div>
-
-        <div className="flex-shrink-0 mt-2">
-             <RewardedAd onReward={() => generateNewItem()} />
         </div>
       </main>
     </div>
