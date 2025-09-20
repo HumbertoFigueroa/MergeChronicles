@@ -25,21 +25,21 @@ export default function StoryPage() {
         setGems(g => g - UNLOCK_COST);
         setUnlockedChapters(u => u + 1);
         toast({
-          title: "Chapter Unlocked!",
-          description: "You have revealed a new part of the story."
+          title: "¡Capítulo Desbloqueado!",
+          description: "Has revelado una nueva parte de la historia."
         });
       } else {
         toast({
           variant: "default",
-          title: "The story so far...",
-          description: "You have unlocked all available chapters."
+          title: "La historia hasta ahora...",
+          description: "Has desbloqueado todos los capítulos disponibles."
         });
       }
     } else {
       toast({
         variant: "destructive",
-        title: "Not enough gems!",
-        description: `You need ${UNLOCK_COST} gems to unlock the next chapter.`
+        title: "¡No hay suficientes gemas!",
+        description: `Necesitas ${UNLOCK_COST} gemas para desbloquear el siguiente capítulo.`
       });
     }
   };

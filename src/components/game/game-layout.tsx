@@ -108,10 +108,10 @@ export default function GameLayout() {
         setBoard(newBoard);
 
         toast({
-          title: "Merge Successful!",
+          title: "¡Fusión Exitosa!",
           description: (
             <div className="flex items-center">
-              <BookOpen className="mr-2 h-4 w-4 text-primary" /> You created a {newItem.name}!
+              <BookOpen className="mr-2 h-4 w-4 text-primary" /> ¡Creaste un {newItem.name}!
             </div>
           ),
         });
@@ -138,7 +138,7 @@ export default function GameLayout() {
           : ITEMS[Object.keys(ITEMS).filter(k => ITEMS[k].level === 1)[Math.floor(Math.random() * 5)]];
         
         if (!itemToGenerate) {
-            toast({ variant: "destructive", title: "Error", description: "Could not find the item to generate." });
+            toast({ variant: "destructive", title: "Error", description: "No se pudo encontrar el ítem a generar." });
             return;
         }
 
@@ -146,18 +146,18 @@ export default function GameLayout() {
         setBoard(newBoard);
         setAppearingIndex(emptySlotIndex);
         setTimeout(() => setAppearingIndex(null), 500);
-        toast({ title: "A new item has arrived!", description: `You received a ${itemToGenerate.name}.` });
+        toast({ title: "¡Ha llegado un nuevo objeto!", description: `Recibiste un ${itemToGenerate.name}.` });
     } else {
-        toast({ variant: "destructive", title: "Board is full!", description: "Clear some space to get new items." });
+        toast({ variant: "destructive", title: "¡Tablero lleno!", description: "Libera algo de espacio para obtener nuevos objetos." });
     }
   }, [board, toast]);
   
   const handleCompleteOrder = (order: Order) => {
     // This is a placeholder. Logic to check inventory and grant rewards will go here.
-    console.log("Attempting to complete order:", order.id);
+    console.log("Intentando completar la orden:", order.id);
     toast({
-      title: "Order Completed!",
-      description: `You earned ${order.reward.gems} gems!`,
+      title: "¡Orden Completada!",
+      description: `¡Ganaste ${order.reward.gems} gemas!`,
     });
     setGems(g => g + order.reward.gems);
     // Generate new order
@@ -168,12 +168,12 @@ export default function GameLayout() {
 
   const addGems = (amount: number) => {
     setGems(g => g + amount);
-    toast({ title: "Gems Added!", description: `You received ${amount} gems.` });
+    toast({ title: "¡Gemas Añadidas!", description: `Recibiste ${amount} gemas.` });
   };
 
   const addEnergy = (amount: number) => {
     setEnergy(e => Math.min(MAX_ENERGY, e + amount));
-     toast({ title: "Energy Added!", description: `You received ${amount} energy.` });
+     toast({ title: "¡Energía Añadida!", description: `Recibiste ${amount} de energía.` });
   };
   
   const spendGems = (amount: number): boolean => {
@@ -181,7 +181,7 @@ export default function GameLayout() {
         setGems(g => g - amount);
         return true;
     }
-    toast({ variant: 'destructive', title: 'Not enough gems!', description: 'You need more gems to make this purchase.' });
+    toast({ variant: 'destructive', title: '¡No hay suficientes gemas!', description: 'Necesitas más gemas para hacer esta compra.' });
     return false;
   }
   
@@ -207,12 +207,12 @@ export default function GameLayout() {
         gems={gems}
       />
       {/* Desktop Layout */}
-      <main className="relative z-10 pt-16 hidden lg:grid grid-cols-1 lg:grid-cols-12 gap-4 p-4 flex-grow">
+      <main className="relative z-10 pt-16 hidden lg:grid grid-cols-12 gap-4 p-4 flex-grow">
         <div className="lg:col-span-3 flex flex-col gap-4">
             <Button asChild size="lg" className="h-20 text-lg">
                 <Link href="/story" className='flex-col'>
                     <BookOpen className="w-8 h-8 mb-1" />
-                    Story
+                    Historia
                 </Link>
             </Button>
           <OrderDisplay orders={orders} onCompleteOrder={handleCompleteOrder} />
@@ -275,11 +275,11 @@ export default function GameLayout() {
                 <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="orders" className="py-3 text-sm">
                         <Scroll className="mr-2" />
-                        Orders
+                        Pedidos
                     </TabsTrigger>
                     <TabsTrigger value="character" className="py-3 text-sm">
                         <User className="mr-2" />
-                        Character
+                        Personaje
                     </TabsTrigger>
                 </TabsList>
                 {activeTab && (
