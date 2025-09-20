@@ -6,6 +6,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function findImage(id: string, name?: string): string {
-  const formattedName = (name || id).replace(/\s/g, '+');
+  const textToShow = name || id;
+  const formattedName = textToShow.replace(/\s/g, '+');
   return `https://placehold.co/200x200/FFFFFF/A149F8?text=${formattedName}&font=fredoka`;
 }
