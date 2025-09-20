@@ -1,3 +1,5 @@
+'use client';
+
 import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Shirt, Gem } from 'lucide-react';
@@ -32,7 +34,7 @@ const ItemSlot = ({ item, icon, type }: { item: Item | null, icon: React.ReactNo
         alt={item.name}
         width={80}
         height={80}
-        className="object-contain p-1"
+        className="object-contain p-1 drop-shadow-lg"
       />
     ) : (
       icon
