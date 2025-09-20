@@ -15,6 +15,7 @@ export interface BoardSlot {
 
 export interface Order {
     id: string;
+    customerEmoji: string;
     requiredItems: {
         itemId: string;
         quantity: number;

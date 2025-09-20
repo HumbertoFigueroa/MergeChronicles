@@ -106,16 +106,19 @@ export const STORY_DIALOGUES: string[] = [
 export const INITIAL_ORDERS: Order[] = [
     {
         id: 'order-1',
+        customerEmoji: '👩‍🎤',
         requiredItems: [{ itemId: 'shoes_2', quantity: 1 }],
         reward: { gems: 5 }
     },
     {
         id: 'order-2',
+        customerEmoji: '👨‍💼',
         requiredItems: [{ itemId: 'clothing_3', quantity: 2 }],
         reward: { gems: 10 }
     },
     {
         id: 'order-3',
+        customerEmoji: '👸',
         requiredItems: [
             { itemId: 'clothing_10', quantity: 1 },
             { itemId: 'jewelry_7', quantity: 1 }

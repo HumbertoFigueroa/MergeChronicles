@@ -2,7 +2,12 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { ArrowRight } from 'lucide-react';
+
+const GoogleIcon = () => (
+    <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
+        <path fill="currentColor" d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 126 23.4 172.9 61.9l-69.5 69.5c-24.3-23.2-57.5-37.3-95.4-37.3-74.3 0-134.3 60-134.3 134.3s60 134.3 134.3 134.3c82.3 0 119-54.2 123.6-82.9H248v-87.3h239.9c1.5 12.6 2.1 26.2 2.1 40.2z"></path>
+    </svg>
+);
 
 export default function Home() {
   const heroImage = PlaceHolderImages.find((img) => img.id === 'hero_1');
@@ -26,8 +31,9 @@ export default function Home() {
           Unleash your inner designer and weave your own romance. Merge beautiful items, create stunning outfits, and watch your story unfold.
         </p>
         <Button asChild size="lg" className="mt-8 text-lg font-bold">
-          <Link href="/game">
-            Enter the World of Fashion <ArrowRight className="ml-2" />
+          <Link href="/game" className='flex items-center justify-center'>
+            <GoogleIcon />
+            Continuar con Google
           </Link>
         </Button>
       </div>

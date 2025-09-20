@@ -2,10 +2,9 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import GameHeader from './game-header';
-import CharacterDisplay from './character-display';
 import MergeBoard from './merge-board';
 import type { BoardSlot, Item, ItemType, Order } from '@/lib/types';
-import { ITEMS, MERGE_RULES, STORY_DIALOGUES, INITIAL_ORDERS } from '@/lib/game-data';
+import { ITEMS, MERGE_RULES, INITIAL_ORDERS } from '@/lib/game-data';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '../ui/button';
 import { ShoppingCart, ScrollText, BookOpen } from 'lucide-react';
@@ -14,9 +13,6 @@ import PlayerStats from './player-stats';
 import OrderDisplay from './order-display';
 import ShopDialog from './shop-dialog';
 import GameBackground from './game-background';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { User, Scroll } from 'lucide-react';
 import Link from 'next/link';
 
 const BOARD_SIZE = 56; // 7 columns x 8 rows
@@ -44,9 +40,8 @@ export default function GameLayout() {
   const [appearingIndex, setAppearingIndex] = useState<number | null>(null);
   const [energy, setEnergy] = useState(80);
   const [gems, setGems] = useState(25);
-  const [orders, setOrders] = useState<Order[]>(INITIAL_ORDERS.slice(0, 1));
+  const [orders, setOrders] = useState<Order[]>(INITIAL_ORDERS);
   const [isShopOpen, setIsShopOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<string | undefined>(undefined);
 
   const { toast } = useToast();
 
@@ -73,17 +68,16 @@ export default function GameLayout() {
     if (sourceIndexStr === null) return;
 
     const sourceIndex = parseInt(sourceIndexStr, 10);
-    if (isNaN(sourceIndex) || sourceIndex === targetIndex) return;
+    if (isNaN(sourceIndex)) return;
 
     const newBoard = [...board];
     const sourceSlot = newBoard[sourceIndex];
+    if (!sourceSlot || sourceIndex === targetIndex) return;
+    
     const targetSlot = newBoard[targetIndex];
-
-    if (!sourceSlot) return;
 
     if (!sourceSlot.item) return;
 
-    // Case 1: Dropping on an empty slot (Move)
     if (!targetSlot.item) {
       newBoard[targetIndex] = { ...targetSlot, item: sourceSlot.item };
       newBoard[sourceIndex] = { ...sourceSlot, item: null };
@@ -91,11 +85,9 @@ export default function GameLayout() {
       return;
     }
 
-    // Case 2: Dropping on another item
     const sourceItem = sourceSlot.item;
     const targetItem = targetSlot.item;
 
-    // Check for merge
     if (sourceItem.id === targetItem.id && MERGE_RULES[sourceItem.id]) {
       const newItemId = MERGE_RULES[sourceItem.id];
       const newItem = ITEMS[newItemId];
@@ -124,7 +116,6 @@ export default function GameLayout() {
         }
       }
     } else {
-      // Not mergeable, swap items
       newBoard[targetIndex] = { ...targetSlot, item: sourceItem };
       newBoard[sourceIndex] = { ...sourceSlot, item: targetItem };
       setBoard(newBoard);
@@ -154,18 +145,13 @@ export default function GameLayout() {
     }
   }, [board, toast]);
   
-  const handleCompleteOrder = (order: Order) => {
-    // This is a placeholder. Logic to check inventory and grant rewards will go here.
-    console.log("Intentando completar la orden:", order.id);
+  const handleCompleteOrder = (completedOrder: Order) => {
+    setOrders(prevOrders => prevOrders.filter(order => order.id !== completedOrder.id));
+    setGems(g => g + completedOrder.reward.gems);
     toast({
       title: "¡Orden Completada!",
-      description: `¡Ganaste ${order.reward.gems} gemas!`,
+      description: `¡Ganaste ${completedOrder.reward.gems} gemas!`,
     });
-    setGems(g => g + order.reward.gems);
-    // Generate new order
-    const currentOrderIndex = INITIAL_ORDERS.findIndex(o => o.id === order.id);
-    const nextOrderIndex = (currentOrderIndex + 1) % INITIAL_ORDERS.length;
-    setOrders([INITIAL_ORDERS[nextOrderIndex]]);
   };
 
   const addGems = (amount: number) => {
@@ -185,14 +171,6 @@ export default function GameLayout() {
     }
     toast({ variant: 'destructive', title: '¡No hay suficientes gemas!', description: 'Necesitas más gemas para hacer esta compra.' });
     return false;
-  }
-  
-  const handleTabChange = (value: string) => {
-    if (activeTab === value) {
-        setActiveTab(undefined);
-    } else {
-        setActiveTab(value);
-    }
   }
 
   return (
@@ -218,10 +196,9 @@ export default function GameLayout() {
                 </Link>
             </Button>
           <OrderDisplay orders={orders} onCompleteOrder={handleCompleteOrder} />
-          <RewardedAd onReward={() => generateNewItem()} />
         </div>
 
-        <div className="lg:col-span-6 flex flex-col items-center justify-center gap-4">
+        <div className="lg:col-span-9 flex flex-col items-center justify-center gap-4">
           <div className='w-full flex items-center justify-center gap-4 px-2'>
             <PlayerStats level={57} xp={75} energy={energy} maxEnergy={MAX_ENERGY} gems={gems} />
             <Button variant="secondary" size="icon" className='h-14 w-14 rounded-2xl flex-shrink-0' onClick={() => setIsShopOpen(true)}>
@@ -235,10 +212,7 @@ export default function GameLayout() {
             mergingIndex={mergingIndex}
             appearingIndex={appearingIndex}
           />
-        </div>
-
-        <div className="lg:col-span-3">
-          <CharacterDisplay equippedItems={equippedItems} />
+           <RewardedAd onReward={() => generateNewItem()} />
         </div>
       </main>
 
@@ -258,6 +232,10 @@ export default function GameLayout() {
           </div>
         </div>
 
+        <div className='my-2'>
+            <OrderDisplay orders={orders} onCompleteOrder={handleCompleteOrder} />
+        </div>
+
         <div className="flex-grow flex flex-col items-center justify-center min-h-0 my-2">
           <MergeBoard
             board={board}
@@ -268,33 +246,8 @@ export default function GameLayout() {
           />
         </div>
 
-        <div className="flex-shrink-0">
+        <div className="flex-shrink-0 mt-2">
              <RewardedAd onReward={() => generateNewItem()} />
-        </div>
-        
-        <div className="fixed bottom-0 left-0 right-0 z-50 p-2 bg-background/80 backdrop-blur-sm border-t lg:hidden">
-            <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="orders" className="py-3 text-sm">
-                        <Scroll className="mr-2" />
-                        Pedidos
-                    </TabsTrigger>
-                    <TabsTrigger value="character" className="py-3 text-sm">
-                        <User className="mr-2" />
-                        Personaje
-                    </TabsTrigger>
-                </TabsList>
-                {activeTab && (
-                    <div className="fixed bottom-[72px] left-0 right-0 max-h-[45vh] overflow-y-auto p-4 bg-background/95 animate-in slide-in-from-bottom-full">
-                        <TabsContent value="orders">
-                            <OrderDisplay orders={orders} onCompleteOrder={handleCompleteOrder} />
-                        </TabsContent>
-                        <TabsContent value="character">
-                             <CharacterDisplay equippedItems={equippedItems} />
-                        </TabsContent>
-                    </div>
-                )}
-            </Tabs>
         </div>
       </main>
     </div>

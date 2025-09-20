@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { findImage } from '@/lib/utils';
-import { Mail, KeyRound } from 'lucide-react';
+import { Mail } from 'lucide-react';
 
 const GoogleIcon = () => (
     <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
@@ -41,6 +41,17 @@ export default function LoginPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+           <Button variant="outline" className="w-full font-bold" size="lg">
+            <Link href="/game" className='flex items-center justify-center w-full'>
+                <GoogleIcon />
+                Continuar con Google
+            </Link>
+          </Button>
+          <div className="my-4 flex items-center">
+            <Separator className="flex-1" />
+            <span className="mx-4 text-xs text-muted-foreground">O</span>
+            <Separator className="flex-1" />
+          </div>
           <form className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
@@ -49,28 +60,12 @@ export default function LoginPage() {
                 <Input id="email" type="email" placeholder="tu@email.com" className="pl-10" />
               </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Contraseña</Label>
-              <div className="relative">
-                <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <Input id="password" type="password" placeholder="••••••••" className="pl-10" />
-              </div>
-            </div>
-            <Button asChild className="w-full font-bold" size="lg">
+            
+            <Button asChild className="w-full font-bold">
                 <Link href="/game">Continuar con Email</Link>
             </Button>
           </form>
-          <div className="my-4 flex items-center">
-            <Separator className="flex-1" />
-            <span className="mx-4 text-xs text-muted-foreground">O</span>
-            <Separator className="flex-1" />
-          </div>
-          <Button variant="outline" className="w-full font-bold">
-            <Link href="/game" className='flex items-center justify-center w-full'>
-                <GoogleIcon />
-                Continuar con Google
-            </Link>
-          </Button>
+          
           <p className="mt-6 text-center text-xs text-muted-foreground">
             Al continuar, aceptas nuestros{' '}
             <Link href="#" className="underline hover:text-primary">
@@ -83,5 +78,3 @@ export default function LoginPage() {
     </div>
   );
 }
-
-    
