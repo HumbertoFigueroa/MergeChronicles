@@ -15,9 +15,9 @@ import Link from 'next/link';
 import GeneratorControls from './generator-controls';
 
 const BOARD_SIZE = 56; // 7 columns x 8 rows
-const ENERGY_REGEN_RATE = 1.5 * 60 * 1000; // 1.5 minutes in ms
-const MAX_ENERGY = 100;
-const ENERGY_COST_PER_ITEM = 10;
+export const ENERGY_REGEN_RATE = 1.5 * 60 * 1000; // 1.5 minutes in ms
+export const MAX_ENERGY = 100;
+const ENERGY_COST_PER_ITEM = 1;
 const GEMS_PER_LEVEL = 5;
 
 const initialBoard: BoardSlot[] = Array.from({ length: BOARD_SIZE }, (_, i) => ({
@@ -32,7 +32,7 @@ export default function GameLayout() {
   const [board, setBoard] = useState<BoardSlot[]>(initialBoard);
   const [mergingIndex, setMergingIndex] = useState<number | null>(null);
   const [appearingIndex, setAppearingIndex] = useState<number | null>(null);
-  const [energy, setEnergy] = useState(80);
+  const [energy, setEnergy] = useState(100);
   const [gems, setGems] = useState(25);
   const [orders, setOrders] = useState<Order[]>(INITIAL_ORDERS);
   const [isShopOpen, setIsShopOpen] = useState(false);
@@ -220,7 +220,7 @@ export default function GameLayout() {
 
   const purchaseGems = (amount: number, price: string) => {
     toast({
-        title: "Procesando compra...",
+        title: "Procesando token de pago...",
         description: `Iniciando pago seguro para ${amount} gemas.`
     });
 
@@ -230,6 +230,7 @@ export default function GameLayout() {
           title: "¡Compra Exitosa!",
           description: `Has añadido ${amount} gemas por ${price}.`
         });
+        setIsShopOpen(false);
     }, 1500);
   };
 
