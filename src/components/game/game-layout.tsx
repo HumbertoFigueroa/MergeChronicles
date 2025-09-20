@@ -282,43 +282,47 @@ export default function GameLayout() {
   const placeNewItem = useCallback((itemId: string, preferredIndex?: number): boolean => {
     let placed = false;
     let placedIndex = -1;
+    
     setBoard(currentBoard => {
       const newBoard = [...currentBoard];
       const itemToPlace = ITEMS[itemId];
-      if (!itemToPlace) return currentBoard;
+      if (!itemToPlace) {
+        placed = false;
+        return currentBoard;
+      }
 
-      // Try to place in adjacent empty slots first
       if (preferredIndex !== undefined) {
         const adjacentIndexes = [
-            preferredIndex - 7, preferredIndex + 7, // Up, Down
-            (preferredIndex % 7 !== 0) ? preferredIndex - 1 : -1, // Left
-            ((preferredIndex + 1) % 7 !== 0) ? preferredIndex + 1 : -1, // Right
+          preferredIndex - 7, preferredIndex + 7,
+          (preferredIndex % 7 !== 0) ? preferredIndex - 1 : -1,
+          ((preferredIndex + 1) % 7 !== 0) ? preferredIndex + 1 : -1,
         ].filter(i => i >= 0 && i < BOARD_SIZE && !newBoard[i].item);
         
         if (adjacentIndexes.length > 0) {
-            const index = adjacentIndexes[Math.floor(Math.random() * adjacentIndexes.length)];
-            newBoard[index] = {...newBoard[index], item: itemToPlace};
-            placedIndex = index;
-            placed = true;
-            return newBoard;
+          const index = adjacentIndexes[Math.floor(Math.random() * adjacentIndexes.length)];
+          newBoard[index] = {...newBoard[index], item: itemToPlace};
+          placedIndex = index;
+          placed = true;
+          return newBoard;
         }
       }
 
-      // If no adjacent slots, find any empty slot
       const emptySlotIndex = newBoard.findIndex(slot => !slot.item);
       if (emptySlotIndex !== -1) {
-          newBoard[emptySlotIndex] = {...newBoard[emptySlotIndex], item: itemToPlace};
-          placedIndex = emptySlotIndex;
-          placed = true;
-          return newBoard;
+        newBoard[emptySlotIndex] = {...newBoard[emptySlotIndex], item: itemToPlace};
+        placedIndex = emptySlotIndex;
+        placed = true;
+        return newBoard;
       }
       
+      placed = false;
       return currentBoard;
     });
 
     if (placed && placedIndex !== -1) {
-      setAppearingIndex(placedIndex);
-      setTimeout(() => setAppearingIndex(null), 500);
+        setAppearingIndex(placedIndex);
+        setTimeout(() => setAppearingIndex(null), 500);
+        return true;
     }
     
     return placed;
@@ -329,48 +333,28 @@ export default function GameLayout() {
     if (!clickedItem || !clickedItem.isGenerator) {
         if(clickedItem?.isGenerator) {
             setSelectedGeneratorType(clickedItem.type);
-            toast({ title: `Generador de ${clickedItem.type} seleccionado.`});
         }
         return;
     };
     
     if (clickedItem.type !== selectedGeneratorType) {
         setSelectedGeneratorType(clickedItem.type);
-        toast({ title: `Generador de ${clickedItem.name} seleccionado.`});
         return;
     }
 
     const totalEnergyCost = ENERGY_COST_PER_ITEM * multiplier;
     if (energy < totalEnergyCost) {
-      toast({ variant: "destructive", title: "¡No hay suficiente energía!", description: `Necesitas ${totalEnergyCost} de energía.` });
       return;
     }
 
     setEnergy(e => e - totalEnergyCost);
 
-    let itemsPlaced = 0;
-    let totalItemsToGenerate = multiplier;
-    let generatedItemsCount: Record<string, number> = {};
-
-    for (let i = 0; i < totalItemsToGenerate; i++) {
+    for (let i = 0; i < multiplier; i++) {
         const itemToGenerateId = getRandomItemForMultiplier(multiplier, clickedItem.type);
         const success = placeNewItem(itemToGenerateId, index);
-        if (success) {
-            itemsPlaced++;
-            generatedItemsCount[itemToGenerateId] = (generatedItemsCount[itemToGenerateId] || 0) + 1;
-        } else {
-            toast({ variant: "destructive", title: "¡Tablero lleno!", description: "Libera algo de espacio." });
+        if (!success) {
             break; 
         }
-    }
-
-    if (itemsPlaced > 0) {
-      const toastDescription = Object.entries(generatedItemsCount).map(([itemId, count]) => {
-          const item = ITEMS[itemId];
-          return `${count} x ${item.name} ${item.emoji}`;
-      }).join(', ');
-
-      toast({ title: `¡${itemsPlaced} objeto(s) generado(s)!`, description: toastDescription });
     }
   };
   
@@ -529,7 +513,5 @@ export default function GameLayout() {
     </div>
   );
 }
-
-    
 
     
