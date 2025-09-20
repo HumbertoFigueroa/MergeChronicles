@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { ArrowLeft, BookOpen, Gem, Sparkles, Lock } from 'lucide-react';
+import { ArrowLeft, BookOpen, Coins, Sparkles, Lock } from 'lucide-react';
 import { LILY_STORY_CHAPTERS } from '@/lib/story-data';
 import GameBackground from '@/components/game/game-background';
 import { useToast } from '@/hooks/use-toast';
@@ -28,6 +28,10 @@ export default function StoryPage() {
     const g = searchParams.get('gems');
     return g ? parseInt(g, 10) : 25;
   });
+    const [coins, setCoins] = useState(() => {
+    const c = searchParams.get('coins');
+    return c ? parseInt(c, 10) : 0;
+  });
   const [playerLevel, setPlayerLevel] = useState(() => {
     const l = searchParams.get('level');
     return l ? parseInt(l, 10) : 1;
@@ -39,15 +43,16 @@ export default function StoryPage() {
   useEffect(() => {
     const params = new URLSearchParams();
     params.set('gems', gems.toString());
+    params.set('coins', coins.toString());
     params.set('unlocked', unlockedMiniStories.toString());
     params.set('level', playerLevel.toString());
     router.replace(`/story?${params.toString()}`);
-  }, [unlockedMiniStories, gems, playerLevel, router]);
+  }, [unlockedMiniStories, gems, coins, playerLevel, router]);
 
   const handleUnlockStory = () => {
-    if (gems >= UNLOCK_COST) {
+    if (coins >= UNLOCK_COST) {
       if (unlockedMiniStories < TOTAL_MINI_STORIES) {
-        setGems(g => g - UNLOCK_COST);
+        setCoins(c => c - UNLOCK_COST);
         setUnlockedMiniStories(u => u + 1);
         toast({
           title: "¡Nuevo Recuerdo Desbloqueado!",
@@ -63,8 +68,8 @@ export default function StoryPage() {
     } else {
       toast({
         variant: "destructive",
-        title: "¡No hay suficientes gemas!",
-        description: `Necesitas ${UNLOCK_COST} gemas para desbloquear el siguiente recuerdo.`
+        title: "¡No hay suficientes monedas!",
+        description: `Necesitas ${UNLOCK_COST} monedas para desbloquear el siguiente recuerdo.`
       });
     }
   };
@@ -72,6 +77,7 @@ export default function StoryPage() {
   const createGameLink = () => {
     const params = new URLSearchParams();
     params.set('gems', gems.toString());
+    params.set('coins', coins.toString());
     params.set('unlocked', unlockedMiniStories.toString());
     params.set('level', playerLevel.toString());
     // Also pass XP and energy if they were passed to this page
@@ -133,13 +139,13 @@ export default function StoryPage() {
                                     <>
                                         <Sparkles className="mr-2" />
                                         Desbloquear Recuerdo
-                                        <Gem className="ml-2" /> {UNLOCK_COST}
+                                        <Coins className="ml-2" /> {UNLOCK_COST}
                                     </>
                                 )}
                             </Button>
                         </CardContent>
                         <CardFooter className='justify-center'>
-                            <p className='text-sm text-muted-foreground'>Tus gemas: {gems}</p>
+                            <p className='text-sm text-muted-foreground'>Tus monedas: {coins}</p>
                         </CardFooter>
                     </Card>
                 </div>
@@ -155,14 +161,14 @@ export default function StoryPage() {
                                         <AccordionTrigger className='font-headline text-2xl bg-card/50 px-4 rounded-lg text-muted-foreground/50'>
                                             <Lock className='mr-2' />
                                             Capítulo {chapter.chapter}: {chapter.title} (Nivel {chapter.unlockLevel})
-                                        </AccordionTrigger>
+                                        </Trigger>
                                         <AccordionContent>
                                         </AccordionContent>
                                     </AccordionItem>
                                 )
                             }
                             
-                            const chapterBaseCount = (chapter.chapter - 1) * 10;
+                            const chapterBaseCount = LILY_STORY_CHAPTERS.slice(0, chapterIndex).reduce((acc, chap) => acc + chap.stories.length, 0);
                             
                             return (
                                 <AccordionItem value={`chapter-${chapter.chapter}`} key={chapter.chapter}>

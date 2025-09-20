@@ -9,6 +9,7 @@ export default function GamePage() {
     xp: 0,
     energy: 100,
     gems: 25,
+    coins: 0,
     unlockedStoryParts: 1,
   });
 

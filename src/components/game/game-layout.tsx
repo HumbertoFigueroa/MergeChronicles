@@ -21,6 +21,7 @@ export const ENERGY_REGEN_RATE = 1.5 * 60 * 1000; // 1.5 minutes in ms
 export const MAX_ENERGY = 100;
 const ENERGY_COST_PER_ITEM = 1;
 const GEMS_PER_LEVEL = 5;
+const COINS_PER_LEVEL = 10;
 const MAX_ORDERS = 3;
 
 const CUSTOMER_EMOJIS = ['👩‍🌾', '🍓', '🧑‍🎨', '🐮', '🛹', '🧑‍⚕️', '🐖', '🍊', '👘', '🚲', '🧑‍🌾', '🐑', '🍌', '🚌', '👠', '🧑‍🍳', '🐕', '🍍', '🧑‍🔬', '👔', '🐈', '✈️', '🍎', '🧑‍🚀', '🐎', '🧤', '🍐', '🚀', '🐘', '🧑‍🚒', '🧥', '🍑'];
@@ -114,6 +115,7 @@ export default function GameLayout() {
   const [xp, setXp] = useState(() => searchParams.get('xp') ? parseInt(searchParams.get('xp')!, 10) : 0);
   const [energy, setEnergy] = useState(() => searchParams.get('energy') ? parseInt(searchParams.get('energy')!, 10) : 100);
   const [gems, setGems] = useState(() => searchParams.get('gems') ? parseInt(searchParams.get('gems')!, 10) : 25);
+  const [coins, setCoins] = useState(() => searchParams.get('coins') ? parseInt(searchParams.get('coins')!, 10) : 0);
   const [unlockedStoryParts, setUnlockedStoryParts] = useState(() => searchParams.get('unlocked') ? parseInt(searchParams.get('unlocked')!, 10) : 1);
 
   const [board, setBoard] = useState<BoardSlot[]>(initialBoard);
@@ -151,9 +153,10 @@ export default function GameLayout() {
         newXp -= xpForNext;
         newLevel++;
         setGems(currentGems => currentGems + GEMS_PER_LEVEL * newLevel);
+        setCoins(currentCoins => currentCoins + COINS_PER_LEVEL * newLevel);
         toast({
           title: "¡Subiste de nivel!",
-          description: `¡Alcanzaste el nivel ${newLevel}! Has ganado ${GEMS_PER_LEVEL * newLevel} gemas.`,
+          description: `¡Alcanzaste el nivel ${newLevel}! Has ganado ${GEMS_PER_LEVEL * newLevel} gemas y ${COINS_PER_LEVEL * newLevel} monedas.`,
         });
         xpForNext = getXpNeededForLevel(newLevel);
       }
@@ -361,10 +364,12 @@ export default function GameLayout() {
 
     if (itemIndexOnBoard !== -1) {
       const deliveredItem = board[itemIndexOnBoard].item!;
-      const gemReward = deliveredItem.level * GEMS_PER_LEVEL;
+      const gemReward = deliveredItem.level;
+      const coinReward = deliveredItem.level * 2;
       const xpReward = deliveredItem.level;
 
       setGems(g => g + gemReward);
+      setCoins(c => c + coinReward);
       addXp(xpReward);
 
       setBoard(b => {
@@ -377,7 +382,7 @@ export default function GameLayout() {
       
       toast({
         title: "¡Orden Completada!",
-        description: `¡Entregaste un ${deliveredItem.name}! Ganaste ${gemReward} gemas y ${xpReward} XP.`,
+        description: `¡Entregaste un ${deliveredItem.name}! Ganaste ${gemReward} gemas, ${coinReward} monedas y ${xpReward} XP.`,
       });
     }
   };
@@ -417,6 +422,7 @@ export default function GameLayout() {
     params.set('xp', xp.toString());
     params.set('energy', energy.toString());
     params.set('gems', gems.toString());
+    params.set('coins', coins.toString());
     params.set('unlocked', unlockedStoryParts.toString());
     return `/story?${params.toString()}`;
   }
@@ -454,7 +460,7 @@ export default function GameLayout() {
         <div className="flex flex-col items-center gap-4 flex-grow min-h-0 w-full lg:col-span-9">
           
           <div className='w-full flex items-center justify-center gap-2 px-1 flex-shrink-0'>
-            <PlayerStats level={level} xp={xp} xpNeeded={xpNeeded} energy={energy} maxEnergy={MAX_ENERGY} gems={gems} />
+            <PlayerStats level={level} xp={xp} xpNeeded={xpNeeded} energy={energy} maxEnergy={MAX_ENERGY} gems={gems} coins={coins} />
             <Button variant="secondary" size="icon" className='h-14 w-14 rounded-2xl flex-shrink-0' onClick={() => setIsShopOpen(true)}>
                 <ShoppingCart className="h-7 w-7" />
             </Button>
