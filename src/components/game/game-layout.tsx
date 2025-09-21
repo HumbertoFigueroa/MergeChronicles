@@ -1,20 +1,23 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import MergeBoard from './merge-board';
 import type { BoardSlot, Item, Order, ItemType } from '@/lib/types';
 import { ITEMS, MERGE_RULES } from '@/lib/game-data';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '../ui/button';
-import { Lock, ShoppingCart } from 'lucide-react';
+import { Lock, ShoppingCart, Loader } from 'lucide-react';
 import PlayerStats from './player-stats';
 import OrderDisplay from './order-display';
 import ShopDialog from './shop-dialog';
 import GameBackground from './game-background';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Badge } from '../ui/badge';
 import { Toaster } from '../ui/toaster';
 import LevelUpRoulette from './level-up-roulette';
+import { useAuth } from '@/hooks/use-auth';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 const BOARD_SIZE = 56; // 7 columns x 8 rows
 export const ENERGY_REGEN_RATE = 1.5 * 60 * 1000; // 1.5 minutes in ms
@@ -85,12 +88,16 @@ const getRandomItemForMultiplier = (multiplier: Multiplier, itemType: ItemType):
 
 
 export default function GameLayout() {
+  const router = useRouter();
   const searchParams = useSearchParams();
+  const { user, loading: authLoading } = useAuth();
 
-  const [level, setLevel] = useState(() => searchParams.get('level') ? parseInt(searchParams.get('level')!, 10) : 1);
-  const [xp, setXp] = useState(() => searchParams.get('xp') ? parseInt(searchParams.get('xp')!, 10) : 0);
-  const [energy, setEnergy] = useState(() => searchParams.get('energy') ? parseInt(searchParams.get('energy')!, 10) : 100);
-  const [gems, setGems] = useState(() => searchParams.get('gems') ? parseInt(searchParams.get('gems')!, 10) : 25);
+  const [isGameDataLoading, setIsGameDataLoading] = useState(true);
+  
+  const [level, setLevel] = useState(1);
+  const [xp, setXp] = useState(0);
+  const [energy, setEnergy] = useState(100);
+  const [gems, setGems] = useState(25);
   
   const [board, setBoard] = useState<BoardSlot[]>(initialBoard);
   const [orders, setOrders] = useState<Order[]>([]);
@@ -102,7 +109,80 @@ export default function GameLayout() {
   const [draggedItemIndex, setDraggedItemIndex] = useState<number | null>(null);
 
   const { toast } = useToast();
+
+  const isInitialLoad = useRef(true);
   
+  useEffect(() => {
+    if (authLoading) return;
+    if (!user) {
+      router.push('/');
+      return;
+    }
+
+    const loadGameData = async () => {
+      setIsGameDataLoading(true);
+      const docRef = doc(db, 'user-progress', user.uid);
+      const docSnap = await getDoc(docRef);
+
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        setLevel(data.level ?? 1);
+        setXp(data.xp ?? 0);
+        setEnergy(data.energy ?? 100);
+        setGems(data.gems ?? 25);
+        setOrders(data.orders ?? []);
+        // Make sure board items are rehydrated from ITEMS map
+        const savedBoard = data.board ?? initialBoard;
+        const hydratedBoard = savedBoard.map((slot: BoardSlot) => ({
+          ...slot,
+          item: slot.item ? ITEMS[slot.item.id] : null,
+        }));
+        setBoard(hydratedBoard);
+        setSpinsAvailable(data.spinsAvailable ?? 0);
+      } else {
+        // This is a new player, `board` is already `initialBoard`
+        // We'll generate initial generators and orders
+        setBoard(currentBoard => {
+            const newBoard = [...currentBoard];
+            newBoard[GENERATOR_UNLOCKS.generator_animals.position].item = ITEMS.generator_animals;
+            return newBoard;
+        });
+      }
+      setIsGameDataLoading(false);
+      isInitialLoad.current = false;
+    };
+    
+    loadGameData();
+  }, [user, authLoading, router]);
+
+  useEffect(() => {
+    if (isInitialLoad.current || authLoading || !user) return;
+    
+    const saveData = async () => {
+        const gameData = {
+            level,
+            xp,
+            energy,
+            gems,
+            board,
+            orders,
+            spinsAvailable,
+            lastSaved: new Date().toISOString()
+        };
+        await setDoc(doc(db, 'user-progress', user.uid), gameData, { merge: true });
+    };
+    
+    // Debounce saving
+    const handler = setTimeout(() => {
+        saveData();
+    }, 1000); // Save 1 second after the last change
+
+    return () => {
+        clearTimeout(handler);
+    };
+
+  }, [level, xp, energy, gems, board, orders, spinsAvailable, user, authLoading]);
+
   const xpNeeded = getXpNeededForLevel(level);
 
   const placeNewItem = (boardState: BoardSlot[], itemId: string, preferredIndex?: number): { newBoard: BoardSlot[], success: boolean, placedIndex: number | null } => {
@@ -142,6 +222,7 @@ export default function GameLayout() {
   };
 
   useEffect(() => {
+    if (isGameDataLoading) return;
     setBoard(currentBoard => {
       let currentGenerators = new Set(currentBoard.map(slot => slot.item?.id).filter(id => id?.startsWith('generator_')));
       const newBoard = [...currentBoard];
@@ -187,7 +268,7 @@ export default function GameLayout() {
       return boardChanged ? newBoard : currentBoard;
     });
   
-  }, [level]);
+  }, [level, isGameDataLoading]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -271,13 +352,14 @@ export default function GameLayout() {
   }, [level]);
 
   useEffect(() => {
+    if (isGameDataLoading) return;
     if (orders.length < MAX_ORDERS) {
       const newOrder = generateNewOrder();
       if (newOrder) {
         setOrders(currentOrders => [...currentOrders, newOrder]);
       }
     }
-  }, [level, orders.length, generateNewOrder]);
+  }, [level, orders.length, generateNewOrder, isGameDataLoding]);
 
   const handleDrop = (sourceIndex: number, targetIndex: number) => {
     if (sourceIndex === targetIndex) return;
@@ -518,6 +600,14 @@ export default function GameLayout() {
     }
     setSpinsAvailable(s => s - 1);
   };
+
+  if (authLoading || isGameDataLoading) {
+    return (
+      <div className="relative flex min-h-screen items-center justify-center p-4 bg-background">
+        <Loader className="animate-spin h-10 w-10 text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div 

@@ -2,6 +2,7 @@ import { Progress } from '@/components/ui/progress';
 import React, { useState, useEffect } from 'react';
 import { ENERGY_REGEN_RATE, MAX_ENERGY_REGEN } from './game-layout';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { useAuth } from '@/hooks/use-auth';
 
 interface PlayerStatsProps {
   level: number;
@@ -83,6 +84,7 @@ const EnergyTimer = ({ nextEnergyTime }: { nextEnergyTime: number }) => {
 
 
 export default function PlayerStats({ level, xp, xpNeeded, energy, gems }: PlayerStatsProps) {
+    const { user } = useAuth();
     const xpPercentage = (xp / xpNeeded) * 100;
     const [nextEnergyTime, setNextEnergyTime] = useState(0);
 
@@ -108,8 +110,8 @@ export default function PlayerStats({ level, xp, xpNeeded, energy, gems }: Playe
             {/* Level */}
             <div className="relative h-9 w-9 rounded-full border-2 border-yellow-300 overflow-hidden flex-shrink-0 bg-muted flex items-center justify-center">
                  <Avatar className="h-8 w-8">
-                    <AvatarImage src="https://picsum.photos/seed/player-avatar/100" alt="Player" />
-                    <AvatarFallback>P</AvatarFallback>
+                    <AvatarImage src={user?.photoURL ?? `https://picsum.photos/seed/${user?.uid}/100`} alt={user?.displayName ?? "Player"} />
+                    <AvatarFallback>{user?.displayName?.[0] ?? 'P'}</AvatarFallback>
                 </Avatar>
                  <div className='absolute -bottom-1 w-full text-center bg-black/50'>
                     <span className='text-xs font-bold leading-tight'>{level}</span>

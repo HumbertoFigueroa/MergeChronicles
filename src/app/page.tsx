@@ -1,5 +1,8 @@
+'use client';
+
 import Image from 'next/image';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -8,10 +11,9 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { Mail } from 'lucide-react';
+import { useAuth } from '@/hooks/use-auth';
+import { Loader } from 'lucide-react';
 
 const GoogleIcon = () => (
     <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
@@ -20,7 +22,25 @@ const GoogleIcon = () => (
 );
 
 export default function HomePage() {
+  const { user, loading, signInWithGoogle } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (user) {
+      router.push('/game');
+    }
+  }, [user, router]);
+  
   const bgImage = "https://picsum.photos/seed/login_bg/1200/800";
+
+  if (loading || user) {
+    return (
+      <div className="relative flex min-h-screen items-center justify-center p-4 bg-background">
+        <Loader className="animate-spin h-10 w-10 text-primary" />
+      </div>
+    );
+  }
+
   return (
     <div className="relative flex min-h-screen items-center justify-center p-4">
       <Image
@@ -40,38 +60,18 @@ export default function HomePage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-           <Button variant="outline" className="w-full font-bold" size="lg">
-            <Link href="/game" className='flex items-center justify-center w-full'>
-                <GoogleIcon />
-                Continuar con Google
-            </Link>
+           <Button variant="outline" className="w-full font-bold" size="lg" onClick={signInWithGoogle}>
+              <GoogleIcon />
+              Continuar con Google
           </Button>
           <div className="my-4 flex items-center">
             <Separator className="flex-1" />
             <span className="mx-4 text-xs text-muted-foreground">O</span>
             <Separator className="flex-1" />
           </div>
-          <form className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <Input id="email" type="email" placeholder="tu@email.com" className="pl-10" />
-              </div>
-            </div>
-            
-            <Button asChild className="w-full font-bold">
-                <Link href="/game">Continuar con Email</Link>
-            </Button>
-          </form>
-          
-          <p className="mt-6 text-center text-xs text-muted-foreground">
-            Al continuar, aceptas nuestros{' '}
-            <Link href="#" className="underline hover:text-primary">
-              Términos de Servicio
-            </Link>
-            .
-          </p>
+          <div className="text-center text-sm text-muted-foreground">
+            El inicio de sesión con email no está disponible.
+          </div>
         </CardContent>
       </Card>
     </div>
