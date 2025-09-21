@@ -396,29 +396,34 @@ export default function GameLayout() {
       return;
     }
 
-    setEnergy(e => e - totalEnergyCost);
-
     let tempBoard = [...board];
     let itemsGenerated = 0;
-    let boardIsFull = false;
-
+    
+    // This loop generates item IDs but doesn't place them yet
+    const itemsToGenerate = [];
     for (let i = 0; i < multiplier; i++) {
+        itemsToGenerate.push(getRandomItemForMultiplier(multiplier, clickedItem.type));
+    }
+    
+    let boardIsFull = false;
+    for (const itemId of itemsToGenerate) {
         if (boardIsFull) break;
-        const itemToGenerateId = getRandomItemForMultiplier(multiplier, clickedItem.type);
-        
-        const result = placeNewItem(tempBoard, itemToGenerateId, index);
-
+        const result = placeNewItem(tempBoard, itemId, index);
         if (result.success) {
             tempBoard = result.newBoard;
             itemsGenerated++;
             if (result.placedIndex !== null) {
-                // This state update needs to be handled carefully outside the loop
                 setAppearingIndex(result.placedIndex);
                 setTimeout(() => setAppearingIndex(null), 500);
             }
         } else {
             boardIsFull = true;
         }
+    }
+
+    if (itemsGenerated > 0) {
+      const energySpent = itemsGenerated * ENERGY_COST_PER_ITEM;
+      setEnergy(e => e - energySpent);
     }
 
     setBoard(tempBoard);
@@ -429,9 +434,6 @@ export default function GameLayout() {
             title: '¡Tablero Lleno!',
             description: 'No hay espacio para generar más objetos.',
         });
-        // Refund unused energy
-        const energyToRefund = totalEnergyCost - (itemsGenerated * ENERGY_COST_PER_ITEM);
-        setEnergy(e => e + energyToRefund);
     }
   };
   
