@@ -493,11 +493,6 @@ export default function GameLayout() {
         }
         return updatedOrders;
       });
-      
-    //   toast({
-    //     title: "¡Orden Completada!",
-    //     description: `¡Entregaste un ${deliveredItem.name}! Ganaste ${xpReward} XP.`,
-    //   });
     }
   };
 
@@ -518,7 +513,6 @@ export default function GameLayout() {
 
   const addEnergy = (amount: number) => {
     setEnergy(e => Math.min(MAX_ENERGY, e + amount));
-    //  toast({ title: "¡Energía Añadida!", description: `Recibiste ${amount} de energía.` });
   };
   
   const spendGems = (amount: number): boolean => {
