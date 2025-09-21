@@ -30,7 +30,8 @@ const rewards: Reward[] = [
 const totalSegments = rewards.length;
 const segmentAngle = 360 / totalSegments;
 
-const getReward = (): number => {
+// Function to get a random winner based on probability
+const getRewardByProbability = (): number => {
   const rand = Math.random();
   let cumulativeProbability = 0;
 
@@ -45,13 +46,13 @@ const getReward = (): number => {
 
 interface LevelUpRouletteProps {
   isOpen: boolean;
-  onSpin: (reward: Reward) => void;
+  onSpinComplete: (reward: Reward) => void;
   spinsAvailable: number;
 }
 
 export default function LevelUpRoulette({
   isOpen,
-  onSpin,
+  onSpinComplete,
   spinsAvailable,
 }: LevelUpRouletteProps) {
   const [isSpinning, setIsSpinning] = useState(false);
@@ -59,24 +60,32 @@ export default function LevelUpRoulette({
   const [resultIndex, setResultIndex] = useState<number | null>(null);
 
   const handleSpinClick = () => {
-    if (isSpinning) return;
+    if (isSpinning || spinsAvailable === 0) return;
+    
     setIsSpinning(true);
     setResultIndex(null);
 
-    const winnerIndex = getReward();
-    const fullSpins = 5;
-    const targetRotation = 360 * fullSpins - (winnerIndex * segmentAngle) - (segmentAngle / 2);
-
+    const winnerIndex = getRewardByProbability();
+    const fullSpins = 5; // How many times the wheel will spin fully
+    // Calculate the final angle. We add random noise to make it not stop at the exact same spot in the segment.
+    const winnerSegmentBaseAngle = winnerIndex * segmentAngle;
+    const randomAngleInSegment = (segmentAngle * 0.1) + (Math.random() * segmentAngle * 0.8);
+    const targetRotation = (360 * fullSpins) - (winnerSegmentBaseAngle + randomAngleInSegment);
+    
     setRotation(targetRotation);
 
+    // Wait for the spin animation to finish
     setTimeout(() => {
       setIsSpinning(false);
       setResultIndex(winnerIndex);
+      
+      // Wait a bit more to show the result before calling the callback
       setTimeout(() => {
-        onSpin(rewards[winnerIndex]);
-        setRotation(current => current % 360); // Reset rotation for next spin
-      }, 1500); // Wait for the user to see the result
-    }, 4000); // Duration of the spin animation
+        onSpinComplete(rewards[winnerIndex]);
+        // Reset rotation for the next spin appearance, without animation
+        setRotation(prev => prev % 360);
+      }, 1500); 
+    }, 4000); // This must match the animation duration
   };
 
   return (
@@ -88,21 +97,24 @@ export default function LevelUpRoulette({
             ¡Has Subido de Nivel!
           </DialogTitle>
           <DialogDescription className="text-center">
-            ¡Gira la ruleta para ganar un premio!
+            ¡Gira la ruleta para ganar un premio! Tienes {spinsAvailable} giro(s).
           </DialogDescription>
         </DialogHeader>
 
         <div className="relative my-8 flex items-center justify-center">
           {/* Pointer */}
           <div className="absolute -top-4 z-10 w-0 h-0 
-            border-l-8 border-l-transparent
-            border-r-8 border-r-transparent
-            border-t-8 border-t-yellow-400 drop-shadow-md"></div>
+            border-l-[10px] border-l-transparent
+            border-r-[10px] border-r-transparent
+            border-t-[15px] border-t-yellow-400 drop-shadow-md"></div>
 
           {/* Roulette Wheel */}
           <div
-            className="relative w-64 h-64 rounded-full border-4 border-yellow-400 overflow-hidden transition-transform duration-[4000ms] ease-out"
-            style={{ transform: `rotate(${rotation}deg)` }}
+            className="relative w-64 h-64 rounded-full border-4 border-yellow-400 overflow-hidden"
+            style={{ 
+                transform: `rotate(${rotation}deg)`,
+                transition: isSpinning ? 'transform 4s cubic-bezier(0.33, 1, 0.68, 1)' : 'none'
+            }}
           >
             {rewards.map((reward, index) => (
               <div
@@ -124,12 +136,12 @@ export default function LevelUpRoulette({
             ))}
           </div>
           {/* Result Highlight */}
-          {resultIndex !== null && (
+          {!isSpinning && resultIndex !== null && (
             <div
-              className="absolute w-64 h-64 rounded-full overflow-hidden animate-pulse-strong"
+              className="absolute w-64 h-64 rounded-full overflow-hidden animate-pulse-strong pointer-events-none"
             >
                <div
-                className="absolute w-1/2 h-1/2 origin-bottom-right bg-white/40"
+                className="absolute w-1/2 h-1/2 origin-bottom-right bg-white/30"
                 style={{
                   transform: `rotate(${resultIndex * segmentAngle}deg)`,
                   clipPath: `polygon(0 0, 100% 0, 100% 100%)`,
@@ -145,7 +157,7 @@ export default function LevelUpRoulette({
           size="lg"
           className="w-full"
         >
-          {isSpinning ? 'Girando...' : `Girar (${spinsAvailable})`}
+          {isSpinning ? 'Girando...' : `Girar`}
         </Button>
       </DialogContent>
     </Dialog>

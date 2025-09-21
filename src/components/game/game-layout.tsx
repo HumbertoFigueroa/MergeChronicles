@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import MergeBoard from './merge-board';
 import type { BoardSlot, Item, Order, ItemType } from '@/lib/types';
 import { ITEMS, MERGE_RULES } from '@/lib/game-data';
@@ -13,15 +13,13 @@ import ShopDialog from './shop-dialog';
 import GameBackground from './game-background';
 import { useSearchParams } from 'next/navigation';
 import { Badge } from '../ui/badge';
-import { useIsMobile } from '@/hooks/use-mobile';
 import { Toaster } from '../ui/toaster';
 import LevelUpRoulette from './level-up-roulette';
 
 const BOARD_SIZE = 56; // 7 columns x 8 rows
 export const ENERGY_REGEN_RATE = 1.5 * 60 * 1000; // 1.5 minutes in ms
-export const MAX_ENERGY = 100;
+export const MAX_ENERGY_REGEN = 100;
 const ENERGY_COST_PER_ITEM = 1;
-const GEMS_PER_LEVEL_UP = 5;
 const MAX_ORDERS = 3;
 
 const CUSTOMER_EMOJIS = ['👩‍🌾', '🍓', '🧑‍🎨', '🐮', '🛹', '🧑‍⚕️', '🐖', '🍊', '👘', '🚲', '🧑‍🌾', '🐑', '🍌', '🚌', '👠', '🧑‍🍳', '🐕', '🍍', '🧑‍🔬', '👔', '🐈', '✈️', '🍎', '🧑‍🚀', '🐎', '🧤', '🍐', '🚀', '🐘', '🧑‍🚒', '🧥', '🍑'];
@@ -88,10 +86,9 @@ const getRandomItemForMultiplier = (multiplier: Multiplier, itemType: ItemType):
 
 export default function GameLayout() {
   const searchParams = useSearchParams();
-  const isMobile = useIsMobile();
 
   const [level, setLevel] = useState(() => searchParams.get('level') ? parseInt(searchParams.get('level')!, 10) : 1);
-  const [xp, setXp] = useState(() => searchParams.get('xp') ? parseInt(search-params.get('xp')!, 10) : 0);
+  const [xp, setXp] = useState(() => searchParams.get('xp') ? parseInt(searchParams.get('xp')!, 10) : 0);
   const [energy, setEnergy] = useState(() => searchParams.get('energy') ? parseInt(searchParams.get('energy')!, 10) : 100);
   const [gems, setGems] = useState(() => searchParams.get('gems') ? parseInt(searchParams.get('gems')!, 10) : 25);
   
@@ -195,7 +192,7 @@ export default function GameLayout() {
   useEffect(() => {
     const timer = setInterval(() => {
         setEnergy(currentEnergy => {
-            if (currentEnergy < MAX_ENERGY) {
+            if (currentEnergy < MAX_ENERGY_REGEN) {
                 return currentEnergy + 1;
             }
             return currentEnergy;
@@ -222,8 +219,6 @@ export default function GameLayout() {
       if (levelsGained > 0) {
         setLevel(currentLevel);
         setSpinsAvailable(s => s + levelsGained);
-        // Original gem reward is now replaced by roulette
-        // setGems(currentGems => currentGems + (levelsGained * GEMS_PER_LEVEL_UP));
       }
 
       return newXp;
@@ -374,7 +369,7 @@ export default function GameLayout() {
     }
   };
 
-  const handleTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
+  const handleTouchEnd = () => {
     if (draggedItemIndex !== null) {
         setDraggedItemIndex(null);
     }
@@ -397,7 +392,6 @@ export default function GameLayout() {
     }
   
     let tempBoard = [...board];
-    let itemsGenerated = 0;
     
     // Check for space BEFORE spending energy
     const emptySlots = tempBoard.filter(slot => !slot.item).length;
@@ -414,13 +408,11 @@ export default function GameLayout() {
   
     for (let i = 0; i < multiplier; i++) {
       const itemId = getRandomItemForMultiplier(multiplier, clickedItem.type);
-      const { newBoard, success, placedIndex } = placeNewItem(tempBoard, itemId, index);
+      const { newBoard, success } = placeNewItem(tempBoard, itemId, index);
       
       tempBoard = newBoard;
   
-      if (success && placedIndex !== null) {
-        itemsGenerated++;
-      } else {
+      if (!success) {
         // This part should ideally not be reached due to the initial check, but as a safeguard:
         toast({
             variant: 'destructive',
@@ -518,7 +510,7 @@ export default function GameLayout() {
       });
   };
   
-  const handleSpin = (reward: { type: 'energy' | 'gems', amount: number }) => {
+  const handleSpinComplete = (reward: { type: 'energy' | 'gems', amount: number }) => {
     if (reward.type === 'energy') {
       addEnergy(reward.amount);
     } else {
@@ -538,7 +530,7 @@ export default function GameLayout() {
 
       <LevelUpRoulette
         isOpen={spinsAvailable > 0}
-        onSpin={handleSpin}
+        onSpinComplete={handleSpinComplete}
         spinsAvailable={spinsAvailable}
       />
 
@@ -570,8 +562,7 @@ export default function GameLayout() {
                 level={level} 
                 xp={xp} 
                 xpNeeded={xpNeeded} 
-                energy={energy} 
-                maxEnergy={MAX_ENERGY} 
+                energy={energy}
                 gems={gems}
              />
             <Button onClick={toggleMultiplier} variant='secondary' size='sm' className='h-10 w-12 rounded-lg relative flex-shrink-0'>

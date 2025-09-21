@@ -1,14 +1,13 @@
 import { Progress } from '@/components/ui/progress';
-import { cn } from '@/lib/utils';
 import React, { useState, useEffect } from 'react';
-import { ENERGY_REGEN_RATE } from './game-layout';
+import { ENERGY_REGEN_RATE, MAX_ENERGY_REGEN } from './game-layout';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 
 interface PlayerStatsProps {
   level: number;
   xp: number;
   xpNeeded: number;
   energy: number;
-  maxEnergy: number;
   gems: number;
 }
 
@@ -48,6 +47,8 @@ const EnergyTimer = ({ nextEnergyTime }: { nextEnergyTime: number }) => {
     const [timeLeft, setTimeLeft] = useState(nextEnergyTime - Date.now());
 
     useEffect(() => {
+        if (nextEnergyTime === 0) return;
+
         const interval = setInterval(() => {
             const newTimeLeft = nextEnergyTime - Date.now();
             if (newTimeLeft <= 0) {
@@ -59,6 +60,11 @@ const EnergyTimer = ({ nextEnergyTime }: { nextEnergyTime: number }) => {
 
         return () => clearInterval(interval);
     }, [nextEnergyTime]);
+    
+    useEffect(() => {
+        setTimeLeft(nextEnergyTime - Date.now());
+    }, [nextEnergyTime]);
+
 
     if (timeLeft <= 0) {
         return null;
@@ -76,30 +82,35 @@ const EnergyTimer = ({ nextEnergyTime }: { nextEnergyTime: number }) => {
 };
 
 
-export default function PlayerStats({ level, xp, xpNeeded, energy, maxEnergy, gems }: PlayerStatsProps) {
+export default function PlayerStats({ level, xp, xpNeeded, energy, gems }: PlayerStatsProps) {
     const xpPercentage = (xp / xpNeeded) * 100;
     const [nextEnergyTime, setNextEnergyTime] = useState(0);
 
     useEffect(() => {
         let timer: NodeJS.Timeout;
-        if (energy < maxEnergy) {
+        if (energy < MAX_ENERGY_REGEN) {
             const updateTimer = () => {
                 setNextEnergyTime(Date.now() + ENERGY_REGEN_RATE);
             };
             updateTimer(); 
             timer = setInterval(updateTimer, ENERGY_REGEN_RATE);
+        } else {
+            setNextEnergyTime(0);
         }
 
         return () => {
             if (timer) clearInterval(timer);
         };
-    }, [energy, maxEnergy]);
+    }, [energy]);
 
     return (
         <div className='flex items-center justify-between gap-2 w-full bg-black/20 rounded-full p-1.5 h-12 shadow-inner border border-white/30 text-white'>
             {/* Level */}
             <div className="relative h-9 w-9 rounded-full border-2 border-yellow-300 overflow-hidden flex-shrink-0 bg-muted flex items-center justify-center">
-                 <span className='text-3xl'>🧑‍🎨</span>
+                 <Avatar className="h-8 w-8">
+                    <AvatarImage src="https://picsum.photos/seed/player-avatar/100" alt="Player" />
+                    <AvatarFallback>P</AvatarFallback>
+                </Avatar>
                  <div className='absolute -bottom-1 w-full text-center bg-black/50'>
                     <span className='text-xs font-bold leading-tight'>{level}</span>
                  </div>
@@ -126,7 +137,7 @@ export default function PlayerStats({ level, xp, xpNeeded, energy, maxEnergy, ge
                 <div className="relative flex items-center gap-1.5 h-8">
                      <div className='w-5 h-5 flex items-center justify-center'><ZapIcon /></div>
                      <span className="text-sm font-bold">{energy}</span>
-                     {energy < maxEnergy && <EnergyTimer nextEnergyTime={nextEnergyTime} />}
+                     {energy < MAX_ENERGY_REGEN && <EnergyTimer nextEnergyTime={nextEnergyTime} />}
                 </div>
             </div>
 

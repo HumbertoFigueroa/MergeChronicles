@@ -88,10 +88,10 @@ export default function ShopDialog({
   }
     
   const gemPackages = [
-      { gems: 100, price: '$0.99' },
-      { gems: 550, price: '$4.99' },
-      { gems: 1200, price: '$9.99' },
-      { gems: 2500, price: '$19.99' },
+      { id: 1, gems: 100, price: '$0.99' },
+      { id: 2, gems: 550, price: '$4.99' },
+      { id: 3, gems: 1200, price: '$9.99' },
+      { id: 4, gems: 2500, price: '$19.99' },
   ];
 
   return (
@@ -126,7 +126,7 @@ export default function ShopDialog({
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {gemPackages.map(pkg => (
                         <GemPurchaseItem 
-                            key={pkg.gems}
+                            key={pkg.id}
                             gemsAmount={pkg.gems}
                             price={pkg.price}
                             onPurchase={onPurchaseGems}
