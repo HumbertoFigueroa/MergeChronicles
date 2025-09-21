@@ -182,43 +182,48 @@ export default function GameLayout() {
     const currentGeneratorIds = new Set(board.map(slot => slot.item?.id).filter(id => id?.startsWith('generator_')));
     const prevGeneratorIds = new Set(prevBoardRef.current.map(slot => slot.item?.id).filter(id => id?.startsWith('generator_')));
     
+    let newGeneratorAdded = false;
+    let newGeneratorItem: Item | null = null;
+    
     for (const generatorId of currentGeneratorIds) {
       if (!prevGeneratorIds.has(generatorId)) {
-        const item = ITEMS[generatorId];
-        if (item) {
-          toast({
-            title: "¡Nuevo Generador Desbloqueado!",
-            description: `¡Has desbloqueado el ${item.name}!`,
-          });
-        }
+        newGeneratorAdded = true;
+        newGeneratorItem = ITEMS[generatorId];
+        break;
       }
     }
     
+    if (newGeneratorAdded && newGeneratorItem) {
+        toast({
+            title: "¡Nuevo Generador Desbloqueado!",
+            description: `¡Has desbloqueado el ${newGeneratorItem.name}!`,
+        });
+    }
+
     prevBoardRef.current = board;
   }, [board, toast]);
 
   useEffect(() => {
-    const currentGenerators = new Set(board.map(slot => slot.item?.id).filter(Boolean));
+    setBoard(currentBoard => {
+      const currentGenerators = new Set(currentBoard.map(slot => slot.item?.id).filter(Boolean));
+      let boardChanged = false;
+      const newBoard = [...currentBoard];
 
-    Object.entries(GENERATOR_UNLOCKS).forEach(([generatorId, unlock]) => {
-      if (level >= unlock.level && !currentGenerators.has(generatorId)) {
-        setBoard(currentBoard => {
-          const newBoard = [...currentBoard];
-          // Place generator if the spot is empty
+      Object.entries(GENERATOR_UNLOCKS).forEach(([generatorId, unlock]) => {
+        if (level >= unlock.level && !currentGenerators.has(generatorId)) {
           if (!newBoard[unlock.position].item) {
             newBoard[unlock.position].item = ITEMS[generatorId];
-            return newBoard;
+            boardChanged = true;
+          } else {
+            const emptySpot = newBoard.findIndex(slot => !slot.item);
+            if (emptySpot !== -1) {
+              newBoard[emptySpot].item = ITEMS[generatorId];
+              boardChanged = true;
+            }
           }
-          // If the spot is taken, try to place it in any empty spot
-          const emptySpot = newBoard.findIndex(slot => !slot.item);
-          if (emptySpot !== -1) {
-            newBoard[emptySpot].item = ITEMS[generatorId];
-            return newBoard;
-          }
-          // If no spot is available, it will be added on the next level up or when space is freed
-          return currentBoard;
-        });
-      }
+        }
+      });
+      return boardChanged ? newBoard : currentBoard;
     });
   }, [level]);
 
@@ -242,19 +247,22 @@ export default function GameLayout() {
       let newLevel = level;
       let xpForNext = getXpNeededForLevel(newLevel);
       let hasLeveledUp = false;
+      let gemsEarned = 0;
       
       while (newXp >= xpForNext) {
         newXp -= xpForNext;
         newLevel++;
         hasLeveledUp = true;
-        setGems(currentGems => currentGems + GEMS_PER_LEVEL * newLevel);
+        const gemsForThisLevel = GEMS_PER_LEVEL * newLevel;
+        gemsEarned += gemsForThisLevel;
         xpForNext = getXpNeededForLevel(newLevel);
       }
       
       if (hasLeveledUp) {
+        setGems(currentGems => currentGems + gemsEarned);
          toast({
           title: "¡Subiste de nivel!",
-          description: `¡Alcanzaste el nivel ${newLevel}! Has ganado ${GEMS_PER_LEVEL * newLevel} gemas.`,
+          description: `¡Alcanzaste el nivel ${newLevel}! Has ganado ${gemsEarned} gemas.`,
         });
       }
 
@@ -516,7 +524,17 @@ export default function GameLayout() {
         <div className="flex flex-col items-center gap-4 flex-grow min-h-0 w-full">
           
           <div className='w-full flex items-center justify-center gap-2 px-1 flex-shrink-0'>
-            <PlayerStats level={level} xp={xp} xpNeeded={xpNeeded} energy={energy} maxEnergy={MAX_ENERGY} gems={gems} />
+             <div className="flex flex-col items-center">
+                <PlayerStats level={level} xp={xp} xpNeeded={xpNeeded} energy={energy} maxEnergy={MAX_ENERGY} gems={gems} />
+                <Button onClick={toggleMultiplier} variant='secondary' size='sm' className='h-8 w-16 rounded-xl relative mt-2'>
+                    <Badge className='text-sm'>x{multiplier}</Badge>
+                    {level < 10 && (
+                      <div className='absolute -top-1 -right-1 p-1 bg-gray-600 rounded-full'>
+                          <Lock className='w-2 h-2 text-white' />
+                      </div>
+                    )}
+                </Button>
+            </div>
             <Button variant="secondary" size="icon" className='h-14 w-14 rounded-2xl flex-shrink-0' onClick={() => setIsShopOpen(true)}>
                 <ShoppingCart className="h-7 w-7" />
             </Button>
@@ -537,19 +555,6 @@ export default function GameLayout() {
             />
           </div>
 
-          <div className='w-full flex items-center justify-between gap-2 mt-4 px-2'>
-              <div className='flex items-center gap-2'>
-                  <Button onClick={toggleMultiplier} variant='secondary' size='icon' className='w-14 h-14 rounded-2xl relative'>
-                      <Badge className='text-lg'>x{multiplier}</Badge>
-                      {level < 10 && (
-                        <div className='absolute -top-1 -right-1 p-1 bg-gray-600 rounded-full'>
-                            <Lock className='w-3 h-3 text-white' />
-                        </div>
-                      )}
-                  </Button>
-              </div>
-          </div>
-
         </div>
       </main>
     </div>
@@ -557,3 +562,4 @@ export default function GameLayout() {
 }
 
     
+
