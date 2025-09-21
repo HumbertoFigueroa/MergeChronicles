@@ -14,6 +14,7 @@ import GameBackground from './game-background';
 import { useSearchParams } from 'next/navigation';
 import { Badge } from '../ui/badge';
 import GhostItem from './ghost-item';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const BOARD_SIZE = 56; // 7 columns x 8 rows
 export const ENERGY_REGEN_RATE = 1.5 * 60 * 1000; // 1.5 minutes in ms
@@ -85,6 +86,7 @@ const getRandomItemForMultiplier = (multiplier: Multiplier, itemType: ItemType):
 
 export default function GameLayout() {
   const searchParams = useSearchParams();
+  const isMobile = useIsMobile();
 
   const [level, setLevel] = useState(() => searchParams.get('level') ? parseInt(searchParams.get('level')!, 10) : 1);
   const [xp, setXp] = useState(() => searchParams.get('xp') ? parseInt(searchParams.get('xp')!, 10) : 0);
@@ -549,7 +551,15 @@ export default function GameLayout() {
           
           <div className='w-full flex items-center justify-center gap-2 px-1 flex-shrink-0'>
              <div className="flex flex-col items-center">
-                <PlayerStats level={level} xp={xp} xpNeeded={xpNeeded} energy={energy} maxEnergy={MAX_ENERGY} gems={gems} />
+                <PlayerStats 
+                    level={level} 
+                    xp={xp} 
+                    xpNeeded={xpNeeded} 
+                    energy={energy} 
+                    maxEnergy={MAX_ENERGY} 
+                    gems={gems}
+                    isMobile={isMobile}
+                />
                 <Button onClick={toggleMultiplier} variant='secondary' size='sm' className='h-8 w-16 rounded-xl relative mt-2'>
                     <Badge className='text-sm'>x{multiplier}</Badge>
                     {(level < 10 && multiplier === 1) || (level < 30 && multiplier === 2) ? (
