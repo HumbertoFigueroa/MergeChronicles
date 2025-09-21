@@ -18,8 +18,8 @@ export default function GhostItem({ item, position }: GhostItemProps) {
         left: position.x,
         top: position.y,
         transform: 'translate(-50%, -50%)',
-        width: '80px', // Adjust size as needed
-        height: '80px',
+        width: '90px',
+        height: '90px',
       }}
     >
       <MergeItem

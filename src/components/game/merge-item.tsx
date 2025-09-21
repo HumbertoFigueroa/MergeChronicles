@@ -26,7 +26,7 @@ export default function MergeItem({ item, onDragStart, onTouchStart, isMerging, 
       onDragStart={handleDrag}
       onTouchStart={onTouchStart}
       className={cn(
-          "w-full h-full p-1.5 flex flex-col items-center justify-center rounded-lg bg-card/50 transition-all duration-200 ease-in-out will-change-transform touch-none",
+          "w-full h-full p-1 flex flex-col items-center justify-center rounded-lg bg-card/50 transition-all duration-200 ease-in-out will-change-transform touch-none",
           item.isGenerator 
             ? "cursor-pointer hover:bg-green-300/50" 
             : "cursor-grab active:cursor-grabbing hover:bg-accent/50",
@@ -41,11 +41,6 @@ export default function MergeItem({ item, onDragStart, onTouchStart, isMerging, 
           {item.emoji}
         </span>
       </div>
-      {!item.isGenerator && (
-        <Badge variant="secondary" className="mt-1 text-xs">
-          Lvl {item.level}
-        </Badge>
-      )}
     </div>
   );
 }
