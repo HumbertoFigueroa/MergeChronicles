@@ -38,7 +38,10 @@ export default function MergeBoard({
           onDragOver={handleDragOver}
           onDrop={(e) => onDrop(e, index)}
           onClick={() => onItemClick(index)}
-          className="rounded-md bg-white/20 transition-colors aspect-square"
+          className={cn(
+            "rounded-md transition-colors aspect-square",
+            slot.item ? "bg-white/20" : "bg-white/10"
+          )}
         >
           {slot.item && (
             <MergeItem

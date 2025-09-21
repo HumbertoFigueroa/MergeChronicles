@@ -1,7 +1,5 @@
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { ENERGY_REGEN_RATE } from './game-layout';
 
@@ -41,35 +39,6 @@ const ZapIcon = () => (
     </svg>
 );
 
-
-const StatDisplay = ({ value, icon, action, className }: { value: string | number, icon: React.ReactNode, action?: () => void, className?: string }) => (
-    <div className={cn("flex items-center gap-2 bg-black/20 rounded-full p-1 h-10 shadow-inner border border-white/30 text-white", className)}>
-        <div className='w-8 h-8 flex items-center justify-center p-1.5'>
-            {icon}
-        </div>
-        <span className="text-lg font-bold drop-shadow-md pr-3">{value}</span>
-        {action && (
-            <Button size="icon" className="h-8 w-8 rounded-full bg-white/20 hover:bg-white/30 text-white -mr-1" onClick={action}>
-                <Plus className="w-5 h-5"/>
-            </Button>
-        )}
-    </div>
-);
-
-const LevelDisplay = ({ level, xp, xpNeeded }: { level: number, xp: number, xpNeeded: number }) => {
-    return (
-        <div className="relative flex items-center h-12 pr-4 bg-black/20 rounded-full shadow-inner border border-white/30 text-white">
-            <div className="relative w-12 h-12 rounded-full border-2 border-yellow-300 overflow-hidden flex-shrink-0 bg-muted flex items-center justify-center">
-                 <span className='text-2xl'>🧑‍🎨</span>
-            </div>
-            <div className="flex flex-col ml-2">
-                <span className="text-sm font-bold leading-none">Level {level}</span>
-                <Progress value={(xp/xpNeeded) * 100} className="h-2 w-16 bg-white/30" />
-            </div>
-        </div>
-    )
-};
-
 const EnergyTimer = ({ nextEnergyTime }: { nextEnergyTime: number }) => {
     const [timeLeft, setTimeLeft] = useState(nextEnergyTime - Date.now());
 
@@ -95,15 +64,16 @@ const EnergyTimer = ({ nextEnergyTime }: { nextEnergyTime: number }) => {
     const seconds = Math.floor((timeLeft % 60000) / 1000);
 
     return (
-        <div className="text-center text-xs text-white/80 drop-shadow-sm mt-1">
+        <div className="absolute -bottom-4 text-center text-xs text-white/80 drop-shadow-sm">
             +1 en {minutes}:{seconds.toString().padStart(2, '0')}
         </div>
     );
 };
 
 
-export default function PlayerStats({ level, xp, xpNeeded, energy, maxEnergy, gems, isMobile = false }: PlayerStatsProps) {
+export default function PlayerStats({ level, xp, xpNeeded, energy, maxEnergy, gems }: PlayerStatsProps) {
     const energyPercentage = (energy / maxEnergy) * 100;
+    const xpPercentage = (xp / xpNeeded) * 100;
     const [nextEnergyTime, setNextEnergyTime] = useState(0);
 
     useEffect(() => {
@@ -121,53 +91,41 @@ export default function PlayerStats({ level, xp, xpNeeded, energy, maxEnergy, ge
         };
     }, [energy, maxEnergy]);
 
-
-    if (isMobile) {
-        return (
-            <div className='flex flex-col items-center gap-2 w-full'>
-                <LevelDisplay level={level} xp={xp} xpNeeded={xpNeeded} />
-                <div className="flex gap-2 w-full justify-center">
-                    <StatDisplay value={gems} icon={<GemIcon />} />
-                    <div className="flex flex-col">
-                        <div className="flex items-center gap-2 bg-black/20 rounded-full p-1 h-10 shadow-inner border border-white/30 text-white w-36">
-                            <div className='w-8 h-8 flex items-center justify-center p-1.5'>
-                                <ZapIcon />
-                            </div>
-                            <div className='flex-grow pr-2'>
-                                <div className='w-full bg-black/30 rounded-full h-4 relative overflow-hidden'>
-                                    <div className="absolute top-0 left-0 h-full rounded-full bg-gradient-to-r from-yellow-400 to-amber-500" style={{ width: `${energyPercentage}%` }} />
-                                    <div className='absolute inset-0 flex items-center justify-center'>
-                                        <span className="text-xs font-bold drop-shadow-sm">{energy}/{maxEnergy}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        {energy < maxEnergy && <EnergyTimer nextEnergyTime={nextEnergyTime} />}
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
     return (
-        <div className='flex items-center justify-center gap-2 w-full'>
-            <LevelDisplay level={level} xp={xp} xpNeeded={xpNeeded} />
-            <StatDisplay value={gems} icon={<GemIcon />} />
-            <div className="flex flex-col">
-                <div className="flex items-center gap-2 bg-black/20 rounded-full p-1 h-10 shadow-inner border border-white/30 text-white w-48">
-                    <div className='w-8 h-8 flex items-center justify-center p-1.5'><ZapIcon /></div>
-                    <div className='flex-grow pr-2'>
-                        <div className='w-full bg-black/30 rounded-full h-4 relative overflow-hidden'>
-                            <div className="absolute top-0 left-0 h-full rounded-full bg-gradient-to-r from-yellow-400 to-amber-500" style={{ width: `${energyPercentage}%` }} />
-                            <div className='absolute inset-0 flex items-center justify-center'>
-                                <span className="text-xs font-bold drop-shadow-sm">{energy}/{maxEnergy}</span>
-                            </div>
-                        </div>
-                    </div>
-                    <Button size="icon" className="h-8 w-8 rounded-full bg-white/20 hover:bg-white/30 text-white -mr-1"><Plus className="w-5 h-5" /></Button>
-                </div>
-                {energy < maxEnergy && <EnergyTimer nextEnergyTime={nextEnergyTime} />}
+        <div className='flex items-center justify-center gap-2 w-full bg-black/20 rounded-full p-1 h-12 shadow-inner border border-white/30 text-white'>
+            {/* Level */}
+            <div className="relative h-10 w-10 rounded-full border-2 border-yellow-300 overflow-hidden flex-shrink-0 bg-muted flex items-center justify-center">
+                 <span className='text-3xl'>🧑‍🎨</span>
+                 <div className='absolute bottom-0 w-full text-center bg-black/50'>
+                    <span className='text-xs font-bold'>{level}</span>
+                 </div>
             </div>
+
+            {/* XP Bar */}
+            <div className='flex-grow h-full'>
+                <div className='w-full bg-black/30 rounded-full h-4 relative overflow-hidden mt-1'>
+                    <div className="absolute top-0 left-0 h-full rounded-full bg-gradient-to-r from-green-400 to-emerald-500" style={{ width: `${xpPercentage}%` }} />
+                    <div className='absolute inset-0 flex items-center justify-center'>
+                        <span className="text-xs font-bold drop-shadow-sm">{xp}/{xpNeeded}</span>
+                    </div>
+                </div>
+            </div>
+            
+            {/* Gem and Energy */}
+            <div className='flex items-center gap-2 px-2'>
+                {/* Gems */}
+                <div className="flex items-center gap-1 h-8">
+                    <div className='w-6 h-6 flex items-center justify-center'><GemIcon /></div>
+                    <span className="text-sm font-bold">{gems}</span>
+                </div>
+                {/* Energy */}
+                <div className="relative flex items-center gap-1 h-8">
+                     <div className='w-6 h-6 flex items-center justify-center'><ZapIcon /></div>
+                     <span className="text-sm font-bold">{energy}</span>
+                     {energy < maxEnergy && <EnergyTimer nextEnergyTime={nextEnergyTime} />}
+                </div>
+            </div>
+
         </div>
     );
 }

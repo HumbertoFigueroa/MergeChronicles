@@ -342,7 +342,7 @@ export default function GameLayout() {
     const item = board[index].item;
     if (item && !item.isGenerator) {
         setDraggedItem({ item, index });
-        setDraggedItemHidden(true);
+        setDraggedItemHidden(true); // Hide original item but keep space
         const touch = e.touches[0];
         setGhostPosition({ x: touch.clientX, y: touch.clientY });
     }
@@ -561,28 +561,26 @@ export default function GameLayout() {
 
         <div className="flex flex-col items-center gap-4 flex-grow min-h-0 w-full">
           
-          <div className='w-full flex items-start justify-center gap-2 px-1 flex-shrink-0'>
-             <div className="flex flex-col items-center">
-                <PlayerStats 
-                    level={level} 
-                    xp={xp} 
-                    xpNeeded={xpNeeded} 
-                    energy={energy} 
-                    maxEnergy={MAX_ENERGY} 
-                    gems={gems}
-                    isMobile={isMobile}
-                />
-                <Button onClick={toggleMultiplier} variant='secondary' size='sm' className='h-8 w-16 rounded-xl relative mt-2'>
-                    <Badge className='text-sm'>x{multiplier}</Badge>
-                    {(level < 10 && multiplier === 1) || (level < 30 && multiplier === 2) ? (
-                      <div className='absolute -top-1 -right-1 p-1 bg-gray-600 rounded-full'>
-                          <Lock className='w-2 h-2 text-white' />
-                      </div>
-                    ) : null}
-                </Button>
-            </div>
-            <Button variant="secondary" size="icon" className='h-14 w-14 rounded-2xl flex-shrink-0' onClick={() => setIsShopOpen(true)}>
-                <ShoppingCart className="h-7 w-7" />
+          <div className='w-full flex items-center justify-center gap-2 px-1 flex-shrink-0'>
+             <PlayerStats 
+                level={level} 
+                xp={xp} 
+                xpNeeded={xpNeeded} 
+                energy={energy} 
+                maxEnergy={MAX_ENERGY} 
+                gems={gems}
+                isMobile={isMobile}
+             />
+            <Button onClick={toggleMultiplier} variant='secondary' size='sm' className='h-8 w-12 rounded-lg relative flex-shrink-0'>
+                <Badge className='text-sm'>x{multiplier}</Badge>
+                {(level < 10 && multiplier === 1) || (level < 30 && multiplier === 2) ? (
+                  <div className='absolute -top-1 -right-1 p-1 bg-gray-600 rounded-full'>
+                      <Lock className='w-2 h-2 text-white' />
+                  </div>
+                ) : null}
+            </Button>
+            <Button variant="secondary" size="icon" className='h-10 w-10 rounded-lg flex-shrink-0' onClick={() => setIsShopOpen(true)}>
+                <ShoppingCart className="h-5 w-5" />
             </Button>
           </div>
           

@@ -16,19 +16,19 @@ const OrderItem = ({ order, onDeliver }: { order: Order; onDeliver: () => void; 
 
     return (
         <div className={cn(
-            "relative flex items-center justify-center gap-2 p-2 rounded-2xl bg-card/80 border-2 border-transparent transition-all duration-300",
+            "relative flex items-center justify-center gap-1.5 p-1.5 rounded-xl bg-card/80 border-2 border-transparent transition-all duration-300",
             order.isCompletable && "border-accent animate-pulse-once"
         )}>
-            <div className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center text-3xl flex-shrink-0">
+            <div className="w-10 h-10 bg-muted rounded-md flex items-center justify-center text-2xl flex-shrink-0">
                 <span>{order.customerEmoji}</span>
             </div>
-            <div className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center text-3xl flex-shrink-0">
+            <div className="w-10 h-10 bg-muted rounded-md flex items-center justify-center text-2xl flex-shrink-0">
                  <span>{firstItem.emoji}</span>
             </div>
             {order.isCompletable && (
                  <Button 
                     size="icon" 
-                    className="absolute -top-3 -right-3 h-8 w-8 rounded-full z-10 animate-appear bg-green-500 hover:bg-green-600"
+                    className="absolute -top-2.5 -right-2.5 h-7 w-7 rounded-full z-10 animate-appear bg-green-500 hover:bg-green-600"
                     onClick={onDeliver}
                 >
                     <Send className="h-4 w-4" />
