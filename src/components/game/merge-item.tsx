@@ -8,8 +8,6 @@ interface MergeItemProps {
   onDragStart: (e: React.DragEvent<HTMLDivElement>) => void;
   onDragEnd: (e: React.DragEvent<HTMLDivElement>) => void;
   onTouchStart: (e: React.TouchEvent<HTMLDivElement>) => void;
-  isMerging: boolean;
-  isAppearing: boolean;
   isDragging: boolean;
   isSelectedGenerator?: boolean;
 }
@@ -19,8 +17,6 @@ export default function MergeItem({
   onDragStart, 
   onDragEnd, 
   onTouchStart, 
-  isMerging, 
-  isAppearing, 
   isDragging, 
   isSelectedGenerator 
 }: MergeItemProps) {
@@ -37,8 +33,6 @@ export default function MergeItem({
             ? "cursor-pointer hover:bg-green-300/50" 
             : "cursor-grab active:cursor-grabbing hover:bg-accent/50",
           isSelectedGenerator && "ring-4 ring-green-400 ring-inset",
-          isMerging && "animate-merge-complete",
-          isAppearing && "animate-pop-in",
           isDragging && "opacity-50",
       )}
     >

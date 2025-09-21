@@ -95,8 +95,6 @@ export default function GameLayout() {
   const [gems, setGems] = useState(() => searchParams.get('gems') ? parseInt(searchParams.get('gems')!, 10) : 25);
   
   const [board, setBoard] = useState<BoardSlot[]>(initialBoard);
-  const [mergingIndex, setMergingIndex] = useState<number | null>(null);
-  const [appearingIndex, setAppearingIndex] = useState<number | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
   const [isShopOpen, setIsShopOpen] = useState(false);
   const [multiplier, setMultiplier] = useState<Multiplier>(1);
@@ -309,9 +307,6 @@ export default function GameLayout() {
           if (newItem) {
             newBoard[targetIndex] = { ...targetSlot, item: newItem };
             newBoard[sourceIndex] = { ...sourceSlot, item: null };
-    
-            setMergingIndex(targetIndex);
-            setTimeout(() => setMergingIndex(null), 400);
           }
         } else {
           // Swap items
@@ -422,11 +417,6 @@ export default function GameLayout() {
   
       if (success && placedIndex !== null) {
         itemsGenerated++;
-        // We use a timeout to show multiple appearing animations in sequence
-        setTimeout(() => {
-          setAppearingIndex(placedIndex);
-          setTimeout(() => setAppearingIndex(null), 500);
-        }, i * 100);
       } else {
         // This part should ideally not be reached due to the initial check, but as a safeguard:
         toast({
@@ -590,8 +580,6 @@ export default function GameLayout() {
               onDragEnd={handleDragEnd}
               onDrop={handleDragDrop}
               onItemClick={handleItemClick}
-              mergingIndex={mergingIndex}
-              appearingIndex={appearingIndex}
               onTouchStart={handleTouchStart}
               draggedItemIndex={draggedItemIndex}
             />

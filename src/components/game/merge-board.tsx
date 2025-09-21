@@ -10,8 +10,6 @@ interface MergeBoardProps {
   onDragEnd: (e: React.DragEvent<HTMLDivElement>) => void;
   onDrop: (e: React.DragEvent<HTMLDivElement>, index: number) => void;
   onItemClick: (index: number) => void;
-  mergingIndex: number | null;
-  appearingIndex: number | null;
   onTouchStart: (e: React.TouchEvent<HTMLDivElement>, index: number) => void;
   draggedItemIndex: number | null;
 }
@@ -22,8 +20,6 @@ export default function MergeBoard({
     onDragEnd, 
     onDrop, 
     onItemClick, 
-    mergingIndex, 
-    appearingIndex, 
     onTouchStart,
     draggedItemIndex
 }: MergeBoardProps) {
@@ -48,8 +44,6 @@ export default function MergeBoard({
               onDragStart={(e) => onDragStart(e, index)}
               onDragEnd={onDragEnd}
               onTouchStart={(e) => onTouchStart(e, index)}
-              isMerging={mergingIndex === index}
-              isAppearing={appearingIndex === index}
               isDragging={draggedItemIndex === index}
             />
           )}

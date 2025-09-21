@@ -16,8 +16,8 @@ const OrderItem = ({ order, onDeliver }: { order: Order; onDeliver: () => void; 
 
     return (
         <div className={cn(
-            "relative flex items-center justify-center gap-1 p-1.5 rounded-xl bg-card/80 border-2 border-transparent transition-all duration-300",
-            order.isCompletable && "border-accent animate-pulse-once"
+            "relative flex items-center justify-center gap-1 p-1.5 rounded-xl bg-card/80 border-2 transition-all duration-300",
+            order.isCompletable ? "border-accent" : "border-transparent"
         )}>
             <div className="w-8 h-8 bg-muted rounded-md flex items-center justify-center text-xl flex-shrink-0">
                 <span>{order.customerEmoji}</span>
@@ -28,7 +28,7 @@ const OrderItem = ({ order, onDeliver }: { order: Order; onDeliver: () => void; 
             {order.isCompletable && (
                  <Button 
                     size="icon" 
-                    className="absolute -top-2 -right-2 h-6 w-6 rounded-full z-10 animate-appear bg-green-500 hover:bg-green-600"
+                    className="absolute -top-2 -right-2 h-6 w-6 rounded-full z-10 bg-green-500 hover:bg-green-600"
                     onClick={onDeliver}
                 >
                     <Send className="h-3 w-3" />
