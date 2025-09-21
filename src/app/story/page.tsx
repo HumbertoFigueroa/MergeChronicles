@@ -23,10 +23,6 @@ export default function StoryPage() {
     const p = searchParams.get('unlocked');
     return p ? parseInt(p, 10) : 1;
   });
-  const [gems, setGems] = useState(() => {
-    const g = searchParams.get('gems');
-    return g ? parseInt(g, 10) : 25;
-  });
   const [coins, setCoins] = useState(() => {
     const c = searchParams.get('coins');
     return c ? parseInt(c, 10) : 0;
@@ -40,12 +36,11 @@ export default function StoryPage() {
 
   useEffect(() => {
     const params = new URLSearchParams();
-    params.set('gems', gems.toString());
     params.set('coins', coins.toString());
     params.set('unlocked', unlockedMiniStories.toString());
     params.set('level', playerLevel.toString());
     router.replace(`/story?${params.toString()}`);
-  }, [unlockedMiniStories, gems, coins, playerLevel, router]);
+  }, [unlockedMiniStories, coins, playerLevel, router]);
 
   const handleUnlockStory = () => {
     if (coins >= UNLOCK_COST) {
@@ -74,7 +69,8 @@ export default function StoryPage() {
 
   const createGameLink = () => {
     const params = new URLSearchParams();
-    params.set('gems', gems.toString());
+    const gems = searchParams.get('gems');
+    if (gems) params.set('gems', gems);
     params.set('coins', coins.toString());
     params.set('unlocked', unlockedMiniStories.toString());
     params.set('level', playerLevel.toString());
