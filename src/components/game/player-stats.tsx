@@ -1,6 +1,6 @@
 import { Progress } from '@/components/ui/progress';
 import React, { useState, useEffect } from 'react';
-import { ENERGY_REGEN_RATE, MAX_ENERGY_REGEN } from './game-layout';
+import { ENERGY_REGEN_RATE, MAX_ENERGY_REGEN } from '@/app/game/page';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { useAuth } from '@/hooks/use-auth';
 
