@@ -364,11 +364,9 @@ export default function GameLayout() {
 
     if (itemIndexOnBoard !== -1) {
       const deliveredItem = board[itemIndexOnBoard].item!;
-      const gemReward = deliveredItem.level;
       const coinReward = deliveredItem.level * 2;
       const xpReward = deliveredItem.level;
 
-      setGems(g => g + gemReward);
       setCoins(c => c + coinReward);
       addXp(xpReward);
 
@@ -382,7 +380,7 @@ export default function GameLayout() {
       
       toast({
         title: "¡Orden Completada!",
-        description: `¡Entregaste un ${deliveredItem.name}! Ganaste ${gemReward} gemas, ${coinReward} monedas y ${xpReward} XP.`,
+        description: `¡Entregaste un ${deliveredItem.name}! Ganaste ${coinReward} monedas y ${xpReward} XP.`,
       });
     }
   };
@@ -421,7 +419,6 @@ export default function GameLayout() {
     params.set('level', level.toString());
     params.set('xp', xp.toString());
     params.set('energy', energy.toString());
-    params.set('gems', gems.toString());
     params.set('coins', coins.toString());
     params.set('unlocked', unlockedStoryParts.toString());
     return `/story?${params.toString()}`;
@@ -449,11 +446,12 @@ export default function GameLayout() {
       <main className="relative z-10 pt-4 flex flex-col lg:flex-row gap-4 p-2 sm:p-4 flex-grow overflow-hidden">
         
         <div className="hidden lg:flex lg:col-span-3 flex-col gap-4">
-            <Button asChild size="lg" className="h-20 text-lg">
-                <Link href={createStoryLink()} className='flex-col'>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-8 h-8 mb-1"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+            <Button size="lg" className="h-20 text-lg" disabled>
+                <div className='flex-col text-center'>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-8 h-8 mb-1 mx-auto"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
                     Historia
-                </Link>
+                    <span className="text-xs font-normal block">(Próximamente)</span>
+                </div>
             </Button>
         </div>
 
