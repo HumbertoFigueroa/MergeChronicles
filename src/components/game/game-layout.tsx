@@ -145,10 +145,27 @@ export default function GameLayout() {
 
   useEffect(() => {
     setBoard(currentBoard => {
-      const currentGenerators = new Set(currentBoard.map(slot => slot.item?.id).filter(id => id?.startsWith('generator_')));
+      let currentGenerators = new Set(currentBoard.map(slot => slot.item?.id).filter(id => id?.startsWith('generator_')));
       const newBoard = [...currentBoard];
       let boardChanged = false;
-  
+
+      // Ensure only one animal generator exists at the start
+      const animalGenerators = newBoard.map((slot, index) => ({...slot, index})).filter(slot => slot.item?.id === 'generator_animals');
+      if (animalGenerators.length > 1) {
+        // Keep the one at the correct position if it exists, otherwise the first one.
+        const correctPosAnimalGen = animalGenerators.find(g => g.index === GENERATOR_UNLOCKS['generator_animals'].position);
+        let toKeep = correctPosAnimalGen || animalGenerators[0];
+        
+        animalGenerators.forEach(gen => {
+          if (gen.index !== toKeep.index) {
+            newBoard[gen.index].item = null;
+            boardChanged = true;
+          }
+        });
+        // After cleanup, our generator set might be outdated, so we rebuild it
+        currentGenerators = new Set(newBoard.map(slot => slot.item?.id).filter(id => id?.startsWith('generator_')));
+      }
+
       Object.entries(GENERATOR_UNLOCKS).forEach(([generatorId, unlock]) => {
         if (level >= unlock.level && !currentGenerators.has(generatorId)) {
           let placed = false;
@@ -383,9 +400,9 @@ export default function GameLayout() {
   const handleItemClick = (index: number) => {
     const clickedItem = board[index].item;
     if (!clickedItem || !clickedItem.isGenerator) {
-        return;
+      return;
     }
-
+  
     const totalEnergyCost = ENERGY_COST_PER_ITEM * multiplier;
     if (energy < totalEnergyCost) {
       toast({
@@ -395,45 +412,42 @@ export default function GameLayout() {
       });
       return;
     }
-
+  
+    setEnergy(e => e - totalEnergyCost);
+  
     let tempBoard = [...board];
     let itemsGenerated = 0;
-    
-    // This loop generates item IDs but doesn't place them yet
-    const itemsToGenerate = [];
-    for (let i = 0; i < multiplier; i++) {
-        itemsToGenerate.push(getRandomItemForMultiplier(multiplier, clickedItem.type));
-    }
-    
     let boardIsFull = false;
-    for (const itemId of itemsToGenerate) {
-        if (boardIsFull) break;
-        const result = placeNewItem(tempBoard, itemId, index);
-        if (result.success) {
-            tempBoard = result.newBoard;
-            itemsGenerated++;
-            if (result.placedIndex !== null) {
-                setAppearingIndex(result.placedIndex);
-                setTimeout(() => setAppearingIndex(null), 500);
-            }
-        } else {
-            boardIsFull = true;
+  
+    for (let i = 0; i < multiplier; i++) {
+      if (boardIsFull) break;
+  
+      const itemId = getRandomItemForMultiplier(multiplier, clickedItem.type);
+      const { newBoard, success, placedIndex } = placeNewItem(tempBoard, itemId, index);
+      
+      tempBoard = newBoard;
+  
+      if (success) {
+        itemsGenerated++;
+        if (placedIndex !== null) {
+          setAppearingIndex(placedIndex);
+          setTimeout(() => setAppearingIndex(null), 500);
         }
+      } else {
+        boardIsFull = true;
+        // If we fail to place an item, we must break the loop.
+        break;
+      }
     }
-
-    if (itemsGenerated > 0) {
-      const energySpent = itemsGenerated * ENERGY_COST_PER_ITEM;
-      setEnergy(e => e - energySpent);
-    }
-
+  
     setBoard(tempBoard);
     
     if (boardIsFull) {
-        toast({
-            variant: 'destructive',
-            title: '¡Tablero Lleno!',
-            description: 'No hay espacio para generar más objetos.',
-        });
+      toast({
+        variant: 'destructive',
+        title: '¡Tablero Lleno!',
+        description: 'No hay espacio para generar más objetos.',
+      });
     }
   };
   
@@ -551,7 +565,7 @@ export default function GameLayout() {
 
         <div className="flex flex-col items-center gap-4 flex-grow min-h-0 w-full">
           
-          <div className='w-full flex items-center justify-center gap-2 px-1 flex-shrink-0'>
+          <div className='w-full flex items-start justify-center gap-2 px-1 flex-shrink-0'>
              <div className="flex flex-col items-center">
                 <PlayerStats 
                     level={level} 
@@ -560,7 +574,6 @@ export default function GameLayout() {
                     energy={energy} 
                     maxEnergy={MAX_ENERGY} 
                     gems={gems}
-                    isMobile={isMobile}
                 />
                 <Button onClick={toggleMultiplier} variant='secondary' size='sm' className='h-8 w-16 rounded-xl relative mt-2'>
                     <Badge className='text-sm'>x{multiplier}</Badge>

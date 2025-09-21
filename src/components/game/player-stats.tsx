@@ -152,7 +152,7 @@ export default function PlayerStats({ level, xp, xpNeeded, energy, maxEnergy, ge
     return (
         <div className='flex items-center justify-center gap-2 w-full'>
             <LevelDisplay level={level} xp={xp} xpNeeded={xpNeeded} />
-            <StatDisplay value={gems} icon={<GemIcon />} action={() => {}} className="pr-1"/>
+            <StatDisplay value={gems} icon={<GemIcon />} />
             <div className="flex flex-col">
                 <div className="flex items-center gap-2 bg-black/20 rounded-full p-1 h-10 shadow-inner border border-white/30 text-white w-48">
                     <div className='w-8 h-8 flex items-center justify-center p-1.5'><ZapIcon /></div>
