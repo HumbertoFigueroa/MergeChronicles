@@ -10,7 +10,6 @@ interface PlayerStatsProps {
   energy: number;
   maxEnergy: number;
   gems: number;
-  isMobile?: boolean;
 }
 
 const GemIcon = () => (
@@ -39,6 +38,12 @@ const ZapIcon = () => (
     </svg>
 );
 
+const TimerIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-3 w-3">
+        <circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>
+    </svg>
+);
+
 const EnergyTimer = ({ nextEnergyTime }: { nextEnergyTime: number }) => {
     const [timeLeft, setTimeLeft] = useState(nextEnergyTime - Date.now());
 
@@ -46,7 +51,6 @@ const EnergyTimer = ({ nextEnergyTime }: { nextEnergyTime: number }) => {
         const interval = setInterval(() => {
             const newTimeLeft = nextEnergyTime - Date.now();
             if (newTimeLeft <= 0) {
-                // Timer will be reset by parent component when energy is gained
                 setTimeLeft(0); 
             } else {
                 setTimeLeft(newTimeLeft);
@@ -64,15 +68,15 @@ const EnergyTimer = ({ nextEnergyTime }: { nextEnergyTime: number }) => {
     const seconds = Math.floor((timeLeft % 60000) / 1000);
 
     return (
-        <div className="absolute -bottom-4 text-center text-xs text-white/80 drop-shadow-sm">
-            +1 en {minutes}:{seconds.toString().padStart(2, '0')}
+        <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 w-max px-2 py-0.5 bg-blue-500/80 text-white rounded-md text-xs flex items-center gap-1 border border-blue-400/90 shadow-sm">
+            <TimerIcon />
+            <span>{minutes}:{seconds.toString().padStart(2, '0')}</span>
         </div>
     );
 };
 
 
 export default function PlayerStats({ level, xp, xpNeeded, energy, maxEnergy, gems }: PlayerStatsProps) {
-    const energyPercentage = (energy / maxEnergy) * 100;
     const xpPercentage = (xp / xpNeeded) * 100;
     const [nextEnergyTime, setNextEnergyTime] = useState(0);
 
@@ -82,7 +86,7 @@ export default function PlayerStats({ level, xp, xpNeeded, energy, maxEnergy, ge
             const updateTimer = () => {
                 setNextEnergyTime(Date.now() + ENERGY_REGEN_RATE);
             };
-            updateTimer(); // Set it immediately
+            updateTimer(); 
             timer = setInterval(updateTimer, ENERGY_REGEN_RATE);
         }
 
@@ -92,18 +96,18 @@ export default function PlayerStats({ level, xp, xpNeeded, energy, maxEnergy, ge
     }, [energy, maxEnergy]);
 
     return (
-        <div className='flex items-center justify-center gap-2 w-full bg-black/20 rounded-full p-1 h-12 shadow-inner border border-white/30 text-white'>
+        <div className='flex items-center justify-between gap-2 w-full bg-black/20 rounded-full p-1.5 h-12 shadow-inner border border-white/30 text-white'>
             {/* Level */}
-            <div className="relative h-10 w-10 rounded-full border-2 border-yellow-300 overflow-hidden flex-shrink-0 bg-muted flex items-center justify-center">
+            <div className="relative h-9 w-9 rounded-full border-2 border-yellow-300 overflow-hidden flex-shrink-0 bg-muted flex items-center justify-center">
                  <span className='text-3xl'>🧑‍🎨</span>
-                 <div className='absolute bottom-0 w-full text-center bg-black/50'>
-                    <span className='text-xs font-bold'>{level}</span>
+                 <div className='absolute -bottom-1 w-full text-center bg-black/50'>
+                    <span className='text-xs font-bold leading-tight'>{level}</span>
                  </div>
             </div>
 
             {/* XP Bar */}
-            <div className='flex-grow h-full'>
-                <div className='w-full bg-black/30 rounded-full h-4 relative overflow-hidden mt-1'>
+            <div className='flex-grow h-full pt-0.5'>
+                <div className='w-full bg-black/30 rounded-full h-4 relative overflow-hidden'>
                     <div className="absolute top-0 left-0 h-full rounded-full bg-gradient-to-r from-green-400 to-emerald-500" style={{ width: `${xpPercentage}%` }} />
                     <div className='absolute inset-0 flex items-center justify-center'>
                         <span className="text-xs font-bold drop-shadow-sm">{xp}/{xpNeeded}</span>
@@ -112,15 +116,15 @@ export default function PlayerStats({ level, xp, xpNeeded, energy, maxEnergy, ge
             </div>
             
             {/* Gem and Energy */}
-            <div className='flex items-center gap-2 px-2'>
+            <div className='flex items-center gap-4 px-2'>
                 {/* Gems */}
-                <div className="flex items-center gap-1 h-8">
-                    <div className='w-6 h-6 flex items-center justify-center'><GemIcon /></div>
+                <div className="flex items-center gap-1.5 h-8">
+                    <div className='w-5 h-5 flex items-center justify-center'><GemIcon /></div>
                     <span className="text-sm font-bold">{gems}</span>
                 </div>
                 {/* Energy */}
-                <div className="relative flex items-center gap-1 h-8">
-                     <div className='w-6 h-6 flex items-center justify-center'><ZapIcon /></div>
+                <div className="relative flex items-center gap-1.5 h-8">
+                     <div className='w-5 h-5 flex items-center justify-center'><ZapIcon /></div>
                      <span className="text-sm font-bold">{energy}</span>
                      {energy < maxEnergy && <EnergyTimer nextEnergyTime={nextEnergyTime} />}
                 </div>
