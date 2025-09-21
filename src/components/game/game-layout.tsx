@@ -15,6 +15,7 @@ import { useSearchParams } from 'next/navigation';
 import { Badge } from '../ui/badge';
 import GhostItem from './ghost-item';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { Toaster } from '../ui/toaster';
 
 const BOARD_SIZE = 56; // 7 columns x 8 rows
 export const ENERGY_REGEN_RATE = 1.5 * 60 * 1000; // 1.5 minutes in ms
@@ -551,6 +552,7 @@ export default function GameLayout() {
         onSpendGems={spendGems}
         gems={gems}
       />
+      <Toaster />
       <main className="relative z-10 pt-4 flex flex-col lg:flex-row gap-4 p-2 sm:p-4 flex-grow overflow-hidden">
         
         <div className="hidden lg:flex lg:w-64 flex-col gap-4">

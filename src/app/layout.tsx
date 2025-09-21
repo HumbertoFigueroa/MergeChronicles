@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import { Toaster } from '@/components/ui/toaster';
 import './globals.css';
 import { cn } from '@/lib/utils';
 import { Fredoka } from 'next/font/google'
@@ -36,7 +35,6 @@ export default function RootLayout({
       </head>
       <body className={cn(fredoka.variable, 'font-sans antialiased min-h-screen')}>
         {children}
-        <Toaster />
       </body>
     </html>
   );
