@@ -69,8 +69,6 @@ export default function StoryPage() {
 
   const createGameLink = () => {
     const params = new URLSearchParams();
-    const gems = searchParams.get('gems');
-    if (gems) params.set('gems', gems);
     params.set('coins', coins.toString());
     params.set('unlocked', unlockedMiniStories.toString());
     params.set('level', playerLevel.toString());
