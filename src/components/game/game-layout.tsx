@@ -41,43 +41,20 @@ type Multiplier = 1 | 2 | 4;
 
 const getXpNeededForLevel = (level: number): number => {
     if (level === 1) return 10;
-    
-    let xpNeeded = 10; // XP for level 1 to reach 2
-    let currentLevel = 1;
 
-    while (currentLevel < level) {
-        currentLevel++;
-        if (currentLevel <= 2) {
-             xpNeeded = 12;
-        } else if (currentLevel <= 10) {
+    let xpNeeded = 10;
+    for (let l = 2; l <= level; l++) {
+        if (l <= 10) {
             xpNeeded += 2;
-        } else if (currentLevel <= 30) {
+        } else if (l <= 30) {
             xpNeeded += 3;
-        } else if (currentLevel <= 50) {
+        } else if (l <= 50) {
             xpNeeded += 4;
         } else {
             xpNeeded += 5;
         }
     }
-    
-    // The loop calculates the XP needed to REACH the next level, so we need a special calculation for returning the value for the current level.
-    if (level === 2) return 12;
-
-    let baseXP = 10;
-    let nextLevelXP = 12;
-    for (let l = 2; l < level; l++) {
-      baseXP = nextLevelXP;
-      if (l < 10) {
-        nextLevelXP += 2;
-      } else if (l < 30) {
-        nextLevelXP += 3;
-      } else if (l < 50) {
-        nextLevelXP += 4;
-      } else {
-        nextLevelXP += 5;
-      }
-    }
-    return level > 1 ? nextLevelXP : 10;
+    return xpNeeded;
 };
 
 const getRandomItemForMultiplier = (multiplier: Multiplier, itemType: ItemType): string => {
@@ -165,11 +142,10 @@ export default function GameLayout() {
   };
 
   useEffect(() => {
-    let boardChanged = false;
-  
     setBoard(currentBoard => {
       const currentGenerators = new Set(currentBoard.map(slot => slot.item?.id).filter(id => id?.startsWith('generator_')));
       const newBoard = [...currentBoard];
+      let boardChanged = false;
   
       Object.entries(GENERATOR_UNLOCKS).forEach(([generatorId, unlock]) => {
         if (level >= unlock.level && !currentGenerators.has(generatorId)) {
@@ -420,43 +396,41 @@ export default function GameLayout() {
 
     setEnergy(e => e - totalEnergyCost);
 
-    setBoard(currentBoard => {
-        let tempBoard = [...currentBoard];
-        let itemsGenerated = 0;
-        let boardIsFull = false;
+    let tempBoard = [...board];
+    let itemsGenerated = 0;
+    let boardIsFull = false;
 
-        for (let i = 0; i < multiplier; i++) {
-            if (boardIsFull) break;
-            const itemToGenerateId = getRandomItemForMultiplier(multiplier, clickedItem.type);
-            
-            // Create a copy of the board for the placement check
-            const placementCheckBoard = tempBoard.map(slot => ({...slot}));
-            const result = placeNewItem(placementCheckBoard, itemToGenerateId, index);
-
-            if (result.success) {
-                tempBoard = result.newBoard;
-                itemsGenerated++;
-                if (result.placedIndex !== null) {
-                    setAppearingIndex(result.placedIndex);
-                    setTimeout(() => setAppearingIndex(null), 500);
-                }
-            } else {
-                boardIsFull = true;
-            }
-        }
+    for (let i = 0; i < multiplier; i++) {
+        if (boardIsFull) break;
+        const itemToGenerateId = getRandomItemForMultiplier(multiplier, clickedItem.type);
         
-        if (boardIsFull) {
-            toast({
-                variant: 'destructive',
-                title: '¡Tablero Lleno!',
-                description: 'No hay espacio para generar más objetos.',
-            });
-            // Refund unused energy
-            const energyToRefund = totalEnergyCost - (itemsGenerated * ENERGY_COST_PER_ITEM);
-            setEnergy(e => e + energyToRefund);
+        const result = placeNewItem(tempBoard, itemToGenerateId, index);
+
+        if (result.success) {
+            tempBoard = result.newBoard;
+            itemsGenerated++;
+            if (result.placedIndex !== null) {
+                // This state update needs to be handled carefully outside the loop
+                setAppearingIndex(result.placedIndex);
+                setTimeout(() => setAppearingIndex(null), 500);
+            }
+        } else {
+            boardIsFull = true;
         }
-        return tempBoard;
-    });
+    }
+
+    setBoard(tempBoard);
+    
+    if (boardIsFull) {
+        toast({
+            variant: 'destructive',
+            title: '¡Tablero Lleno!',
+            description: 'No hay espacio para generar más objetos.',
+        });
+        // Refund unused energy
+        const energyToRefund = totalEnergyCost - (itemsGenerated * ENERGY_COST_PER_ITEM);
+        setEnergy(e => e + energyToRefund);
+    }
   };
   
   const handleDeliverOrder = (orderId: string) => {
