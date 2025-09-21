@@ -37,7 +37,7 @@ export default function MergeItem({
             ? "cursor-pointer hover:bg-green-300/50" 
             : "cursor-grab active:cursor-grabbing hover:bg-accent/50",
           isSelectedGenerator && "ring-4 ring-green-400 ring-inset",
-          isMerging && "animate-merge-pop",
+          isMerging && "animate-merge-complete",
           isAppearing && "animate-pop-in",
           isDragging && "opacity-50",
       )}
