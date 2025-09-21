@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import MergeBoard from './merge-board';
 import type { BoardSlot, Item, Order, ItemType } from '@/lib/types';
 import { ITEMS, MERGE_RULES } from '@/lib/game-data';
@@ -121,6 +121,7 @@ export default function GameLayout() {
   const [multiplier, setMultiplier] = useState<Multiplier>(1);
 
   const { toast } = useToast();
+  const prevBoardRef = useRef<BoardSlot[]>(initialBoard);
   
   const xpNeeded = getXpNeededForLevel(level);
 
@@ -178,6 +179,25 @@ export default function GameLayout() {
   }, []);
 
   useEffect(() => {
+    const currentGeneratorIds = new Set(board.map(slot => slot.item?.id).filter(id => id?.startsWith('generator_')));
+    const prevGeneratorIds = new Set(prevBoardRef.current.map(slot => slot.item?.id).filter(id => id?.startsWith('generator_')));
+    
+    for (const generatorId of currentGeneratorIds) {
+      if (!prevGeneratorIds.has(generatorId)) {
+        const item = ITEMS[generatorId];
+        if (item) {
+          toast({
+            title: "¡Nuevo Generador Desbloqueado!",
+            description: `¡Has desbloqueado el ${item.name}!`,
+          });
+        }
+      }
+    }
+    
+    prevBoardRef.current = board;
+  }, [board, toast]);
+
+  useEffect(() => {
     const currentGenerators = new Set(board.map(slot => slot.item?.id).filter(Boolean));
 
     Object.entries(GENERATOR_UNLOCKS).forEach(([generatorId, unlock]) => {
@@ -187,20 +207,12 @@ export default function GameLayout() {
           // Place generator if the spot is empty
           if (!newBoard[unlock.position].item) {
             newBoard[unlock.position].item = ITEMS[generatorId];
-            toast({
-              title: "¡Nuevo Generador Desbloqueado!",
-              description: `¡Has desbloqueado el ${ITEMS[generatorId].name}!`,
-            });
             return newBoard;
           }
           // If the spot is taken, try to place it in any empty spot
           const emptySpot = newBoard.findIndex(slot => !slot.item);
           if (emptySpot !== -1) {
             newBoard[emptySpot].item = ITEMS[generatorId];
-             toast({
-              title: "¡Nuevo Generador Desbloqueado!",
-              description: `¡Has desbloqueado el ${ITEMS[generatorId].name}!`,
-            });
             return newBoard;
           }
           // If no spot is available, it will be added on the next level up or when space is freed
@@ -208,7 +220,7 @@ export default function GameLayout() {
         });
       }
     });
-  }, [level, board, toast]);
+  }, [level]);
 
 
   useEffect(() => {
@@ -229,18 +241,23 @@ export default function GameLayout() {
       let newXp = currentXp + amount;
       let newLevel = level;
       let xpForNext = getXpNeededForLevel(newLevel);
+      let hasLeveledUp = false;
       
       while (newXp >= xpForNext) {
         newXp -= xpForNext;
         newLevel++;
+        hasLeveledUp = true;
         setGems(currentGems => currentGems + GEMS_PER_LEVEL * newLevel);
-        toast({
-          title: "¡Subiste de nivel!",
-          description: `¡Alcanzaste el nivel ${newLevel}! Has ganado ${GEMS_PER_LEVEL * newLevel} gemas.`,
-        });
         xpForNext = getXpNeededForLevel(newLevel);
       }
       
+      if (hasLeveledUp) {
+         toast({
+          title: "¡Subiste de nivel!",
+          description: `¡Alcanzaste el nivel ${newLevel}! Has ganado ${GEMS_PER_LEVEL * newLevel} gemas.`,
+        });
+      }
+
       setLevel(newLevel);
       return newXp;
     });
