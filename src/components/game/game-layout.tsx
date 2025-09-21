@@ -6,13 +6,12 @@ import type { BoardSlot, Item, Order, ItemType } from '@/lib/types';
 import { ITEMS, MERGE_RULES } from '@/lib/game-data';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '../ui/button';
-import { ShoppingCart } from 'lucide-react';
+import { Lock, ShoppingCart } from 'lucide-react';
 import PlayerStats from './player-stats';
 import OrderDisplay from './order-display';
 import ShopDialog from './shop-dialog';
 import GameBackground from './game-background';
-import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { Badge } from '../ui/badge';
 
 const BOARD_SIZE = 56; // 7 columns x 8 rows
@@ -29,12 +28,13 @@ const initialBoard: BoardSlot[] = Array.from({ length: BOARD_SIZE }, (_, i) => (
   item: null,
 }));
 
-initialBoard[2] = { ...initialBoard[2], item: ITEMS['generator_animals'] };
-initialBoard[3] = { ...initialBoard[3], item: ITEMS['generator_food'] };
-initialBoard[4] = { ...initialBoard[4], item: ITEMS['generator_clothing'] };
-initialBoard[10] = { ...initialBoard[10], item: ITEMS['generator_professions'] };
-initialBoard[11] = { ...initialBoard[11], item: ITEMS['generator_vehicles'] };
-
+const GENERATOR_UNLOCKS: { [key: string]: { level: number, position: number } } = {
+  'generator_animals': { level: 1, position: 2 },
+  'generator_food': { level: 3, position: 3 },
+  'generator_clothing': { level: 10, position: 4 },
+  'generator_professions': { level: 20, position: 10 },
+  'generator_vehicles': { level: 30, position: 11 },
+};
 
 type Multiplier = 1 | 2 | 4;
 
@@ -106,15 +106,13 @@ const getRandomItemForMultiplier = (multiplier: Multiplier, itemType: ItemType):
 
 
 export default function GameLayout() {
-  const router = useRouter();
   const searchParams = useSearchParams();
 
   const [level, setLevel] = useState(() => searchParams.get('level') ? parseInt(searchParams.get('level')!, 10) : 1);
   const [xp, setXp] = useState(() => searchParams.get('xp') ? parseInt(searchParams.get('xp')!, 10) : 0);
   const [energy, setEnergy] = useState(() => searchParams.get('energy') ? parseInt(searchParams.get('energy')!, 10) : 100);
   const [gems, setGems] = useState(() => searchParams.get('gems') ? parseInt(searchParams.get('gems')!, 10) : 25);
-  const [unlockedStoryParts, setUnlockedStoryParts] = useState(() => searchParams.get('unlocked') ? parseInt(searchParams.get('unlocked')!, 10) : 1);
-
+  
   const [board, setBoard] = useState<BoardSlot[]>(initialBoard);
   const [mergingIndex, setMergingIndex] = useState<number | null>(null);
   const [appearingIndex, setAppearingIndex] = useState<number | null>(null);
@@ -125,6 +123,93 @@ export default function GameLayout() {
   const { toast } = useToast();
   
   const xpNeeded = getXpNeededForLevel(level);
+
+  const placeNewItem = useCallback((itemId: string, preferredIndex?: number): boolean => {
+    let placed = false;
+    let placedIndex = -1;
+    let success = false;
+    
+    setBoard(currentBoard => {
+      const newBoard = [...currentBoard];
+      const itemToPlace = ITEMS[itemId];
+      if (!itemToPlace) {
+        return currentBoard;
+      }
+
+      const findEmptySlot = (startIndex?: number): number => {
+        if (startIndex !== undefined) {
+            const adjacentIndexes = [
+              startIndex - 7, startIndex + 7,
+              (startIndex % 7 !== 0) ? startIndex - 1 : -1,
+              ((startIndex + 1) % 7 !== 0) ? startIndex + 1 : -1,
+            ].filter(i => i >= 0 && i < BOARD_SIZE && !newBoard[i].item);
+            
+            if (adjacentIndexes.length > 0) {
+              return adjacentIndexes[Math.floor(Math.random() * adjacentIndexes.length)];
+            }
+        }
+        
+        // Fallback to any empty slot if no adjacent one is found
+        for(let i=0; i<BOARD_SIZE; i++) {
+          if (!newBoard[i].item) return i;
+        }
+
+        return -1;
+      };
+
+      const emptySlotIndex = findEmptySlot(preferredIndex);
+
+      if (emptySlotIndex !== -1) {
+        newBoard[emptySlotIndex] = {...newBoard[emptySlotIndex], item: itemToPlace};
+        placedIndex = emptySlotIndex;
+        success = true;
+        return newBoard;
+      }
+      
+      return currentBoard;
+    });
+
+    if (success && placedIndex !== -1) {
+        setAppearingIndex(placedIndex);
+        setTimeout(() => setAppearingIndex(null), 500);
+    }
+    
+    return success;
+  }, []);
+
+  useEffect(() => {
+    const currentGenerators = new Set(board.map(slot => slot.item?.id).filter(Boolean));
+
+    Object.entries(GENERATOR_UNLOCKS).forEach(([generatorId, unlock]) => {
+      if (level >= unlock.level && !currentGenerators.has(generatorId)) {
+        setBoard(currentBoard => {
+          const newBoard = [...currentBoard];
+          // Place generator if the spot is empty
+          if (!newBoard[unlock.position].item) {
+            newBoard[unlock.position].item = ITEMS[generatorId];
+            toast({
+              title: "¡Nuevo Generador Desbloqueado!",
+              description: `¡Has desbloqueado el ${ITEMS[generatorId].name}!`,
+            });
+            return newBoard;
+          }
+          // If the spot is taken, try to place it in any empty spot
+          const emptySpot = newBoard.findIndex(slot => !slot.item);
+          if (emptySpot !== -1) {
+            newBoard[emptySpot].item = ITEMS[generatorId];
+             toast({
+              title: "¡Nuevo Generador Desbloqueado!",
+              description: `¡Has desbloqueado el ${ITEMS[generatorId].name}!`,
+            });
+            return newBoard;
+          }
+          // If no spot is available, it will be added on the next level up or when space is freed
+          return currentBoard;
+        });
+      }
+    });
+  }, [level, board, toast]);
+
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -182,8 +267,14 @@ export default function GameLayout() {
         maxItemLevel = 12;
     }
 
+    const availableGenerators = Object.keys(GENERATOR_UNLOCKS).filter(genId => level >= GENERATOR_UNLOCKS[genId].level);
+    const availableItemTypes = availableGenerators.map(genId => ITEMS[genId].type);
+
     const availableItems = Object.values(ITEMS).filter(item => 
-        !item.isGenerator && item.level >= minItemLevel && item.level <= maxItemLevel
+        !item.isGenerator && 
+        item.level >= minItemLevel && 
+        item.level <= maxItemLevel &&
+        availableItemTypes.includes(item.type)
     );
 
     if (availableItems.length === 0) return null;
@@ -259,12 +350,13 @@ export default function GameLayout() {
         setTimeout(() => setMergingIndex(null), 400);
 
         setBoard(newBoard);
+        addXp(newItem.level);
 
         toast({
           title: "¡Fusión Exitosa!",
           description: (
             <div className="flex items-center">
-              ¡Creaste un {newItem.name}! {newItem.emoji}
+              ¡Creaste un {newItem.name}! {newItem.emoji} (+{newItem.level} XP)
             </div>
           ),
         });
@@ -275,53 +367,6 @@ export default function GameLayout() {
       setBoard(newBoard);
     }
   };
-  
-  const placeNewItem = useCallback((itemId: string, preferredIndex?: number): boolean => {
-    let placed = false;
-    let placedIndex = -1;
-    let success = false;
-    
-    setBoard(currentBoard => {
-      const newBoard = [...currentBoard];
-      const itemToPlace = ITEMS[itemId];
-      if (!itemToPlace) {
-        return currentBoard;
-      }
-
-      const findEmptySlot = (startIndex?: number): number => {
-        if (startIndex !== undefined) {
-            const adjacentIndexes = [
-              startIndex - 7, startIndex + 7,
-              (startIndex % 7 !== 0) ? startIndex - 1 : -1,
-              ((startIndex + 1) % 7 !== 0) ? startIndex + 1 : -1,
-            ].filter(i => i >= 0 && i < BOARD_SIZE && !newBoard[i].item);
-            
-            if (adjacentIndexes.length > 0) {
-              return adjacentIndexes[Math.floor(Math.random() * adjacentIndexes.length)];
-            }
-        }
-        return newBoard.findIndex(slot => !slot.item);
-      };
-
-      const emptySlotIndex = findEmptySlot(preferredIndex);
-
-      if (emptySlotIndex !== -1) {
-        newBoard[emptySlotIndex] = {...newBoard[emptySlotIndex], item: itemToPlace};
-        placedIndex = emptySlotIndex;
-        success = true;
-        return newBoard;
-      }
-      
-      return currentBoard;
-    });
-
-    if (success && placedIndex !== -1) {
-        setAppearingIndex(placedIndex);
-        setTimeout(() => setAppearingIndex(null), 500);
-    }
-    
-    return success;
-  }, []);
 
   const handleItemClick = (index: number) => {
     const clickedItem = board[index].item;
@@ -331,6 +376,11 @@ export default function GameLayout() {
     
     const totalEnergyCost = ENERGY_COST_PER_ITEM * multiplier;
     if (energy < totalEnergyCost) {
+      toast({
+        variant: 'destructive',
+        title: '¡No hay suficiente energía!',
+        description: `Necesitas ${totalEnergyCost} de energía para esta acción.`,
+      });
       return;
     }
 
@@ -338,7 +388,15 @@ export default function GameLayout() {
 
     for (let i = 0; i < multiplier; i++) {
         const itemToGenerateId = getRandomItemForMultiplier(multiplier, clickedItem.type);
-        placeNewItem(itemToGenerateId, index);
+        if (!placeNewItem(itemToGenerateId, index)) {
+            toast({
+              variant: 'destructive',
+              title: '¡Tablero Lleno!',
+              description: 'No hay espacio para generar más objetos.',
+            });
+            setEnergy(e => e + (multiplier - i) * ENERGY_COST_PER_ITEM); // Refund energy for items that couldn't be placed
+            break;
+        }
     }
   };
   
@@ -351,7 +409,7 @@ export default function GameLayout() {
 
     if (itemIndexOnBoard !== -1) {
       const deliveredItem = board[itemIndexOnBoard].item!;
-      const xpReward = deliveredItem.level;
+      const xpReward = deliveredItem.level * 5; // More XP for orders
 
       addXp(xpReward);
 
@@ -399,22 +457,21 @@ export default function GameLayout() {
     return false;
   }
 
-  const createStoryLink = () => {
-    const params = new URLSearchParams();
-    params.set('level', level.toString());
-    params.set('xp', xp.toString());
-    params.set('energy', energy.toString());
-    params.set('unlocked', unlockedStoryParts.toString());
-    return `/story?${params.toString()}`;
-  }
-
   const toggleMultiplier = () => {
-    setMultiplier(m => {
-        if (m === 1) return 2;
-        if (m === 2) return 4;
-        return 1;
-    });
-  }
+      setMultiplier(m => {
+          if (m === 1) {
+              if (level >= 10) return 2;
+              toast({ title: "Multiplicador Bloqueado", description: "Alcanza el nivel 10 para desbloquear x2.", variant: "destructive" });
+              return 1;
+          }
+          if (m === 2) {
+              if (level >= 30) return 4;
+              toast({ title: "Multiplicador Bloqueado", description: "Alcanza el nivel 30 para desbloquear x4.", variant: "destructive" });
+              return 2;
+          }
+          return 1; // From x4, loop back to x1
+      });
+  };
 
   return (
     <div className="relative min-h-screen w-full flex flex-col">
@@ -429,8 +486,8 @@ export default function GameLayout() {
       />
       <main className="relative z-10 pt-4 flex flex-col lg:flex-row gap-4 p-2 sm:p-4 flex-grow overflow-hidden">
         
-        <div className="hidden lg:flex lg:col-span-3 flex-col gap-4">
-            <Button asChild size="lg" className="h-20 text-lg" disabled>
+        <div className="hidden lg:flex lg:w-64 flex-col gap-4">
+            <Button size="lg" className="h-20 text-lg" disabled>
                 <div>
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-8 h-8 mb-1 mx-auto"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
                     Historia
@@ -439,7 +496,7 @@ export default function GameLayout() {
             </Button>
         </div>
 
-        <div className="flex flex-col items-center gap-4 flex-grow min-h-0 w-full lg:col-span-9">
+        <div className="flex flex-col items-center gap-4 flex-grow min-h-0 w-full">
           
           <div className='w-full flex items-center justify-center gap-2 px-1 flex-shrink-0'>
             <PlayerStats level={level} xp={xp} xpNeeded={xpNeeded} energy={energy} maxEnergy={MAX_ENERGY} gems={gems} />
@@ -465,8 +522,13 @@ export default function GameLayout() {
 
           <div className='w-full flex items-center justify-between gap-2 mt-4 px-2'>
               <div className='flex items-center gap-2'>
-                  <Button onClick={toggleMultiplier} variant='secondary' size='icon' className='w-14 h-14 rounded-2xl'>
+                  <Button onClick={toggleMultiplier} variant='secondary' size='icon' className='w-14 h-14 rounded-2xl relative'>
                       <Badge className='text-lg'>x{multiplier}</Badge>
+                      {level < 10 && (
+                        <div className='absolute -top-1 -right-1 p-1 bg-gray-600 rounded-full'>
+                            <Lock className='w-3 h-3 text-white' />
+                        </div>
+                      )}
                   </Button>
               </div>
           </div>
@@ -476,3 +538,5 @@ export default function GameLayout() {
     </div>
   );
 }
+
+    
