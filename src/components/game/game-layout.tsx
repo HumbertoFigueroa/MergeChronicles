@@ -13,7 +13,6 @@ import ShopDialog from './shop-dialog';
 import GameBackground from './game-background';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Badge } from '../ui/badge';
 
 const BOARD_SIZE = 56; // 7 columns x 8 rows
@@ -21,7 +20,6 @@ export const ENERGY_REGEN_RATE = 1.5 * 60 * 1000; // 1.5 minutes in ms
 export const MAX_ENERGY = 100;
 const ENERGY_COST_PER_ITEM = 1;
 const GEMS_PER_LEVEL = 5;
-const COINS_PER_LEVEL = 10;
 const MAX_ORDERS = 3;
 
 const CUSTOMER_EMOJIS = ['👩‍🌾', '🍓', '🧑‍🎨', '🐮', '🛹', '🧑‍⚕️', '🐖', '🍊', '👘', '🚲', '🧑‍🌾', '🐑', '🍌', '🚌', '👠', '🧑‍🍳', '🐕', '🍍', '🧑‍🔬', '👔', '🐈', '✈️', '🍎', '🧑‍🚀', '🐎', '🧤', '🍐', '🚀', '🐘', '🧑‍🚒', '🧥', '🍑'];
@@ -115,7 +113,6 @@ export default function GameLayout() {
   const [xp, setXp] = useState(() => searchParams.get('xp') ? parseInt(searchParams.get('xp')!, 10) : 0);
   const [energy, setEnergy] = useState(() => searchParams.get('energy') ? parseInt(searchParams.get('energy')!, 10) : 100);
   const [gems, setGems] = useState(() => searchParams.get('gems') ? parseInt(searchParams.get('gems')!, 10) : 25);
-  const [coins, setCoins] = useState(() => searchParams.get('coins') ? parseInt(searchParams.get('coins')!, 10) : 0);
   const [unlockedStoryParts, setUnlockedStoryParts] = useState(() => searchParams.get('unlocked') ? parseInt(searchParams.get('unlocked')!, 10) : 1);
 
   const [board, setBoard] = useState<BoardSlot[]>(initialBoard);
@@ -123,7 +120,6 @@ export default function GameLayout() {
   const [appearingIndex, setAppearingIndex] = useState<number | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
   const [isShopOpen, setIsShopOpen] = useState(false);
-  const [selectedGeneratorType, setSelectedGeneratorType] = useState<ItemType>('animals');
   const [multiplier, setMultiplier] = useState<Multiplier>(1);
 
   const { toast } = useToast();
@@ -153,10 +149,9 @@ export default function GameLayout() {
         newXp -= xpForNext;
         newLevel++;
         setGems(currentGems => currentGems + GEMS_PER_LEVEL * newLevel);
-        setCoins(currentCoins => currentCoins + COINS_PER_LEVEL * newLevel);
         toast({
           title: "¡Subiste de nivel!",
-          description: `¡Alcanzaste el nivel ${newLevel}! Has ganado ${GEMS_PER_LEVEL * newLevel} gemas y ${COINS_PER_LEVEL * newLevel} monedas.`,
+          description: `¡Alcanzaste el nivel ${newLevel}! Has ganado ${GEMS_PER_LEVEL * newLevel} gemas.`,
         });
         xpForNext = getXpNeededForLevel(newLevel);
       }
@@ -328,20 +323,12 @@ export default function GameLayout() {
     return success;
   }, []);
 
-  const handleGeneratorClick = (index: number) => {
+  const handleItemClick = (index: number) => {
     const clickedItem = board[index].item;
     if (!clickedItem || !clickedItem.isGenerator) {
-        if(clickedItem?.isGenerator) {
-            setSelectedGeneratorType(clickedItem.type);
-        }
         return;
     };
     
-    if (clickedItem.type !== selectedGeneratorType) {
-        setSelectedGeneratorType(clickedItem.type);
-        return;
-    }
-
     const totalEnergyCost = ENERGY_COST_PER_ITEM * multiplier;
     if (energy < totalEnergyCost) {
       return;
@@ -364,10 +351,8 @@ export default function GameLayout() {
 
     if (itemIndexOnBoard !== -1) {
       const deliveredItem = board[itemIndexOnBoard].item!;
-      const coinReward = deliveredItem.level * 2;
       const xpReward = deliveredItem.level;
 
-      setCoins(c => c + coinReward);
       addXp(xpReward);
 
       setBoard(b => {
@@ -380,7 +365,7 @@ export default function GameLayout() {
       
       toast({
         title: "¡Orden Completada!",
-        description: `¡Entregaste un ${deliveredItem.name}! Ganaste ${coinReward} monedas y ${xpReward} XP.`,
+        description: `¡Entregaste un ${deliveredItem.name}! Ganaste ${xpReward} XP.`,
       });
     }
   };
@@ -419,7 +404,6 @@ export default function GameLayout() {
     params.set('level', level.toString());
     params.set('xp', xp.toString());
     params.set('energy', energy.toString());
-    params.set('coins', coins.toString());
     params.set('unlocked', unlockedStoryParts.toString());
     return `/story?${params.toString()}`;
   }
@@ -446,8 +430,8 @@ export default function GameLayout() {
       <main className="relative z-10 pt-4 flex flex-col lg:flex-row gap-4 p-2 sm:p-4 flex-grow overflow-hidden">
         
         <div className="hidden lg:flex lg:col-span-3 flex-col gap-4">
-            <Button size="lg" className="h-20 text-lg" disabled>
-                <div className='flex-col text-center'>
+            <Button asChild size="lg" className="h-20 text-lg" disabled>
+                <div>
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-8 h-8 mb-1 mx-auto"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
                     Historia
                     <span className="text-xs font-normal block">(Próximamente)</span>
@@ -458,7 +442,7 @@ export default function GameLayout() {
         <div className="flex flex-col items-center gap-4 flex-grow min-h-0 w-full lg:col-span-9">
           
           <div className='w-full flex items-center justify-center gap-2 px-1 flex-shrink-0'>
-            <PlayerStats level={level} xp={xp} xpNeeded={xpNeeded} energy={energy} maxEnergy={MAX_ENERGY} gems={gems} coins={coins} />
+            <PlayerStats level={level} xp={xp} xpNeeded={xpNeeded} energy={energy} maxEnergy={MAX_ENERGY} gems={gems} />
             <Button variant="secondary" size="icon" className='h-14 w-14 rounded-2xl flex-shrink-0' onClick={() => setIsShopOpen(true)}>
                 <ShoppingCart className="h-7 w-7" />
             </Button>
@@ -473,32 +457,13 @@ export default function GameLayout() {
               board={board}
               onDragStart={handleDragStart}
               onDrop={handleDrop}
-              onItemClick={handleGeneratorClick}
+              onItemClick={handleItemClick}
               mergingIndex={mergingIndex}
               appearingIndex={appearingIndex}
-              selectedGeneratorType={selectedGeneratorType}
             />
           </div>
 
           <div className='w-full flex items-center justify-between gap-2 mt-4 px-2'>
-              <ToggleGroup type="single" value={selectedGeneratorType} onValueChange={(value: ItemType) => value && setSelectedGeneratorType(value)} className='gap-1.5'>
-                  <ToggleGroupItem value="animals" aria-label="Toggle Animals" className='w-12 h-12 text-2xl rounded-xl'>
-                      {ITEMS.generator_animals.emoji}
-                  </ToggleGroupItem>
-                  <ToggleGroupItem value="vehicles" aria-label="Toggle Vehicles" className='w-12 h-12 text-2xl rounded-xl'>
-                      {ITEMS.generator_vehicles.emoji}
-                  </ToggleGroupItem>
-                  <ToggleGroupItem value="professions" aria-label="Toggle Professions" className='w-12 h-12 text-2xl rounded-xl'>
-                      {ITEMS.generator_professions.emoji}
-                  </ToggleGroupItem>
-                  <ToggleGroupItem value="clothing" aria-label="Toggle Clothing" className='w-12 h-12 text-2xl rounded-xl'>
-                      {ITEMS.generator_clothing.emoji}
-                  </ToggleGroupItem>
-                  <ToggleGroupItem value="food" aria-label="Toggle Food" className='w-12 h-12 text-2xl rounded-xl'>
-                      {ITEMS.generator_food.emoji}
-                  </ToggleGroupItem>
-              </ToggleGroup>
-
               <div className='flex items-center gap-2'>
                   <Button onClick={toggleMultiplier} variant='secondary' size='icon' className='w-14 h-14 rounded-2xl'>
                       <Badge className='text-lg'>x{multiplier}</Badge>

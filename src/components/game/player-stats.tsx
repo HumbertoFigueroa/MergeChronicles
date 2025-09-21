@@ -12,29 +12,8 @@ interface PlayerStatsProps {
   energy: number;
   maxEnergy: number;
   gems: number;
-  coins: number;
   isMobile?: boolean;
 }
-
-const CoinIcon = () => (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className='drop-shadow-lg h-full w-auto'>
-        <circle cx="12" cy="12" r="10" fill="url(#coin-gradient-stats)"/>
-        <path d="M12 5C14.7614 5 17 7.23858 17 10C17 12.7614 14.7614 15 12 15C9.23858 15 7 12.7614 7 10C7 7.23858 9.23858 5 12 5Z" fill="url(#coin-inner-gradient-stats)"/>
-        <path d="M12 6C15.3137 6 18 8.68629 18 12C18 15.3137 15.3137 18 12 18C8.68629 18 6 15.3137 6 12C6 8.68629 8.68629 6 12 6Z" stroke="#FBBF24" strokeOpacity="0.5" strokeWidth="1.5"/>
-        <text x="50%" y="55%" textAnchor="middle" dy=".3em" fill="white" fontSize="10" fontWeight="bold">C</text>
-        <defs>
-            <radialGradient id="coin-gradient-stats" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(12 12) rotate(90) scale(12)">
-                <stop stopColor="#FDE047"/>
-                <stop offset="1" stopColor="#F59E0B"/>
-            </radialGradient>
-            <radialGradient id="coin-inner-gradient-stats" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(12 10) rotate(90) scale(6)">
-                 <stop stopColor="#FEF3C7"/>
-                <stop offset="1" stopColor="#FBBF24"/>
-            </radialGradient>
-        </defs>
-    </svg>
-);
-
 
 const GemIcon = () => (
     <svg width="24" height="24" viewBox="0 0 28 24" fill="none" xmlns="http://www.w3.org/2000/svg" className='drop-shadow-lg h-full w-auto'>
@@ -123,7 +102,7 @@ const EnergyTimer = ({ nextEnergyTime }: { nextEnergyTime: number }) => {
 };
 
 
-export default function PlayerStats({ level, xp, xpNeeded, energy, maxEnergy, gems, coins, isMobile = false }: PlayerStatsProps) {
+export default function PlayerStats({ level, xp, xpNeeded, energy, maxEnergy, gems, isMobile = false }: PlayerStatsProps) {
     const energyPercentage = (energy / maxEnergy) * 100;
     const [nextEnergyTime, setNextEnergyTime] = useState(0);
 
@@ -148,7 +127,6 @@ export default function PlayerStats({ level, xp, xpNeeded, energy, maxEnergy, ge
             <div className='flex flex-col items-start gap-2 w-full'>
                 <LevelDisplay level={level} xp={xp} xpNeeded={xpNeeded} />
                 <div className="flex gap-2 w-full">
-                    <StatDisplay value={coins} icon={<CoinIcon />} />
                     <StatDisplay value={gems} icon={<GemIcon />} />
                     <div className="flex-grow flex flex-col">
                         <div className="flex items-center gap-2 bg-black/20 rounded-full p-1 h-10 shadow-inner border border-white/30 text-white">
@@ -174,7 +152,6 @@ export default function PlayerStats({ level, xp, xpNeeded, energy, maxEnergy, ge
     return (
         <div className='flex items-center justify-center gap-2 w-full'>
             <LevelDisplay level={level} xp={xp} xpNeeded={xpNeeded} />
-            <StatDisplay value={coins} icon={<CoinIcon />} action={() => {}} className="pr-1"/>
             <StatDisplay value={gems} icon={<GemIcon />} action={() => {}} className="pr-1"/>
             <div className="flex flex-col">
                 <div className="flex items-center gap-2 bg-black/20 rounded-full p-1 h-10 shadow-inner border border-white/30 text-white w-48">

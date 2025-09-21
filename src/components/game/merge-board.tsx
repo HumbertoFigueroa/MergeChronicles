@@ -1,6 +1,6 @@
 'use client';
 
-import type { BoardSlot, ItemType } from '@/lib/types';
+import type { BoardSlot } from '@/lib/types';
 import MergeItem from './merge-item';
 import { cn } from '@/lib/utils';
 
@@ -11,10 +11,9 @@ interface MergeBoardProps {
   onItemClick: (index: number) => void;
   mergingIndex: number | null;
   appearingIndex: number | null;
-  selectedGeneratorType: ItemType | null;
 }
 
-export default function MergeBoard({ board, onDragStart, onDrop, onItemClick, mergingIndex, appearingIndex, selectedGeneratorType }: MergeBoardProps) {
+export default function MergeBoard({ board, onDragStart, onDrop, onItemClick, mergingIndex, appearingIndex }: MergeBoardProps) {
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
   };
@@ -38,7 +37,6 @@ export default function MergeBoard({ board, onDragStart, onDrop, onItemClick, me
               onDragStart={(e) => onDragStart(e, index)}
               isMerging={mergingIndex === index}
               isAppearing={appearingIndex === index}
-              isSelectedGenerator={slot.item.isGenerator && slot.item.type === selectedGeneratorType}
             />
           )}
         </div>
