@@ -103,6 +103,7 @@ export default function GameLayout() {
 
   const [draggedItem, setDraggedItem] = useState<{ item: Item; index: number } | null>(null);
   const [ghostPosition, setGhostPosition] = useState<{ x: number; y: number } | null>(null);
+  const [draggedItemHidden, setDraggedItemHidden] = useState(false);
 
   const { toast } = useToast();
   
@@ -341,15 +342,9 @@ export default function GameLayout() {
     const item = board[index].item;
     if (item && !item.isGenerator) {
         setDraggedItem({ item, index });
+        setDraggedItemHidden(true);
         const touch = e.touches[0];
         setGhostPosition({ x: touch.clientX, y: touch.clientY });
-        
-        // Temporarily remove item from board for visual feedback
-        setBoard(currentBoard => {
-            const newBoard = [...currentBoard];
-            newBoard[index] = { ...newBoard[index], item: null };
-            return newBoard;
-        });
     }
   };
 
@@ -382,19 +377,11 @@ export default function GameLayout() {
         
         if (targetIndex !== -1 && targetIndex !== draggedItem.index) {
             handleDrop(draggedItem.index, targetIndex);
-        } else {
-            // Restore item if not dropped on a valid target
-            setBoard(currentBoard => {
-                const newBoard = [...currentBoard];
-                if (!newBoard[draggedItem.index].item) {
-                  newBoard[draggedItem.index].item = draggedItem.item;
-                }
-                return newBoard;
-            });
         }
         
         setDraggedItem(null);
         setGhostPosition(null);
+        setDraggedItemHidden(false);
     }
   };
 
@@ -414,42 +401,48 @@ export default function GameLayout() {
       return;
     }
   
-    setEnergy(e => e - totalEnergyCost);
-  
     let tempBoard = [...board];
     let itemsGenerated = 0;
-    let boardIsFull = false;
+    
+    // Check for space BEFORE spending energy
+    const emptySlots = tempBoard.filter(slot => !slot.item).length;
+    if (emptySlots < multiplier) {
+        toast({
+            variant: 'destructive',
+            title: '¡Tablero Lleno!',
+            description: 'No hay espacio para generar más objetos.',
+        });
+        return;
+    }
+    
+    setEnergy(e => e - totalEnergyCost);
   
     for (let i = 0; i < multiplier; i++) {
-      if (boardIsFull) break;
-  
       const itemId = getRandomItemForMultiplier(multiplier, clickedItem.type);
       const { newBoard, success, placedIndex } = placeNewItem(tempBoard, itemId, index);
       
       tempBoard = newBoard;
   
-      if (success) {
+      if (success && placedIndex !== null) {
         itemsGenerated++;
-        if (placedIndex !== null) {
+        // We use a timeout to show multiple appearing animations in sequence
+        setTimeout(() => {
           setAppearingIndex(placedIndex);
           setTimeout(() => setAppearingIndex(null), 500);
-        }
+        }, i * 100);
       } else {
-        boardIsFull = true;
-        // If we fail to place an item, we must break the loop.
-        break;
+        // This part should ideally not be reached due to the initial check, but as a safeguard:
+        toast({
+            variant: 'destructive',
+            title: '¡Tablero Lleno!',
+            description: 'No hay espacio para generar más objetos.',
+        });
+        // If we failed to place an item, we should stop trying to place more.
+        break; 
       }
     }
   
     setBoard(tempBoard);
-    
-    if (boardIsFull) {
-      toast({
-        variant: 'destructive',
-        title: '¡Tablero Lleno!',
-        description: 'No hay espacio para generar más objetos.',
-      });
-    }
   };
   
   const handleDeliverOrder = (orderId: string) => {
@@ -542,6 +535,7 @@ export default function GameLayout() {
         onTouchEnd={handleTouchEnd}
     >
       <GameBackground />
+      <Toaster />
       {draggedItem && ghostPosition && <GhostItem item={draggedItem.item} position={ghostPosition} />}
 
       <ShopDialog 
@@ -552,7 +546,7 @@ export default function GameLayout() {
         onSpendGems={spendGems}
         gems={gems}
       />
-      <Toaster />
+      
       <main className="relative z-10 pt-4 flex flex-col lg:flex-row gap-4 p-2 sm:p-4 flex-grow overflow-hidden">
         
         <div className="hidden lg:flex lg:w-64 flex-col gap-4">
@@ -576,6 +570,7 @@ export default function GameLayout() {
                     energy={energy} 
                     maxEnergy={MAX_ENERGY} 
                     gems={gems}
+                    isMobile={isMobile}
                 />
                 <Button onClick={toggleMultiplier} variant='secondary' size='sm' className='h-8 w-16 rounded-xl relative mt-2'>
                     <Badge className='text-sm'>x{multiplier}</Badge>
@@ -604,6 +599,7 @@ export default function GameLayout() {
               mergingIndex={mergingIndex}
               appearingIndex={appearingIndex}
               onTouchStart={handleTouchStart}
+              draggedItemIndex={draggedItemHidden ? draggedItem?.index : null}
             />
           </div>
 

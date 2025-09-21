@@ -11,9 +11,10 @@ interface MergeItemProps {
   isMerging: boolean;
   isAppearing: boolean;
   isSelectedGenerator?: boolean;
+  isHidden?: boolean;
 }
 
-export default function MergeItem({ item, onDragStart, onTouchStart, isMerging, isAppearing, isSelectedGenerator }: MergeItemProps) {
+export default function MergeItem({ item, onDragStart, onTouchStart, isMerging, isAppearing, isSelectedGenerator, isHidden }: MergeItemProps) {
   const handleDrag = (e: React.DragEvent<HTMLDivElement>) => {
     e.stopPropagation(); // Prevents click event from firing on drag
     onDragStart(e);
@@ -31,7 +32,8 @@ export default function MergeItem({ item, onDragStart, onTouchStart, isMerging, 
             : "cursor-grab active:cursor-grabbing hover:bg-accent/50",
           isSelectedGenerator && "ring-4 ring-green-400 ring-inset",
           isMerging && "animate-merge-pop",
-          isAppearing && "animate-appear"
+          isAppearing && "animate-appear",
+          isHidden && "opacity-0"
       )}
     >
       <div className="relative aspect-square w-full flex items-center justify-center">

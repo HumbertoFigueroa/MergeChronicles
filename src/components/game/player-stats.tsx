@@ -124,12 +124,12 @@ export default function PlayerStats({ level, xp, xpNeeded, energy, maxEnergy, ge
 
     if (isMobile) {
         return (
-            <div className='flex flex-col items-start gap-2 w-full'>
+            <div className='flex flex-col items-center gap-2 w-full'>
                 <LevelDisplay level={level} xp={xp} xpNeeded={xpNeeded} />
-                <div className="flex gap-2 w-full">
+                <div className="flex gap-2 w-full justify-center">
                     <StatDisplay value={gems} icon={<GemIcon />} />
-                    <div className="flex-grow flex flex-col">
-                        <div className="flex items-center gap-2 bg-black/20 rounded-full p-1 h-10 shadow-inner border border-white/30 text-white">
+                    <div className="flex flex-col">
+                        <div className="flex items-center gap-2 bg-black/20 rounded-full p-1 h-10 shadow-inner border border-white/30 text-white w-36">
                             <div className='w-8 h-8 flex items-center justify-center p-1.5'>
                                 <ZapIcon />
                             </div>

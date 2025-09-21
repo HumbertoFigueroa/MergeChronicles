@@ -12,15 +12,25 @@ interface MergeBoardProps {
   mergingIndex: number | null;
   appearingIndex: number | null;
   onTouchStart: (e: React.TouchEvent<HTMLDivElement>, index: number) => void;
+  draggedItemIndex: number | null;
 }
 
-export default function MergeBoard({ board, onDragStart, onDrop, onItemClick, mergingIndex, appearingIndex, onTouchStart }: MergeBoardProps) {
+export default function MergeBoard({ 
+    board, 
+    onDragStart, 
+    onDrop, 
+    onItemClick, 
+    mergingIndex, 
+    appearingIndex, 
+    onTouchStart,
+    draggedItemIndex
+}: MergeBoardProps) {
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
   };
 
   return (
-    <div className="grid grid-cols-7 gap-1.5 p-2 sm:p-4 rounded-lg bg-card/70 backdrop-blur-sm border-2 border-dashed w-full max-w-2xl mx-auto shadow-inner aspect-[7/8] lg:aspect-auto lg:flex-grow">
+    <div className="grid grid-cols-7 gap-1.5 p-2 sm:p-4 rounded-lg bg-card/70 backdrop-blur-sm border-2 border-dashed w-full max-w-2xl mx-auto shadow-inner lg:flex-grow">
       {board.map((slot, index) => (
         <div
           key={slot.id}
@@ -28,10 +38,7 @@ export default function MergeBoard({ board, onDragStart, onDrop, onItemClick, me
           onDragOver={handleDragOver}
           onDrop={(e) => onDrop(e, index)}
           onClick={() => onItemClick(index)}
-          className={cn(
-              "rounded-md bg-white/20 transition-colors aspect-square",
-              slot.item && 'bg-transparent'
-            )}
+          className="rounded-md bg-white/20 transition-colors aspect-square"
         >
           {slot.item && (
             <MergeItem
@@ -40,6 +47,7 @@ export default function MergeBoard({ board, onDragStart, onDrop, onItemClick, me
               onTouchStart={(e) => onTouchStart(e, index)}
               isMerging={mergingIndex === index}
               isAppearing={appearingIndex === index}
+              isHidden={draggedItemIndex === index}
             />
           )}
         </div>
