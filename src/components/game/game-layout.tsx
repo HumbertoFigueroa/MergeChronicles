@@ -443,7 +443,7 @@ export default function GameLayout() {
     if (itemIndexOnBoard !== -1) {
       const deliveredItem = board[itemIndexOnBoard].item!;
       
-      const xpReward = deliveredItem.level * 5; 
+      const xpReward = deliveredItem.level; 
       addXp(xpReward);
 
       // Gem reward logic
