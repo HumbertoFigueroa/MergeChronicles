@@ -13,6 +13,7 @@ import ShopDialog from './shop-dialog';
 import GameBackground from './game-background';
 import { useSearchParams } from 'next/navigation';
 import { Badge } from '../ui/badge';
+import GhostItem from './ghost-item';
 
 const BOARD_SIZE = 56; // 7 columns x 8 rows
 export const ENERGY_REGEN_RATE = 1.5 * 60 * 1000; // 1.5 minutes in ms
@@ -120,14 +121,15 @@ export default function GameLayout() {
   const [isShopOpen, setIsShopOpen] = useState(false);
   const [multiplier, setMultiplier] = useState<Multiplier>(1);
 
+  const [draggedItem, setDraggedItem] = useState<{ item: Item; index: number } | null>(null);
+  const [ghostPosition, setGhostPosition] = useState<{ x: number; y: number } | null>(null);
+
   const { toast } = useToast();
   const prevBoardRef = useRef<BoardSlot[]>(initialBoard);
   
   const xpNeeded = getXpNeededForLevel(level);
 
   const placeNewItem = useCallback((itemId: string, preferredIndex?: number): boolean => {
-    let placed = false;
-    let placedIndex = -1;
     let success = false;
     
     setBoard(currentBoard => {
@@ -150,7 +152,6 @@ export default function GameLayout() {
             }
         }
         
-        // Fallback to any empty slot if no adjacent one is found
         for(let i=0; i<BOARD_SIZE; i++) {
           if (!newBoard[i].item) return i;
         }
@@ -162,70 +163,63 @@ export default function GameLayout() {
 
       if (emptySlotIndex !== -1) {
         newBoard[emptySlotIndex] = {...newBoard[emptySlotIndex], item: itemToPlace};
-        placedIndex = emptySlotIndex;
+        setAppearingIndex(emptySlotIndex);
+        setTimeout(() => setAppearingIndex(null), 500);
         success = true;
         return newBoard;
       }
       
       return currentBoard;
     });
-
-    if (success && placedIndex !== -1) {
-        setAppearingIndex(placedIndex);
-        setTimeout(() => setAppearingIndex(null), 500);
-    }
     
     return success;
   }, []);
 
-  useEffect(() => {
-    const currentGeneratorIds = new Set(board.map(slot => slot.item?.id).filter(id => id?.startsWith('generator_')));
-    const prevGeneratorIds = new Set(prevBoardRef.current.map(slot => slot.item?.id).filter(id => id?.startsWith('generator_')));
-    
-    let newGeneratorAdded = false;
-    let newGeneratorItem: Item | null = null;
-    
-    for (const generatorId of currentGeneratorIds) {
-      if (!prevGeneratorIds.has(generatorId)) {
-        newGeneratorAdded = true;
-        newGeneratorItem = ITEMS[generatorId];
-        break;
-      }
+  const showNewGeneratorToast = useCallback((generatorId: string) => {
+    const newGeneratorItem = ITEMS[generatorId];
+    if (newGeneratorItem) {
+      toast({
+        title: "¡Nuevo Generador Desbloqueado!",
+        description: `¡Has desbloqueado el ${newGeneratorItem.name}!`,
+      });
     }
-    
-    if (newGeneratorAdded && newGeneratorItem) {
-        toast({
-            title: "¡Nuevo Generador Desbloqueado!",
-            description: `¡Has desbloqueado el ${newGeneratorItem.name}!`,
-        });
-    }
-
-    prevBoardRef.current = board;
-  }, [board, toast]);
+  }, [toast]);
 
   useEffect(() => {
+    let boardChanged = false;
+    let newGeneratorId: string | null = null;
+  
     setBoard(currentBoard => {
-      const currentGenerators = new Set(currentBoard.map(slot => slot.item?.id).filter(Boolean));
-      let boardChanged = false;
+      const currentGenerators = new Set(currentBoard.map(slot => slot.item?.id).filter(id => id?.startsWith('generator_')));
       const newBoard = [...currentBoard];
-
+  
       Object.entries(GENERATOR_UNLOCKS).forEach(([generatorId, unlock]) => {
         if (level >= unlock.level && !currentGenerators.has(generatorId)) {
+          let placed = false;
           if (!newBoard[unlock.position].item) {
             newBoard[unlock.position].item = ITEMS[generatorId];
-            boardChanged = true;
+            placed = true;
           } else {
             const emptySpot = newBoard.findIndex(slot => !slot.item);
             if (emptySpot !== -1) {
               newBoard[emptySpot].item = ITEMS[generatorId];
-              boardChanged = true;
+              placed = true;
             }
+          }
+          if (placed) {
+            boardChanged = true;
+            newGeneratorId = generatorId;
           }
         }
       });
       return boardChanged ? newBoard : currentBoard;
     });
-  }, [level]);
+
+    if (newGeneratorId) {
+      showNewGeneratorToast(newGeneratorId);
+    }
+  
+  }, [level, showNewGeneratorToast]);
 
 
   useEffect(() => {
@@ -317,81 +311,138 @@ export default function GameLayout() {
   }, [level]);
 
   useEffect(() => {
-    setOrders(currentOrders => {
-      const newOrders = [...currentOrders];
-      while (newOrders.length < MAX_ORDERS) {
-          const newOrder = generateNewOrder();
-          if (newOrder) {
-              newOrders.push(newOrder);
-          } else {
-              break; 
-          }
+    if (orders.length < MAX_ORDERS) {
+      const newOrder = generateNewOrder();
+      if (newOrder) {
+        setOrders(currentOrders => [...currentOrders, newOrder]);
       }
-      return newOrders;
-    });
+    }
   }, [level, orders.length, generateNewOrder]);
 
+  const handleDrop = (sourceIndex: number, targetIndex: number) => {
+    if (sourceIndex === targetIndex) return;
+  
+    const newBoard = [...board];
+    const sourceSlot = newBoard[sourceIndex];
+    if (!sourceSlot || !sourceSlot.item) return;
+  
+    const targetSlot = newBoard[targetIndex];
+  
+    // Logic for merging or swapping
+    if (!targetSlot.item) {
+      // Move to empty slot
+      newBoard[targetIndex] = { ...targetSlot, item: sourceSlot.item };
+      newBoard[sourceIndex] = { ...sourceSlot, item: null };
+      setBoard(newBoard);
+    } else {
+      const sourceItem = sourceSlot.item;
+      const targetItem = targetSlot.item;
+  
+      if (!sourceItem.isGenerator && !targetItem.isGenerator && sourceItem.id === targetItem.id && MERGE_RULES[sourceItem.id]) {
+        // Merge items
+        const newItemId = MERGE_RULES[sourceItem.id];
+        const newItem = ITEMS[newItemId];
+  
+        if (newItem) {
+          newBoard[targetIndex] = { ...targetSlot, item: newItem };
+          newBoard[sourceIndex] = { ...sourceSlot, item: null };
+  
+          setMergingIndex(targetIndex);
+          setTimeout(() => setMergingIndex(null), 400);
+  
+          setBoard(newBoard);
+          addXp(newItem.level);
+  
+          toast({
+            title: "¡Fusión Exitosa!",
+            description: (
+              <div className="flex items-center">
+                ¡Creaste un {newItem.name}! {newItem.emoji} (+{newItem.level} XP)
+              </div>
+            ),
+          });
+        }
+      } else {
+        // Swap items
+        newBoard[targetIndex] = { ...targetSlot, item: sourceItem };
+        newBoard[sourceIndex] = { ...sourceSlot, item: targetItem };
+        setBoard(newBoard);
+      }
+    }
+  };
 
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>, index: number) => {
     e.dataTransfer.setData('sourceIndex', index.toString());
   };
 
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>, targetIndex: number) => {
+  const handleDragDrop = (e: React.DragEvent<HTMLDivElement>, targetIndex: number) => {
     e.preventDefault();
     const sourceIndexStr = e.dataTransfer.getData('sourceIndex');
     if (sourceIndexStr === null) return;
-
     const sourceIndex = parseInt(sourceIndexStr, 10);
     if (isNaN(sourceIndex)) return;
-
-    const newBoard = [...board];
-    const sourceSlot = newBoard[sourceIndex];
-    
-    if (!sourceSlot || sourceIndex === targetIndex) return;
-    
-    const targetSlot = newBoard[targetIndex];
-
-    if (!sourceSlot.item) return;
-
-    if (!targetSlot.item) {
-      newBoard[targetIndex] = { ...targetSlot, item: sourceSlot.item };
-      newBoard[sourceIndex] = { ...sourceSlot, item: null };
-      setBoard(newBoard);
-      return;
-    }
-
-    const sourceItem = sourceSlot.item;
-    const targetItem = targetSlot.item;
-
-    if (!sourceItem.isGenerator && !targetItem.isGenerator && sourceItem.id === targetItem.id && MERGE_RULES[sourceItem.id]) {
-      const newItemId = MERGE_RULES[sourceItem.id];
-      const newItem = ITEMS[newItemId];
-
-      if (newItem) {
-        newBoard[targetIndex] = { ...targetSlot, item: newItem };
-        newBoard[sourceIndex] = { ...sourceSlot, item: null };
-
-        setMergingIndex(targetIndex);
-        setTimeout(() => setMergingIndex(null), 400);
-
+    handleDrop(sourceIndex, targetIndex);
+  };
+  
+  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>, index: number) => {
+    const item = board[index].item;
+    if (item && !item.isGenerator) {
+        setDraggedItem({ item, index });
+        const touch = e.touches[0];
+        setGhostPosition({ x: touch.clientX, y: touch.clientY });
+        
+        // Temporarily remove item from board for visual feedback
+        const newBoard = [...board];
+        newBoard[index] = { ...newBoard[index], item: null };
         setBoard(newBoard);
-        addXp(newItem.level);
-
-        toast({
-          title: "¡Fusión Exitosa!",
-          description: (
-            <div className="flex items-center">
-              ¡Creaste un {newItem.name}! {newItem.emoji} (+{newItem.level} XP)
-            </div>
-          ),
-        });
-      }
-    } else { 
-      newBoard[targetIndex] = { ...targetSlot, item: sourceItem };
-      newBoard[sourceIndex] = { ...sourceSlot, item: targetItem };
-      setBoard(newBoard);
     }
   };
+
+  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (draggedItem) {
+        const touch = e.touches[0];
+        setGhostPosition({ x: touch.clientX, y: touch.clientY });
+    }
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (draggedItem) {
+        const touch = e.changedTouches[0];
+        const dropTargetElement = document.elementFromPoint(touch.clientX, touch.clientY);
+        
+        const getSlotIndexFromElement = (el: Element | null): number => {
+            if (!el) return -1;
+            const slotDiv = el.closest('[data-slot-id]');
+            if (slotDiv) {
+                const slotId = slotDiv.getAttribute('data-slot-id');
+                const match = slotId?.match(/cell-(\d+)/);
+                if (match && match[1]) {
+                    return parseInt(match[1], 10);
+                }
+            }
+            return -1;
+        };
+
+        const targetIndex = getSlotIndexFromElement(dropTargetElement);
+        
+        // Restore item to its original position first
+        const newBoard = [...board];
+        if (!newBoard[draggedItem.index].item) {
+          newBoard[draggedItem.index].item = draggedItem.item;
+        }
+        setBoard(newBoard);
+
+        if (targetIndex !== -1 && targetIndex !== draggedItem.index) {
+            // A valid drop happened, process it
+            handleDrop(draggedItem.index, targetIndex);
+        }
+        
+        // Clean up drag state
+        setDraggedItem(null);
+        setGhostPosition(null);
+    }
+  };
+
 
   const handleItemClick = (index: number) => {
     const clickedItem = board[index].item;
@@ -419,7 +470,7 @@ export default function GameLayout() {
               title: '¡Tablero Lleno!',
               description: 'No hay espacio para generar más objetos.',
             });
-            setEnergy(e => e + (multiplier - i) * ENERGY_COST_PER_ITEM); // Refund energy for items that couldn't be placed
+            setEnergy(e => e + (multiplier - i) * ENERGY_COST_PER_ITEM); // Refund energy
             break;
         }
     }
@@ -434,7 +485,7 @@ export default function GameLayout() {
 
     if (itemIndexOnBoard !== -1) {
       const deliveredItem = board[itemIndexOnBoard].item!;
-      const xpReward = deliveredItem.level * 5; // More XP for orders
+      const xpReward = deliveredItem.level * 5; 
 
       addXp(xpReward);
 
@@ -444,7 +495,14 @@ export default function GameLayout() {
         return newBoard;
       });
       
-      setOrders(currentOrders => currentOrders.filter(o => o.id !== orderId));
+      setOrders(currentOrders => {
+        const updatedOrders = currentOrders.filter(o => o.id !== orderId);
+        const newOrder = generateNewOrder();
+        if (newOrder) {
+          updatedOrders.push(newOrder);
+        }
+        return updatedOrders;
+      });
       
       toast({
         title: "¡Orden Completada!",
@@ -499,8 +557,14 @@ export default function GameLayout() {
   };
 
   return (
-    <div className="relative min-h-screen w-full flex flex-col">
+    <div 
+        className="relative min-h-screen w-full flex flex-col"
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+    >
       <GameBackground />
+      {draggedItem && ghostPosition && <GhostItem item={draggedItem.item} position={ghostPosition} />}
+
       <ShopDialog 
         isOpen={isShopOpen} 
         onOpenChange={setIsShopOpen}
@@ -528,11 +592,11 @@ export default function GameLayout() {
                 <PlayerStats level={level} xp={xp} xpNeeded={xpNeeded} energy={energy} maxEnergy={MAX_ENERGY} gems={gems} />
                 <Button onClick={toggleMultiplier} variant='secondary' size='sm' className='h-8 w-16 rounded-xl relative mt-2'>
                     <Badge className='text-sm'>x{multiplier}</Badge>
-                    {level < 10 && (
+                    {(level < 10 && multiplier === 1) || (level < 30 && multiplier === 2) ? (
                       <div className='absolute -top-1 -right-1 p-1 bg-gray-600 rounded-full'>
                           <Lock className='w-2 h-2 text-white' />
                       </div>
-                    )}
+                    ) : null}
                 </Button>
             </div>
             <Button variant="secondary" size="icon" className='h-14 w-14 rounded-2xl flex-shrink-0' onClick={() => setIsShopOpen(true)}>
@@ -548,10 +612,11 @@ export default function GameLayout() {
             <MergeBoard
               board={board}
               onDragStart={handleDragStart}
-              onDrop={handleDrop}
+              onDrop={handleDragDrop}
               onItemClick={handleItemClick}
               mergingIndex={mergingIndex}
               appearingIndex={appearingIndex}
+              onTouchStart={handleTouchStart}
             />
           </div>
 
@@ -560,6 +625,3 @@ export default function GameLayout() {
     </div>
   );
 }
-
-    
-

@@ -7,12 +7,13 @@ import { cn } from '@/lib/utils';
 interface MergeItemProps {
   item: Item;
   onDragStart: (e: React.DragEvent<HTMLDivElement>) => void;
+  onTouchStart: (e: React.TouchEvent<HTMLDivElement>) => void;
   isMerging: boolean;
   isAppearing: boolean;
   isSelectedGenerator?: boolean;
 }
 
-export default function MergeItem({ item, onDragStart, isMerging, isAppearing, isSelectedGenerator }: MergeItemProps) {
+export default function MergeItem({ item, onDragStart, onTouchStart, isMerging, isAppearing, isSelectedGenerator }: MergeItemProps) {
   const handleDrag = (e: React.DragEvent<HTMLDivElement>) => {
     e.stopPropagation(); // Prevents click event from firing on drag
     onDragStart(e);
@@ -20,10 +21,11 @@ export default function MergeItem({ item, onDragStart, isMerging, isAppearing, i
   
   return (
     <div
-      draggable
+      draggable={!item.isGenerator}
       onDragStart={handleDrag}
+      onTouchStart={onTouchStart}
       className={cn(
-          "w-full h-full p-1.5 flex flex-col items-center justify-center rounded-lg bg-card/50 transition-all duration-200 ease-in-out will-change-transform",
+          "w-full h-full p-1.5 flex flex-col items-center justify-center rounded-lg bg-card/50 transition-all duration-200 ease-in-out will-change-transform touch-none",
           item.isGenerator 
             ? "cursor-pointer hover:bg-green-300/50" 
             : "cursor-grab active:cursor-grabbing hover:bg-accent/50",

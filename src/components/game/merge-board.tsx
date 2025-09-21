@@ -11,9 +11,10 @@ interface MergeBoardProps {
   onItemClick: (index: number) => void;
   mergingIndex: number | null;
   appearingIndex: number | null;
+  onTouchStart: (e: React.TouchEvent<HTMLDivElement>, index: number) => void;
 }
 
-export default function MergeBoard({ board, onDragStart, onDrop, onItemClick, mergingIndex, appearingIndex }: MergeBoardProps) {
+export default function MergeBoard({ board, onDragStart, onDrop, onItemClick, mergingIndex, appearingIndex, onTouchStart }: MergeBoardProps) {
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
   };
@@ -23,6 +24,7 @@ export default function MergeBoard({ board, onDragStart, onDrop, onItemClick, me
       {board.map((slot, index) => (
         <div
           key={slot.id}
+          data-slot-id={slot.id}
           onDragOver={handleDragOver}
           onDrop={(e) => onDrop(e, index)}
           onClick={() => onItemClick(index)}
@@ -35,6 +37,7 @@ export default function MergeBoard({ board, onDragStart, onDrop, onItemClick, me
             <MergeItem
               item={slot.item}
               onDragStart={(e) => onDragStart(e, index)}
+              onTouchStart={(e) => onTouchStart(e, index)}
               isMerging={mergingIndex === index}
               isAppearing={appearingIndex === index}
             />
