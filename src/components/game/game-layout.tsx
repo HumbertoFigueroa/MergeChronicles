@@ -15,6 +15,7 @@ import { useSearchParams } from 'next/navigation';
 import { Badge } from '../ui/badge';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Toaster } from '../ui/toaster';
+import LevelUpRoulette from './level-up-roulette';
 
 const BOARD_SIZE = 56; // 7 columns x 8 rows
 export const ENERGY_REGEN_RATE = 1.5 * 60 * 1000; // 1.5 minutes in ms
@@ -90,7 +91,7 @@ export default function GameLayout() {
   const isMobile = useIsMobile();
 
   const [level, setLevel] = useState(() => searchParams.get('level') ? parseInt(searchParams.get('level')!, 10) : 1);
-  const [xp, setXp] = useState(() => searchParams.get('xp') ? parseInt(searchParams.get('xp')!, 10) : 0);
+  const [xp, setXp] = useState(() => searchParams.get('xp') ? parseInt(search-params.get('xp')!, 10) : 0);
   const [energy, setEnergy] = useState(() => searchParams.get('energy') ? parseInt(searchParams.get('energy')!, 10) : 100);
   const [gems, setGems] = useState(() => searchParams.get('gems') ? parseInt(searchParams.get('gems')!, 10) : 25);
   
@@ -98,6 +99,8 @@ export default function GameLayout() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [isShopOpen, setIsShopOpen] = useState(false);
   const [multiplier, setMultiplier] = useState<Multiplier>(1);
+  
+  const [spinsAvailable, setSpinsAvailable] = useState(0);
 
   const [draggedItemIndex, setDraggedItemIndex] = useState<number | null>(null);
 
@@ -205,22 +208,22 @@ export default function GameLayout() {
   const addXp = (amount: number) => {
     setXp(currentXp => {
       let newXp = currentXp + amount;
-      let newLevel = level;
-      let xpForNext = getXpNeededForLevel(newLevel);
-      let hasLeveledUp = false;
-      let gemsEarnedOnLevelUp = 0;
+      let currentLevel = level;
+      let xpForNext = getXpNeededForLevel(currentLevel);
+      let levelsGained = 0;
       
       while (newXp >= xpForNext) {
         newXp -= xpForNext;
-        newLevel++;
-        hasLeveledUp = true;
-        gemsEarnedOnLevelUp += GEMS_PER_LEVEL_UP;
-        xpForNext = getXpNeededForLevel(newLevel);
+        currentLevel++;
+        levelsGained++;
+        xpForNext = getXpNeededForLevel(currentLevel);
       }
       
-      if (hasLeveledUp) {
-        setLevel(newLevel);
-        setGems(currentGems => currentGems + gemsEarnedOnLevelUp);
+      if (levelsGained > 0) {
+        setLevel(currentLevel);
+        setSpinsAvailable(s => s + levelsGained);
+        // Original gem reward is now replaced by roulette
+        // setGems(currentGems => currentGems + (levelsGained * GEMS_PER_LEVEL_UP));
       }
 
       return newXp;
@@ -487,7 +490,7 @@ export default function GameLayout() {
   };
 
   const addEnergy = (amount: number) => {
-    setEnergy(e => Math.min(MAX_ENERGY, e + amount));
+    setEnergy(e => e + amount);
   };
   
   const spendGems = (amount: number): boolean => {
@@ -514,6 +517,15 @@ export default function GameLayout() {
           return 1; // From x4, loop back to x1
       });
   };
+  
+  const handleSpin = (reward: { type: 'energy' | 'gems', amount: number }) => {
+    if (reward.type === 'energy') {
+      addEnergy(reward.amount);
+    } else {
+      setGems(g => g + reward.amount);
+    }
+    setSpinsAvailable(s => s - 1);
+  };
 
   return (
     <div 
@@ -523,6 +535,12 @@ export default function GameLayout() {
     >
       <GameBackground />
       <Toaster />
+
+      <LevelUpRoulette
+        isOpen={spinsAvailable > 0}
+        onSpin={handleSpin}
+        spinsAvailable={spinsAvailable}
+      />
 
       <ShopDialog 
         isOpen={isShopOpen} 
