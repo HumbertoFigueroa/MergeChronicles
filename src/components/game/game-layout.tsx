@@ -19,7 +19,7 @@ const BOARD_SIZE = 56; // 7 columns x 8 rows
 export const ENERGY_REGEN_RATE = 1.5 * 60 * 1000; // 1.5 minutes in ms
 export const MAX_ENERGY = 100;
 const ENERGY_COST_PER_ITEM = 1;
-const GEMS_PER_LEVEL = 5;
+const GEMS_PER_LEVEL_UP = 5;
 const MAX_ORDERS = 3;
 
 const CUSTOMER_EMOJIS = ['👩‍🌾', '🍓', '🧑‍🎨', '🐮', '🛹', '🧑‍⚕️', '🐖', '🍊', '👘', '🚲', '🧑‍🌾', '🐑', '🍌', '🚌', '👠', '🧑‍🍳', '🐕', '🍍', '🧑‍🔬', '👔', '🐈', '✈️', '🍎', '🧑‍🚀', '🐎', '🧤', '🍐', '🚀', '🐘', '🧑‍🚒', '🧥', '🍑'];
@@ -215,19 +215,18 @@ export default function GameLayout() {
       let newLevel = level;
       let xpForNext = getXpNeededForLevel(newLevel);
       let hasLeveledUp = false;
-      let gemsEarned = 0;
+      let gemsEarnedOnLevelUp = 0;
       
       while (newXp >= xpForNext) {
         newXp -= xpForNext;
         newLevel++;
         hasLeveledUp = true;
-        const gemsForThisLevel = GEMS_PER_LEVEL * newLevel;
-        gemsEarned += gemsForThisLevel;
+        gemsEarnedOnLevelUp += GEMS_PER_LEVEL_UP;
         xpForNext = getXpNeededForLevel(newLevel);
       }
       
       if (hasLeveledUp) {
-        setGems(currentGems => currentGems + gemsEarned);
+        setGems(currentGems => currentGems + gemsEarnedOnLevelUp);
       }
 
       setLevel(newLevel);
@@ -403,7 +402,6 @@ export default function GameLayout() {
     }
   };
 
-
   const handleItemClick = (index: number) => {
     const clickedItem = board[index].item;
     if (!clickedItem || !clickedItem.isGenerator) {
@@ -425,10 +423,15 @@ export default function GameLayout() {
     setBoard(currentBoard => {
         let tempBoard = [...currentBoard];
         let itemsGenerated = 0;
+        let boardIsFull = false;
 
         for (let i = 0; i < multiplier; i++) {
+            if (boardIsFull) break;
             const itemToGenerateId = getRandomItemForMultiplier(multiplier, clickedItem.type);
-            const result = placeNewItem(tempBoard, itemToGenerateId, index);
+            
+            // Create a copy of the board for the placement check
+            const placementCheckBoard = tempBoard.map(slot => ({...slot}));
+            const result = placeNewItem(placementCheckBoard, itemToGenerateId, index);
 
             if (result.success) {
                 tempBoard = result.newBoard;
@@ -438,21 +441,23 @@ export default function GameLayout() {
                     setTimeout(() => setAppearingIndex(null), 500);
                 }
             } else {
-                // Board is full
-                toast({
-                    variant: 'destructive',
-                    title: '¡Tablero Lleno!',
-                    description: 'No hay espacio para generar más objetos.',
-                });
-                // Refund unused energy
-                const energyToRefund = totalEnergyCost - (itemsGenerated * ENERGY_COST_PER_ITEM);
-                setEnergy(e => e + energyToRefund);
-                break; // Exit the loop
+                boardIsFull = true;
             }
+        }
+        
+        if (boardIsFull) {
+            toast({
+                variant: 'destructive',
+                title: '¡Tablero Lleno!',
+                description: 'No hay espacio para generar más objetos.',
+            });
+            // Refund unused energy
+            const energyToRefund = totalEnergyCost - (itemsGenerated * ENERGY_COST_PER_ITEM);
+            setEnergy(e => e + energyToRefund);
         }
         return tempBoard;
     });
-};
+  };
   
   const handleDeliverOrder = (orderId: string) => {
     const orderToDeliver = orders.find(o => o.id === orderId);
@@ -463,9 +468,18 @@ export default function GameLayout() {
 
     if (itemIndexOnBoard !== -1) {
       const deliveredItem = board[itemIndexOnBoard].item!;
+      
       const xpReward = deliveredItem.level * 5; 
-
       addXp(xpReward);
+
+      // Gem reward logic
+      const gemRewardChance = Math.random();
+      if (gemRewardChance > 0.3) { // 70% chance to get gems
+        const gemAmount = Math.floor(deliveredItem.level / 2);
+        if (gemAmount > 0) {
+          setGems(g => g + gemAmount);
+        }
+      }
 
       setBoard(b => {
         const newBoard = [...b];
