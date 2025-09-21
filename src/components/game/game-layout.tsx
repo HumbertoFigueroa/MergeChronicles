@@ -13,7 +13,6 @@ import ShopDialog from './shop-dialog';
 import GameBackground from './game-background';
 import { useSearchParams } from 'next/navigation';
 import { Badge } from '../ui/badge';
-import GhostItem from './ghost-item';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Toaster } from '../ui/toaster';
 
@@ -42,19 +41,20 @@ const GENERATOR_UNLOCKS: { [key: string]: { level: number, position: number } } 
 type Multiplier = 1 | 2 | 4;
 
 const getXpNeededForLevel = (level: number): number => {
-    if (level === 1) return 10;
-
     let xpNeeded = 10;
-    for (let l = 2; l <= level; l++) {
-        if (l <= 10) {
-            xpNeeded += 2;
-        } else if (l <= 30) {
-            xpNeeded += 3;
-        } else if (l <= 50) {
-            xpNeeded += 4;
-        } else {
-            xpNeeded += 5;
-        }
+    let currentLevel = 1;
+    
+    while(currentLevel < level) {
+      currentLevel++;
+      if (currentLevel <= 10) {
+          xpNeeded += 2;
+      } else if (currentLevel <= 30) {
+          xpNeeded += 3;
+      } else if (currentLevel <= 50) {
+          xpNeeded += 4;
+      } else {
+          xpNeeded += 5;
+      }
     }
     return xpNeeded;
 };
@@ -101,9 +101,7 @@ export default function GameLayout() {
   const [isShopOpen, setIsShopOpen] = useState(false);
   const [multiplier, setMultiplier] = useState<Multiplier>(1);
 
-  const [draggedItem, setDraggedItem] = useState<{ item: Item; index: number } | null>(null);
-  const [ghostPosition, setGhostPosition] = useState<{ x: number; y: number } | null>(null);
-  const [draggedItemHidden, setDraggedItemHidden] = useState(false);
+  const [draggedItemIndex, setDraggedItemIndex] = useState<number | null>(null);
 
   const { toast } = useToast();
   
@@ -223,10 +221,10 @@ export default function GameLayout() {
       }
       
       if (hasLeveledUp) {
+        setLevel(newLevel);
         setGems(currentGems => currentGems + gemsEarnedOnLevelUp);
       }
 
-      setLevel(newLevel);
       return newXp;
     });
   };
@@ -327,6 +325,11 @@ export default function GameLayout() {
 
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>, index: number) => {
     e.dataTransfer.setData('sourceIndex', index.toString());
+    setDraggedItemIndex(index);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedItemIndex(null);
   };
 
   const handleDragDrop = (e: React.DragEvent<HTMLDivElement>, targetIndex: number) => {
@@ -336,28 +339,19 @@ export default function GameLayout() {
     const sourceIndex = parseInt(sourceIndexStr, 10);
     if (isNaN(sourceIndex)) return;
     handleDrop(sourceIndex, targetIndex);
+    setDraggedItemIndex(null);
   };
   
   const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>, index: number) => {
     const item = board[index].item;
     if (item && !item.isGenerator) {
-        setDraggedItem({ item, index });
-        setDraggedItemHidden(true); // Hide original item but keep space
-        const touch = e.touches[0];
-        setGhostPosition({ x: touch.clientX, y: touch.clientY });
+        setDraggedItemIndex(index);
     }
   };
 
   const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
-    if (draggedItem) {
+    if (draggedItemIndex !== null) {
         const touch = e.touches[0];
-        setGhostPosition({ x: touch.clientX, y: touch.clientY });
-    }
-  };
-
-  const handleTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
-    if (draggedItem) {
-        const touch = e.changedTouches[0];
         const dropTargetElement = document.elementFromPoint(touch.clientX, touch.clientY);
         
         const getSlotIndexFromElement = (el: Element | null): number => {
@@ -375,13 +369,16 @@ export default function GameLayout() {
 
         const targetIndex = getSlotIndexFromElement(dropTargetElement);
         
-        if (targetIndex !== -1 && targetIndex !== draggedItem.index) {
-            handleDrop(draggedItem.index, targetIndex);
+        if (targetIndex !== -1 && targetIndex !== draggedItemIndex) {
+            handleDrop(draggedItemIndex, targetIndex);
+            setDraggedItemIndex(targetIndex);
         }
-        
-        setDraggedItem(null);
-        setGhostPosition(null);
-        setDraggedItemHidden(false);
+    }
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (draggedItemIndex !== null) {
+        setDraggedItemIndex(null);
     }
   };
 
@@ -536,7 +533,6 @@ export default function GameLayout() {
     >
       <GameBackground />
       <Toaster />
-      {draggedItem && ghostPosition && <GhostItem item={draggedItem.item} position={ghostPosition} />}
 
       <ShopDialog 
         isOpen={isShopOpen} 
@@ -569,9 +565,8 @@ export default function GameLayout() {
                 energy={energy} 
                 maxEnergy={MAX_ENERGY} 
                 gems={gems}
-                isMobile={isMobile}
              />
-            <Button onClick={toggleMultiplier} variant='secondary' size='sm' className='h-8 w-12 rounded-lg relative flex-shrink-0'>
+            <Button onClick={toggleMultiplier} variant='secondary' size='sm' className='h-10 w-12 rounded-lg relative flex-shrink-0'>
                 <Badge className='text-sm'>x{multiplier}</Badge>
                 {(level < 10 && multiplier === 1) || (level < 30 && multiplier === 2) ? (
                   <div className='absolute -top-1 -right-1 p-1 bg-gray-600 rounded-full'>
@@ -592,12 +587,13 @@ export default function GameLayout() {
             <MergeBoard
               board={board}
               onDragStart={handleDragStart}
+              onDragEnd={handleDragEnd}
               onDrop={handleDragDrop}
               onItemClick={handleItemClick}
               mergingIndex={mergingIndex}
               appearingIndex={appearingIndex}
               onTouchStart={handleTouchStart}
-              draggedItemIndex={draggedItemHidden ? draggedItem?.index : null}
+              draggedItemIndex={draggedItemIndex}
             />
           </div>
 
