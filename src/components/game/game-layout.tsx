@@ -125,69 +125,47 @@ export default function GameLayout() {
   const [ghostPosition, setGhostPosition] = useState<{ x: number; y: number } | null>(null);
 
   const { toast } = useToast();
-  const prevBoardRef = useRef<BoardSlot[]>(initialBoard);
   
   const xpNeeded = getXpNeededForLevel(level);
 
-  const placeNewItem = useCallback((itemId: string, preferredIndex?: number): boolean => {
-    let success = false;
-    
-    setBoard(currentBoard => {
-      const newBoard = [...currentBoard];
-      const itemToPlace = ITEMS[itemId];
-      if (!itemToPlace) {
-        return currentBoard;
-      }
-
-      const findEmptySlot = (startIndex?: number): number => {
-        if (startIndex !== undefined) {
-            const adjacentIndexes = [
-              startIndex - 7, startIndex + 7,
-              (startIndex % 7 !== 0) ? startIndex - 1 : -1,
-              ((startIndex + 1) % 7 !== 0) ? startIndex + 1 : -1,
-            ].filter(i => i >= 0 && i < BOARD_SIZE && !newBoard[i].item);
-            
-            if (adjacentIndexes.length > 0) {
-              return adjacentIndexes[Math.floor(Math.random() * adjacentIndexes.length)];
-            }
-        }
+  const placeNewItem = (boardState: BoardSlot[], itemId: string, preferredIndex?: number): { newBoard: BoardSlot[], success: boolean, placedIndex: number | null } => {
+    const newBoard = [...boardState];
+    const itemToPlace = ITEMS[itemId];
+    if (!itemToPlace) {
+      return { newBoard: boardState, success: false, placedIndex: null };
+    }
+  
+    const findEmptySlot = (startIndex?: number): number => {
+      // Try adjacent slots first
+      if (startIndex !== undefined) {
+        const adjacentIndexes = [
+          startIndex - 7, startIndex + 7, // Up, Down
+          (startIndex % 7 !== 0) ? startIndex - 1 : -1, // Left
+          ((startIndex + 1) % 7 !== 0) ? startIndex + 1 : -1, // Right
+        ].filter(i => i >= 0 && i < BOARD_SIZE && !newBoard[i].item);
         
-        for(let i=0; i<BOARD_SIZE; i++) {
-          if (!newBoard[i].item) return i;
+        if (adjacentIndexes.length > 0) {
+          return adjacentIndexes[Math.floor(Math.random() * adjacentIndexes.length)];
         }
-
-        return -1;
-      };
-
-      const emptySlotIndex = findEmptySlot(preferredIndex);
-
-      if (emptySlotIndex !== -1) {
-        newBoard[emptySlotIndex] = {...newBoard[emptySlotIndex], item: itemToPlace};
-        setAppearingIndex(emptySlotIndex);
-        setTimeout(() => setAppearingIndex(null), 500);
-        success = true;
-        return newBoard;
       }
       
-      return currentBoard;
-    });
-    
-    return success;
-  }, []);
-
-  const showNewGeneratorToast = useCallback((generatorId: string) => {
-    const newGeneratorItem = ITEMS[generatorId];
-    if (newGeneratorItem) {
-      // toast({
-      //   title: "¡Nuevo Generador Desbloqueado!",
-      //   description: `¡Has desbloqueado el ${newGeneratorItem.name}!`,
-      // });
+      // Find any empty slot
+      const emptyIndex = newBoard.findIndex(slot => !slot.item);
+      return emptyIndex;
+    };
+  
+    const emptySlotIndex = findEmptySlot(preferredIndex);
+  
+    if (emptySlotIndex !== -1) {
+      newBoard[emptySlotIndex] = {...newBoard[emptySlotIndex], item: itemToPlace};
+      return { newBoard, success: true, placedIndex: emptySlotIndex };
     }
-  }, []);
+    
+    return { newBoard: boardState, success: false, placedIndex: null };
+  };
 
   useEffect(() => {
     let boardChanged = false;
-    let newGeneratorId: string | null = null;
   
     setBoard(currentBoard => {
       const currentGenerators = new Set(currentBoard.map(slot => slot.item?.id).filter(id => id?.startsWith('generator_')));
@@ -196,10 +174,12 @@ export default function GameLayout() {
       Object.entries(GENERATOR_UNLOCKS).forEach(([generatorId, unlock]) => {
         if (level >= unlock.level && !currentGenerators.has(generatorId)) {
           let placed = false;
+          // Try to place at predefined position first
           if (!newBoard[unlock.position].item) {
             newBoard[unlock.position].item = ITEMS[generatorId];
             placed = true;
           } else {
+            // If occupied, find any other empty spot
             const emptySpot = newBoard.findIndex(slot => !slot.item);
             if (emptySpot !== -1) {
               newBoard[emptySpot].item = ITEMS[generatorId];
@@ -208,19 +188,13 @@ export default function GameLayout() {
           }
           if (placed) {
             boardChanged = true;
-            newGeneratorId = generatorId;
           }
         }
       });
       return boardChanged ? newBoard : currentBoard;
     });
-
-    if (newGeneratorId) {
-      showNewGeneratorToast(newGeneratorId);
-    }
   
-  }, [level, showNewGeneratorToast]);
-
+  }, [level]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -254,10 +228,6 @@ export default function GameLayout() {
       
       if (hasLeveledUp) {
         setGems(currentGems => currentGems + gemsEarned);
-        //  toast({
-        //   title: "¡Subiste de nivel!",
-        //   description: `¡Alcanzaste el nivel ${newLevel}! Has ganado ${gemsEarned} gemas.`,
-        // });
       }
 
       setLevel(newLevel);
@@ -438,8 +408,8 @@ export default function GameLayout() {
     const clickedItem = board[index].item;
     if (!clickedItem || !clickedItem.isGenerator) {
         return;
-    };
-    
+    }
+
     const totalEnergyCost = ENERGY_COST_PER_ITEM * multiplier;
     if (energy < totalEnergyCost) {
       toast({
@@ -452,19 +422,37 @@ export default function GameLayout() {
 
     setEnergy(e => e - totalEnergyCost);
 
-    for (let i = 0; i < multiplier; i++) {
-        const itemToGenerateId = getRandomItemForMultiplier(multiplier, clickedItem.type);
-        if (!placeNewItem(itemToGenerateId, index)) {
-            toast({
-              variant: 'destructive',
-              title: '¡Tablero Lleno!',
-              description: 'No hay espacio para generar más objetos.',
-            });
-            setEnergy(e => e + (multiplier - i) * ENERGY_COST_PER_ITEM); // Refund energy
-            break;
+    setBoard(currentBoard => {
+        let tempBoard = [...currentBoard];
+        let itemsGenerated = 0;
+
+        for (let i = 0; i < multiplier; i++) {
+            const itemToGenerateId = getRandomItemForMultiplier(multiplier, clickedItem.type);
+            const result = placeNewItem(tempBoard, itemToGenerateId, index);
+
+            if (result.success) {
+                tempBoard = result.newBoard;
+                itemsGenerated++;
+                if (result.placedIndex !== null) {
+                    setAppearingIndex(result.placedIndex);
+                    setTimeout(() => setAppearingIndex(null), 500);
+                }
+            } else {
+                // Board is full
+                toast({
+                    variant: 'destructive',
+                    title: '¡Tablero Lleno!',
+                    description: 'No hay espacio para generar más objetos.',
+                });
+                // Refund unused energy
+                const energyToRefund = totalEnergyCost - (itemsGenerated * ENERGY_COST_PER_ITEM);
+                setEnergy(e => e + energyToRefund);
+                break; // Exit the loop
+            }
         }
-    }
-  };
+        return tempBoard;
+    });
+};
   
   const handleDeliverOrder = (orderId: string) => {
     const orderToDeliver = orders.find(o => o.id === orderId);
