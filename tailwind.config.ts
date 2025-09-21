@@ -95,6 +95,10 @@ export default {
             '0%, 100%': { transform: 'scale(1)' },
             '50%': { transform: 'scale(1.05)' },
         },
+        'appear': {
+          '0%': { transform: 'scale(0)', opacity: '0' },
+          '100%': { transform: 'scale(1)', opacity: '1' },
+        }
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
@@ -102,6 +106,7 @@ export default {
         'merge-complete': 'merge-complete 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
         'pop-in': 'pop-in 0.3s ease-out',
         'pulse-once': 'pulse-once 0.6s ease-in-out',
+        'appear': 'appear 0.3s ease-out'
       },
     },
   },
