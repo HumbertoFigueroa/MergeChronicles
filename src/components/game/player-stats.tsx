@@ -2,7 +2,6 @@ import { Progress } from '@/components/ui/progress';
 import React, { useState, useEffect } from 'react';
 import { ENERGY_REGEN_RATE, MAX_ENERGY_REGEN } from '@/app/game/page';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
-import { useAuth } from '@/hooks/use-auth';
 
 interface PlayerStatsProps {
   level: number;
@@ -84,7 +83,6 @@ const EnergyTimer = ({ nextEnergyTime }: { nextEnergyTime: number }) => {
 
 
 export default function PlayerStats({ level, xp, xpNeeded, energy, gems }: PlayerStatsProps) {
-    const { user } = useAuth();
     const xpPercentage = (xp / xpNeeded) * 100;
     const [nextEnergyTime, setNextEnergyTime] = useState(0);
 
@@ -109,10 +107,9 @@ export default function PlayerStats({ level, xp, xpNeeded, energy, gems }: Playe
         <div className='flex items-center justify-between gap-2 w-full bg-black/20 rounded-full p-1.5 h-12 shadow-inner border border-white/30 text-white'>
             {/* Level */}
             <div className="relative h-9 w-9 rounded-full border-2 border-yellow-300 overflow-hidden flex-shrink-0 bg-muted flex items-center justify-center">
-                 <Avatar className="h-8 w-8">
-                    <AvatarImage src={user?.photoURL ?? `https://picsum.photos/seed/${user?.uid}/100`} alt={user?.displayName ?? "Player"} />
-                    <AvatarFallback>{user?.displayName?.[0] ?? 'P'}</AvatarFallback>
-                </Avatar>
+                 <div className='w-full h-full flex items-center justify-center bg-gray-300 text-gray-600'>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                 </div>
                  <div className='absolute -bottom-1 w-full text-center bg-black/50'>
                     <span className='text-xs font-bold leading-tight'>{level}</span>
                  </div>

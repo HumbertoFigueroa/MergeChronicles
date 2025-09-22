@@ -11,13 +11,9 @@ import PlayerStats from '@/components/game/player-stats';
 import OrderDisplay from '@/components/game/order-display';
 import ShopDialog from '@/components/game/shop-dialog';
 import GameBackground from '@/components/game/game-background';
-import { useRouter } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
 import { Toaster } from '@/components/ui/toaster';
 import LevelUpRoulette from '@/components/game/level-up-roulette';
-import { useAuth } from '@/hooks/use-auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase-config';
 import GameHeader from '@/components/game/game-header';
 
 const BOARD_SIZE = 56; // 7 columns x 8 rows
@@ -89,9 +85,6 @@ const getRandomItemForMultiplier = (multiplier: Multiplier, itemType: ItemType):
 
 
 export default function GamePage() {
-  const router = useRouter();
-  const { user, loading: authLoading } = useAuth();
-
   const [isGameDataLoading, setIsGameDataLoading] = useState(true);
   
   const [level, setLevel] = useState(1);
@@ -113,26 +106,17 @@ export default function GamePage() {
   const isInitialLoad = useRef(true);
   
   useEffect(() => {
-    if (authLoading) return;
-    if (!user) {
-      router.push('/');
-      return;
-    }
-
-    const loadGameData = async () => {
-      if (!user) return;
+    const loadGameData = () => {
       setIsGameDataLoading(true);
-      const docRef = doc(db, 'user-progress', user.uid);
-      const docSnap = await getDoc(docRef);
+      const savedData = localStorage.getItem('fusionHistoriaGameData');
 
-      if (docSnap.exists()) {
-        const data = docSnap.data();
+      if (savedData) {
+        const data = JSON.parse(savedData);
         setLevel(data.level ?? 1);
         setXp(data.xp ?? 0);
         setEnergy(data.energy ?? 100);
         setGems(data.gems ?? 25);
         setOrders(data.orders ?? []);
-        // Make sure board items are rehydrated from ITEMS map
         const savedBoard = data.board ?? initialBoard;
         const hydratedBoard = savedBoard.map((slot: BoardSlot) => ({
           ...slot,
@@ -141,8 +125,6 @@ export default function GamePage() {
         setBoard(hydratedBoard);
         setSpinsAvailable(data.spinsAvailable ?? 0);
       } else {
-        // This is a new player, `board` is already `initialBoard`
-        // We'll generate initial generators and orders
         setBoard(currentBoard => {
             const newBoard = [...currentBoard];
             newBoard[GENERATOR_UNLOCKS.generator_animals.position].item = ITEMS.generator_animals;
@@ -154,13 +136,12 @@ export default function GamePage() {
     };
     
     loadGameData();
-  }, [user, authLoading, router]);
+  }, []);
 
   useEffect(() => {
-    if (isInitialLoad.current || authLoading || !user) return;
+    if (isInitialLoad.current) return;
     
-    const saveData = async () => {
-        if (!user) return;
+    const saveData = () => {
         const gameData = {
             level,
             xp,
@@ -171,19 +152,18 @@ export default function GamePage() {
             spinsAvailable,
             lastSaved: new Date().toISOString()
         };
-        await setDoc(doc(db, 'user-progress', user.uid), gameData, { merge: true });
+        localStorage.setItem('fusionHistoriaGameData', JSON.stringify(gameData));
     };
     
-    // Debounce saving
     const handler = setTimeout(() => {
         saveData();
-    }, 1000); // Save 1 second after the last change
+    }, 1000); 
 
     return () => {
         clearTimeout(handler);
     };
 
-  }, [level, xp, energy, gems, board, orders, spinsAvailable, user, authLoading]);
+  }, [level, xp, energy, gems, board, orders, spinsAvailable]);
 
   const xpNeeded = getXpNeededForLevel(level);
 
@@ -195,7 +175,6 @@ export default function GamePage() {
     }
   
     const findEmptySlot = (startIndex?: number): number => {
-      // Try adjacent slots first
       if (startIndex !== undefined) {
         const adjacentIndexes = [
           startIndex - 7, startIndex + 7, // Up, Down
@@ -208,7 +187,6 @@ export default function GamePage() {
         }
       }
       
-      // Find any empty slot
       const emptyIndex = newBoard.findIndex(slot => !slot.item);
       return emptyIndex;
     };
@@ -230,10 +208,8 @@ export default function GamePage() {
       const newBoard = [...currentBoard];
       let boardChanged = false;
 
-      // Ensure only one animal generator exists at the start
       const animalGenerators = newBoard.map((slot, index) => ({...slot, index})).filter(slot => slot.item?.id === 'generator_animals');
       if (animalGenerators.length > 1) {
-        // Keep the one at the correct position if it exists, otherwise the first one.
         const correctPosAnimalGen = animalGenerators.find(g => g.index === GENERATOR_UNLOCKS['generator_animals'].position);
         let toKeep = correctPosAnimalGen || animalGenerators[0];
         
@@ -243,19 +219,16 @@ export default function GamePage() {
             boardChanged = true;
           }
         });
-        // After cleanup, our generator set might be outdated, so we rebuild it
         currentGenerators = new Set(newBoard.map(slot => slot.item?.id).filter(id => id?.startsWith('generator_')));
       }
 
       Object.entries(GENERATOR_UNLOCKS).forEach(([generatorId, unlock]) => {
         if (level >= unlock.level && !currentGenerators.has(generatorId)) {
           let placed = false;
-          // Try to place at predefined position first
           if (!newBoard[unlock.position].item) {
             newBoard[unlock.position].item = ITEMS[generatorId];
             placed = true;
           } else {
-            // If occupied, find any other empty spot
             const emptySpot = newBoard.findIndex(slot => !slot.item);
             if (emptySpot !== -1) {
               newBoard[emptySpot].item = ITEMS[generatorId];
@@ -374,7 +347,6 @@ export default function GamePage() {
       const targetSlot = newBoard[targetIndex];
     
       if (!targetSlot.item) {
-        // Move to empty slot
         newBoard[targetIndex] = { ...targetSlot, item: sourceSlot.item };
         newBoard[sourceIndex] = { ...sourceSlot, item: null };
       } else {
@@ -382,7 +354,6 @@ export default function GamePage() {
         const targetItem = targetSlot.item;
     
         if (!sourceItem.isGenerator && !targetItem.isGenerator && sourceItem.id === targetItem.id && MERGE_RULES[sourceItem.id]) {
-          // Merge items
           const newItemId = MERGE_RULES[sourceItem.id];
           const newItem = ITEMS[newItemId];
     
@@ -391,7 +362,6 @@ export default function GamePage() {
             newBoard[sourceIndex] = { ...sourceSlot, item: null };
           }
         } else {
-          // Swap items
           newBoard[targetIndex] = { ...targetSlot, item: sourceItem };
           newBoard[sourceIndex] = { ...sourceSlot, item: targetItem };
         }
@@ -477,7 +447,6 @@ export default function GamePage() {
   
     let tempBoard = [...board];
     
-    // Check for space BEFORE spending energy
     const emptySlots = tempBoard.filter(slot => !slot.item).length;
     if (emptySlots < multiplier) {
         toast({
@@ -497,13 +466,11 @@ export default function GamePage() {
       tempBoard = newBoard;
   
       if (!success) {
-        // This part should ideally not be reached due to the initial check, but as a safeguard:
         toast({
             variant: 'destructive',
             title: '¡Tablero Lleno!',
             description: 'No hay espacio para generar más objetos.',
         });
-        // If we failed to place an item, we should stop trying to place more.
         break; 
       }
     }
@@ -524,7 +491,6 @@ export default function GamePage() {
       const xpReward = deliveredItem.level; 
       addXp(xpReward);
 
-      // Gem reward logic
       const gemRewardChance = Math.random();
       if (gemRewardChance > 0.3) { // 70% chance to get gems
         const gemAmount = Math.floor(deliveredItem.level / 2);
@@ -603,7 +569,7 @@ export default function GamePage() {
     setSpinsAvailable(s => s - 1);
   };
 
-  if (authLoading || isGameDataLoading) {
+  if (isGameDataLoading) {
     return (
       <div className="relative flex min-h-screen items-center justify-center p-4 bg-background">
         <Loader className="animate-spin h-10 w-10 text-primary" />
