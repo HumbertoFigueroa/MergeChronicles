@@ -23,3 +23,11 @@ export interface Order {
     }[];
     isCompletable?: boolean;
 }
+
+export type Reward = {
+  type: 'energy' | 'gems';
+  amount: number;
+  label: string;
+  icon: React.ReactNode;
+  probability: number;
+};

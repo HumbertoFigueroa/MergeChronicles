@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import MergeBoard from '@/components/game/merge-board';
-import type { BoardSlot, Item, Order, ItemType } from '@/lib/types';
-import { ITEMS, MERGE_RULES } from '@/lib/game-data';
+import type { BoardSlot, Item, Order, ItemType, Reward } from '@/lib/types';
+import { ITEMS, MERGE_RULES, REWARDS } from '@/lib/game-data';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Lock, ShoppingCart, Loader } from 'lucide-react';
@@ -13,7 +13,7 @@ import ShopDialog from '@/components/game/shop-dialog';
 import GameBackground from '@/components/game/game-background';
 import { Badge } from '@/components/ui/badge';
 import { Toaster } from '@/components/ui/toaster';
-import LevelUpRoulette from '@/components/game/level-up-roulette';
+import LevelUpReward from '@/components/game/level-up-reward';
 import GameHeader from '@/components/game/game-header';
 
 const BOARD_SIZE = 56; // 7 columns x 8 rows
@@ -83,6 +83,18 @@ const getRandomItemForMultiplier = (multiplier: Multiplier, itemType: ItemType):
     return `${itemType}_1`;
 };
 
+const getRewardByProbability = (): Reward => {
+  const rand = Math.random();
+  let cumulativeProbability = 0;
+
+  for (let i = 0; i < REWARDS.length; i++) {
+    cumulativeProbability += REWARDS[i].probability;
+    if (rand < cumulativeProbability) {
+      return REWARDS[i];
+    }
+  }
+  return REWARDS[0]; // Fallback
+};
 
 export default function GamePage() {
   const [isGameDataLoading, setIsGameDataLoading] = useState(true);
@@ -97,8 +109,7 @@ export default function GamePage() {
   const [isShopOpen, setIsShopOpen] = useState(false);
   const [multiplier, setMultiplier] = useState<Multiplier>(1);
   
-  const [isSpinning, setIsSpinning] = useState(false);
-  const [spinAvailable, setSpinAvailable] = useState(false);
+  const [levelUpReward, setLevelUpReward] = useState<Reward | null>(null);
 
   const [draggedItemIndex, setDraggedItemIndex] = useState<number | null>(null);
 
@@ -124,7 +135,6 @@ export default function GamePage() {
           item: slot.item ? ITEMS[slot.item.id] : null,
         }));
         setBoard(hydratedBoard);
-        setSpinAvailable(data.spinAvailable ?? false);
       } else {
         setBoard(currentBoard => {
             const newBoard = [...currentBoard];
@@ -150,7 +160,6 @@ export default function GamePage() {
             gems,
             board: board.map(slot => ({...slot, item: slot.item ? { id: slot.item.id } : null })),
             orders,
-            spinAvailable,
             lastSaved: new Date().toISOString()
         };
         localStorage.setItem('fusionHistoriaGameData', JSON.stringify(gameData));
@@ -164,7 +173,7 @@ export default function GamePage() {
         clearTimeout(handler);
     };
 
-  }, [level, xp, energy, gems, board, orders, spinAvailable]);
+  }, [level, xp, energy, gems, board, orders]);
 
   const xpNeeded = getXpNeededForLevel(level);
 
@@ -275,7 +284,8 @@ export default function GamePage() {
       
       if (levelsGained > 0) {
         setLevel(currentLevel);
-        setSpinAvailable(true);
+        const reward = getRewardByProbability();
+        setLevelUpReward(reward);
       }
 
       return newXp;
@@ -533,7 +543,7 @@ export default function GamePage() {
   };
 
   const addEnergy = (amount: number) => {
-    setEnergy(e => e + amount);
+    setEnergy(e => Math.min(e + amount, MAX_ENERGY_REGEN));
   };
   
   const spendGems = (amount: number): boolean => {
@@ -561,7 +571,7 @@ export default function GamePage() {
       });
   };
   
-  const handleSpinComplete = (reward: { type: 'energy' | 'gems', amount: number, label: string }) => {
+  const handleRewardClaimed = (reward: Reward) => {
     if (reward.type === 'energy') {
       addEnergy(reward.amount);
     } else {
@@ -571,7 +581,7 @@ export default function GamePage() {
       title: "¡Premio!",
       description: `Has ganado ${reward.label}.`
     });
-    setSpinAvailable(false);
+    setLevelUpReward(null);
   };
 
   if (isGameDataLoading) {
@@ -593,10 +603,12 @@ export default function GamePage() {
         <GameBackground />
         <Toaster />
 
-        <LevelUpRoulette
-          isOpen={spinAvailable}
-          onSpinComplete={handleSpinComplete}
-        />
+        {levelUpReward && (
+          <LevelUpReward
+            reward={levelUpReward}
+            onRewardClaimed={handleRewardClaimed}
+          />
+        )}
 
         <ShopDialog 
           isOpen={isShopOpen} 

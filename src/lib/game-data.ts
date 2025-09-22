@@ -1,5 +1,5 @@
 
-import type { Item, ItemType, Order } from './types';
+import type { Item, ItemType, Order, Reward } from './types';
 
 const createItem = (id: string, name: string, level: number, type: ItemType, emoji: string, isGenerator: boolean = false): Item => ({
   id,
@@ -101,6 +101,16 @@ export const MERGE_RULES: Record<string, string> = {
   // Food
   food_1: 'food_2', food_2: 'food_3', food_3: 'food_4', food_4: 'food_5', food_5: 'food_6', food_6: 'food_7', food_7: 'food_8', food_8: 'food_9', food_9: 'food_10', food_10: 'food_11', food_11: 'food_12',
 };
+
+export const REWARDS: Omit<Reward, 'icon'>[] = [
+  { type: 'energy', amount: 10, label: '10 Energía', probability: 0.35 },
+  { type: 'gems', amount: 5, label: '5 Gemas', probability: 0.35 },
+  { type: 'energy', amount: 50, label: '50 Energía', probability: 0.15 },
+  { type: 'gems', amount: 20, label: '20 Gemas', probability: 0.10 },
+  { type: 'energy', amount: 100, label: '100 Energía', probability: 0.03 },
+  { type: 'gems', amount: 50, label: '50 Gemas', probability: 0.02 },
+];
+
 
 // No longer using a static list of orders. They will be generated dynamically.
 export const ALL_ORDERS: Order[] = [];
