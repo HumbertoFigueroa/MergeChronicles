@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Gem, Zap, CreditCard, ShoppingBag } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { MAX_ENERGY } from './game-layout';
 
 interface ShopDialogProps {
   isOpen: boolean;
@@ -113,7 +114,7 @@ export default function ShopDialog({
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <ShopItem 
                         title="Recarga de Energía"
-                        description="Obtén 100 de energía al instante."
+                        description={`Obtén 100 de energía al instante (máx. ${MAX_ENERGY}).`}
                         icon={<Zap className='w-6 h-6 text-yellow-500'/>}
                         actionText="Comprar"
                         onAction={handleBuyEnergy}

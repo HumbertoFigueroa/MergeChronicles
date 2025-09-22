@@ -20,7 +20,8 @@ import SettingsDialog from '@/components/game/settings-dialog';
 
 const BOARD_SIZE = 56; // 7 columns x 8 rows
 export const ENERGY_REGEN_RATE = 90000; // 90 seconds in ms
-export const MAX_ENERGY_REGEN_STOP = 100;
+export const MAX_ENERGY_REGEN_STOP = 100; // Auto-regeneration stops here
+export const MAX_ENERGY = 200; // Absolute max energy (i.e. via purchases)
 const ENERGY_COST_PER_ITEM = 1;
 const MAX_ORDERS = 3;
 
@@ -103,7 +104,7 @@ export default function GameLayout() {
   
   const [level, setLevel] = useState(1);
   const [xp, setXp] = useState(0);
-  const [energy, setEnergy] = useState(100);
+  const [energy, setEnergy] = useState(MAX_ENERGY_REGEN_STOP);
   const [gems, setGems] = useState(25);
   
   const [board, setBoard] = useState<BoardSlot[]>(initialBoard);
@@ -135,7 +136,7 @@ export default function GameLayout() {
         setLevel(data.level ?? 1);
         setXp(data.xp ?? 0);
         
-        const currentEnergy = data.energy ?? 100;
+        const currentEnergy = data.energy ?? MAX_ENERGY_REGEN_STOP;
         const lastSavedTime = data.lastSaved ? new Date(data.lastSaved).getTime() : Date.now();
         const timePassed = Date.now() - lastSavedTime;
 
@@ -280,15 +281,16 @@ export default function GameLayout() {
     if (isGameDataLoading) return;
     const timer = setInterval(() => {
       const now = Date.now();
-      const timePassed = now - lastEnergyUpdateTime.current;
       
       setEnergy(currentEnergy => {
           if (currentEnergy >= MAX_ENERGY_REGEN_STOP) {
               lastEnergyUpdateTime.current = now;
               return currentEnergy;
           }
-          
+
+          const timePassed = now - lastEnergyUpdateTime.current;
           const energyToRegen = Math.floor(timePassed / ENERGY_REGEN_RATE);
+
           if (energyToRegen > 0) {
             lastEnergyUpdateTime.current += energyToRegen * ENERGY_REGEN_RATE;
             return Math.min(MAX_ENERGY_REGEN_STOP, currentEnergy + energyToRegen);
@@ -624,7 +626,7 @@ export default function GameLayout() {
   };
 
   const addEnergy = (amount: number) => {
-    setEnergy(e => Math.min(MAX_ENERGY_REGEN_STOP, e + amount));
+    setEnergy(e => Math.min(MAX_ENERGY, e + amount));
   };
   
   const spendGems = (amount: number): boolean => {

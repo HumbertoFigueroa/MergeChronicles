@@ -44,27 +44,31 @@ const TimerIcon = () => (
     </svg>
 );
 
-const EnergyTimer = ({ lastEnergyUpdate }: { lastEnergyUpdate: number }) => {
+const EnergyTimer = ({ lastEnergyUpdate, energy }: { lastEnergyUpdate: number, energy: number }) => {
     const [timeLeft, setTimeLeft] = useState(0);
 
     useEffect(() => {
-        const calculateTimeLeft = () => {
+        let interval: NodeJS.Timeout;
+
+        const calculateAndSetTimeLeft = () => {
+            if (energy >= MAX_ENERGY_REGEN_STOP) {
+                setTimeLeft(0);
+                return;
+            }
             const timeSinceLast = Date.now() - lastEnergyUpdate;
             const timeToNext = ENERGY_REGEN_RATE - (timeSinceLast % ENERGY_REGEN_RATE);
-            return timeToNext;
+            setTimeLeft(timeToNext);
         };
+        
+        calculateAndSetTimeLeft();
 
-        setTimeLeft(calculateTimeLeft());
-
-        const interval = setInterval(() => {
-            setTimeLeft(calculateTimeLeft());
-        }, 1000);
+        interval = setInterval(calculateAndSetTimeLeft, 1000);
 
         return () => clearInterval(interval);
-    }, [lastEnergyUpdate]);
+    }, [lastEnergyUpdate, energy]);
 
 
-    if (timeLeft <= 0) {
+    if (timeLeft <= 0 || energy >= MAX_ENERGY_REGEN_STOP) {
         return null;
     }
 
@@ -116,7 +120,7 @@ export default function PlayerStats({ level, xp, xpNeeded, energy, gems, lastEne
                 <div className="relative flex items-center gap-1.5 h-8">
                      <div className='w-5 h-5 flex items-center justify-center'><ZapIcon /></div>
                      <span className="text-sm font-bold">{energy}</span>
-                     {energy < MAX_ENERGY_REGEN_STOP && <EnergyTimer lastEnergyUpdate={lastEnergyUpdate} />}
+                     {energy < MAX_ENERGY_REGEN_STOP && <EnergyTimer lastEnergyUpdate={lastEnergyUpdate} energy={energy} />}
                 </div>
             </div>
 
@@ -125,4 +129,5 @@ export default function PlayerStats({ level, xp, xpNeeded, energy, gems, lastEne
 }
 
     
+
 
