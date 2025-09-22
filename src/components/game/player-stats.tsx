@@ -125,3 +125,4 @@ export default function PlayerStats({ level, xp, xpNeeded, energy, gems, lastEne
 }
 
     
+

@@ -19,7 +19,7 @@ import DraggedItemGhost from '@/components/game/dragged-item-ghost';
 import SettingsDialog from '@/components/game/settings-dialog';
 
 const BOARD_SIZE = 56; // 7 columns x 8 rows
-export const ENERGY_REGEN_RATE = 1.5 * 60 * 1000; // 1.5 minutes in ms
+export const ENERGY_REGEN_RATE = 90000; // 90 seconds in ms
 export const MAX_ENERGY_REGEN_STOP = 100;
 const ENERGY_COST_PER_ITEM = 1;
 const MAX_ORDERS = 3;
