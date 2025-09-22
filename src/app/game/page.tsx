@@ -17,7 +17,7 @@ import { Toaster } from '@/components/ui/toaster';
 import LevelUpRoulette from '@/components/game/level-up-roulette';
 import { useAuth } from '@/hooks/use-auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase-client';
+import { db } from '@/lib/firebase-config';
 import GameHeader from '@/components/game/game-header';
 
 const BOARD_SIZE = 56; // 7 columns x 8 rows
