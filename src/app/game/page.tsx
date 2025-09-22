@@ -112,6 +112,7 @@ export default function GamePage() {
   const [levelUpReward, setLevelUpReward] = useState<Reward | null>(null);
 
   const [draggedItemIndex, setDraggedItemIndex] = useState<number | null>(null);
+  const [draggedOverIndex, setDraggedOverIndex] = useState<number | null>(null);
 
   const { toast } = useToast();
 
@@ -408,9 +409,27 @@ export default function GamePage() {
   };
 
   const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
-    // This function can be used to add visual feedback while dragging,
-    // but the actual drop logic is now in handleTouchEnd.
-    // For example, you could highlight the target slot.
+    if (draggedItemIndex === null) return;
+
+    const touch = e.touches[0];
+    const dropTargetElement = document.elementFromPoint(touch.clientX, touch.clientY);
+    const getSlotIndexFromElement = (el: Element | null): number => {
+      if (!el) return -1;
+      const slotDiv = el.closest('[data-slot-id]');
+      if (slotDiv) {
+        const slotId = slotDiv.getAttribute('data-slot-id');
+        const match = slotId?.match(/cell-(\d+)/);
+        if (match && match[1]) {
+          return parseInt(match[1], 10);
+        }
+      }
+      return -1;
+    };
+  
+    const targetIndex = getSlotIndexFromElement(dropTargetElement);
+    if(targetIndex !== -1 && targetIndex !== draggedOverIndex) {
+        setDraggedOverIndex(targetIndex);
+    }
   };
 
   const handleTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
@@ -439,6 +458,7 @@ export default function GamePage() {
     }
   
     setDraggedItemIndex(null);
+    setDraggedOverIndex(null);
   };
 
   const handleItemClick = (index: number) => {
@@ -597,7 +617,7 @@ export default function GamePage() {
     <>
       <GameHeader />
       <div 
-          className="relative min-h-screen w-full flex flex-col pt-16"
+          className="relative h-screen w-full flex flex-col pt-16"
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
       >
@@ -620,7 +640,7 @@ export default function GamePage() {
           gems={gems}
         />
         
-        <main className="relative z-10 pt-4 flex flex-col lg:flex-row gap-4 p-2 sm:p-4 flex-grow overflow-hidden">
+        <main className="relative z-10 flex flex-col lg:flex-row gap-4 p-2 sm:p-4 flex-grow">
           
           <div className="hidden lg:flex lg:w-64 flex-col gap-4">
               <Button size="lg" className="h-20 text-lg" disabled>
@@ -632,7 +652,7 @@ export default function GamePage() {
               </Button>
           </div>
 
-          <div className="flex flex-col items-center gap-4 flex-grow min-h-0 w-full">
+          <div className="flex flex-col items-center gap-4 flex-grow w-full">
             
             <div className='w-full flex items-center justify-center gap-2 px-1 flex-shrink-0'>
                <PlayerStats 
@@ -659,7 +679,7 @@ export default function GamePage() {
                 <OrderDisplay orders={orders} onDeliverOrder={handleDeliverOrder} />
             </div>
             
-            <div className="flex-grow flex flex-col items-center justify-center w-full min-h-0">
+            <div className="flex flex-col items-center justify-center w-full">
               <MergeBoard
                 board={board}
                 onDragStart={handleDragStart}
@@ -668,6 +688,7 @@ export default function GamePage() {
                 onItemClick={handleItemClick}
                 onTouchStart={handleTouchStart}
                 draggedItemIndex={draggedItemIndex}
+                draggedOverIndex={draggedOverIndex}
               />
             </div>
 
