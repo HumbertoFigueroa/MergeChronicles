@@ -21,7 +21,7 @@ import SettingsDialog from '@/components/game/settings-dialog';
 const BOARD_SIZE = 56; // 7 columns x 8 rows
 export const ENERGY_REGEN_RATE = 90000; // 90 seconds in ms
 export const MAX_ENERGY_REGEN_STOP = 100; // Auto-regeneration stops here
-export const MAX_ENERGY = 200; // Absolute max energy (i.e. via purchases)
+export const MAX_ENERGY = 2000; // Absolute max energy (i.e. via purchases)
 const ENERGY_COST_PER_ITEM = 1;
 const MAX_ORDERS = 3;
 
