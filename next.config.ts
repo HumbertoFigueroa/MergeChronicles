@@ -40,4 +40,4 @@ const nextConfig: NextConfig = {
 
 export default nextConfig;
 
-// Forcing a server restart to clear cache.
+// Forcing a server restart to clear cache. This is a final attempt.
