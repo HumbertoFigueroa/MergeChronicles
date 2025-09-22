@@ -1,4 +1,5 @@
 import type {NextConfig} from 'next';
+import withPWA from '@ducanh2912/next-pwa';
 
 const nextConfig: NextConfig = {
   typescript: {
@@ -40,4 +41,13 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+const pwaConfig = withPWA({
+  dest: 'public',
+  register: true,
+  skipWaiting: true,
+  // Disabling in dev is the default, but we're enabling it to allow testing
+  // in the Studio environment.
+  disable: false, // process.env.NODE_ENV === 'development',
+});
+
+export default pwaConfig(nextConfig);

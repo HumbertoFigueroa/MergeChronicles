@@ -12,6 +12,12 @@ const fredoka = Fredoka({
 export const metadata: Metadata = {
   title: 'Merge Chronicle',
   description: 'A merge game of historical evolution.',
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Merge Chronicle',
+  },
 };
 
 export default function RootLayout({
@@ -21,7 +27,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head/>
+      <head>
+        <link rel="apple-touch-icon" href="/icons/icon-192x192.png"></link>
+        <meta name="theme-color" content="#E0F2FE" />
+      </head>
       <body className={cn(fredoka.variable, 'font-sans antialiased min-h-screen')}>
         {children}
       </body>
