@@ -103,8 +103,8 @@ export const MERGE_RULES: Record<string, string> = {
 };
 
 export const REWARDS: Omit<Reward, 'icon'>[] = [
-  { type: 'energy', amount: 10, label: '10 Energía', probability: 0.35 },
-  { type: 'gems', amount: 5, label: '5 Gemas', probability: 0.35 },
+  { type: 'energy', amount: 30, label: '30 Energía', probability: 0.35 },
+  { type: 'gems', amount: 10, label: '10 Gemas', probability: 0.35 },
   { type: 'energy', amount: 50, label: '50 Energía', probability: 0.15 },
   { type: 'gems', amount: 20, label: '20 Gemas', probability: 0.10 },
   { type: 'energy', amount: 100, label: '100 Energía', probability: 0.03 },
