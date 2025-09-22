@@ -10,8 +10,8 @@ const fredoka = Fredoka({
 })
 
 export const metadata: Metadata = {
-  title: 'Fusion Historia',
-  description: 'A merge game of fashion and romance.',
+  title: 'Merge Chronicle',
+  description: 'A merge game of historical evolution.',
 };
 
 export default function RootLayout({
