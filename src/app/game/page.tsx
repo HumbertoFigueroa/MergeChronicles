@@ -192,7 +192,7 @@ export default function GamePage() {
     if (audioRef.current) {
         audioRef.current.volume = volume;
         if (volume > 0 && audioRef.current.paused) {
-          audioRef.current.play().catch(() => {});
+          // Don't auto-play here, wait for user interaction
         } else if (volume === 0) {
           audioRef.current.pause();
         }
@@ -200,26 +200,21 @@ export default function GamePage() {
   }, [volume]);
 
   useEffect(() => {
-    if (isGameDataLoading) return;
-    
-    const playMusic = async () => {
-        if (audioRef.current && audioRef.current.paused && audioRef.current.volume > 0) {
-            try {
-                await audioRef.current.play();
-            } catch (error) {
-                console.log("La reproducción automática de audio fue bloqueada por el navegador.");
-            }
+    const playMusicOnInteraction = () => {
+        if (audioRef.current && audioRef.current.paused && volume > 0) {
+            audioRef.current.play().catch(e => console.log("Audio play failed, waiting for another interaction."));
         }
     };
-
-    document.addEventListener('click', playMusic, { once: true });
-    document.addEventListener('touchend', playMusic, { once: true });
+    // Add event listeners for the first user interaction
+    window.addEventListener('click', playMusicOnInteraction, { once: true });
+    window.addEventListener('touchend', playMusicOnInteraction, { once: true });
 
     return () => {
-        document.removeEventListener('click', playMusic);
-        document.removeEventListener('touchend', playMusic);
-    }
-  }, [isGameDataLoading]);
+        // Cleanup listeners
+        window.removeEventListener('click', playMusicOnInteraction);
+        window.removeEventListener('touchend', playMusicOnInteraction);
+    };
+  }, [volume, isGameDataLoading]);
 
   const xpNeeded = getXpNeededForLevel(level);
 
@@ -657,7 +652,7 @@ export default function GamePage() {
         <GameBackground />
         <Toaster />
         
-        <audio ref={audioRef} loop muted>
+        <audio ref={audioRef} loop>
             <source src="/audio/background-music.mp3" type="audio/mpeg" />
         </audio>
 
