@@ -1,47 +1,30 @@
 'use client';
 
-import { useRef, useCallback } from 'react';
+import { useCallback } from 'react';
 
-// Using a shared AudioContext for performance
-let audioContext: AudioContext | null = null;
-const getAudioContext = () => {
-  if (typeof window !== 'undefined' && !audioContext) {
-    audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+const soundEffects: { [key: string]: HTMLAudioElement } = {};
+
+const preloadSound = (name: string, src: string) => {
+  if (typeof window !== 'undefined') {
+    soundEffects[name] = new Audio(src);
   }
-  return audioContext;
 };
+
+// Preload sounds on module load
+preloadSound('merge-pop', '/audio/merge-pop.wav');
 
 export function useSoundEffects(volume: number) {
   const playSound = useCallback((sound: 'merge-pop') => {
-    const context = getAudioContext();
-    if (!context || volume === 0) return;
-    
-    // Resume context if it's suspended (required by modern browsers)
-    if (context.state === 'suspended') {
-      context.resume();
-    }
-
-    if (sound === 'merge-pop') {
-      try {
-        const oscillator = context.createOscillator();
-        const gainNode = context.createGain();
-
-        // Create a short, high-pitched "pop" sound
-        oscillator.type = 'sine';
-        oscillator.frequency.setValueAtTime(600, context.currentTime); // Start pitch
-        oscillator.frequency.exponentialRampToValueAtTime(100, context.currentTime + 0.1); // Pitch drops quickly
-
-        gainNode.gain.setValueAtTime(volume * 0.5, context.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 0.1);
-
-        oscillator.connect(gainNode);
-        gainNode.connect(context.destination);
-
-        oscillator.start(context.currentTime);
-        oscillator.stop(context.currentTime + 0.1);
-      } catch (error) {
-        console.error("Error playing sound with Web Audio API:", error);
-      }
+    const audio = soundEffects[sound];
+    if (audio) {
+      // Allows for rapid-fire playback by resetting the sound
+      audio.currentTime = 0;
+      audio.volume = volume;
+      audio.play().catch(error => {
+        // This catch block is important to handle potential browser restrictions
+        // on autoplaying audio, although our click-to-play logic should prevent this.
+        console.error(`Error playing sound ${sound}:`, error);
+      });
     }
   }, [volume]);
 
