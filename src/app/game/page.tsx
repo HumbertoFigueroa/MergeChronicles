@@ -198,10 +198,26 @@ export default function GamePage() {
   }, [volume]);
 
   useEffect(() => {
-    if (!audioRef.current) return;
-    audioRef.current.play().catch(error => {
-        console.log("La reproducción automática de audio fue bloqueada por el navegador.");
-    });
+    if (isGameDataLoading) return;
+    
+    const playMusic = async () => {
+        if (audioRef.current && audioRef.current.paused) {
+            try {
+                await audioRef.current.play();
+            } catch (error) {
+                console.log("La reproducción automática de audio fue bloqueada por el navegador.");
+            }
+        }
+    };
+
+    // Attempt to play on any user interaction
+    document.addEventListener('click', playMusic, { once: true });
+    document.addEventListener('touchend', playMusic, { once: true });
+
+    return () => {
+        document.removeEventListener('click', playMusic);
+        document.removeEventListener('touchend', playMusic);
+    }
   }, [isGameDataLoading]);
 
   const xpNeeded = getXpNeededForLevel(level);
@@ -727,5 +743,3 @@ export default function GamePage() {
     </>
   );
 }
-
-    
