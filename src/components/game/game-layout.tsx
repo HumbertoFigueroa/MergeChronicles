@@ -24,6 +24,7 @@ export const MAX_ENERGY_REGEN_STOP = 100; // Auto-regeneration stops here
 export const MAX_ENERGY = 2000; // Absolute max energy (i.e. via purchases)
 const ENERGY_COST_PER_ITEM = 1;
 const MAX_ORDERS = 3;
+const MAX_ADS_PER_DAY = 5;
 
 const CUSTOMER_EMOJIS = ['👩‍🌾', '🍓', '🧑‍🎨', '🐮', '🛹', '🧑‍⚕️', '🐖', '🍊', '👘', '🚲', '🧑‍🌾', '🐑', '🍌', '🚌', '👠', '🧑‍🍳', '🐕', '🍍', '🧑‍🔬', '👔', '🐈', '✈️', '🍎', '🧑‍🚀', '🐎', '🧤', '🍐', '🚀', '🐘', '🧑‍🚒', '🧥', '🍑'];
 
@@ -121,6 +122,9 @@ export default function GameLayout() {
   const [draggedOverIndex, setDraggedOverIndex] = useState<number | null>(null);
   const [draggedItemGhost, setDraggedItemGhost] = useState<{ item: Item; x: number; y: number } | null>(null);
 
+  const [adsWatchedToday, setAdsWatchedToday] = useState(0);
+  const [lastAdWatchDate, setLastAdWatchDate] = useState<string | null>(null);
+
   const { toast } = useToast();
 
   const isInitialLoad = useRef(true);
@@ -156,12 +160,23 @@ export default function GameLayout() {
           item: slot.item ? ITEMS[slot.item.id] : null,
         }));
         setBoard(hydratedBoard);
+
+        const today = new Date().toISOString().split('T')[0];
+        if(data.lastAdWatchDate === today) {
+            setAdsWatchedToday(data.adsWatchedToday ?? 0);
+            setLastAdWatchDate(data.lastAdWatchDate);
+        } else {
+            setAdsWatchedToday(0);
+            setLastAdWatchDate(today);
+        }
+
       } else {
         setBoard(currentBoard => {
             const newBoard = [...currentBoard];
             newBoard[GENERATOR_UNLOCKS.generator_animals.position].item = ITEMS.generator_animals;
             return newBoard;
         });
+        setLastAdWatchDate(new Date().toISOString().split('T')[0]);
       }
       lastEnergyUpdateTime.current = Date.now();
       setIsGameDataLoading(false);
@@ -182,6 +197,8 @@ export default function GameLayout() {
             gems,
             board: board.map(slot => ({...slot, item: slot.item ? { id: slot.item.id } : null })),
             orders,
+            adsWatchedToday,
+            lastAdWatchDate,
             lastSaved: new Date().toISOString()
         };
         localStorage.setItem('fusionHistoriaGameData', JSON.stringify(gameData));
@@ -195,7 +212,7 @@ export default function GameLayout() {
         clearTimeout(handler);
     };
 
-  }, [level, xp, energy, gems, board, orders, isGameDataLoading]);
+  }, [level, xp, energy, gems, board, orders, isGameDataLoading, adsWatchedToday, lastAdWatchDate]);
 
   const xpNeeded = getXpNeededForLevel(level);
 
@@ -638,6 +655,28 @@ export default function GameLayout() {
     return false;
   }
 
+  const handleWatchAd = () => {
+    const today = new Date().toISOString().split('T')[0];
+    let currentAdCount = adsWatchedToday;
+
+    if (lastAdWatchDate !== today) {
+        currentAdCount = 0;
+        setLastAdWatchDate(today);
+    }
+    
+    if (currentAdCount >= MAX_ADS_PER_DAY) {
+        toast({ variant: 'destructive', title: 'Límite de anuncios alcanzado', description: 'Has visto el máximo de anuncios por hoy. Vuelve mañana.' });
+        return false;
+    }
+
+    // TODO: Aquí iría la lógica para mostrar un anuncio real.
+    // Por ahora, solo simulamos la recompensa.
+    addEnergy(50);
+    setAdsWatchedToday(currentAdCount + 1);
+    toast({ title: '¡Gracias por tu apoyo!', description: 'Has ganado 50 de energía.' });
+    return true;
+  };
+
   const toggleMultiplier = () => {
       setMultiplier(m => {
           if (m === 1) {
@@ -701,7 +740,10 @@ export default function GameLayout() {
           onPurchaseGems={purchaseGems}
           onAddEnergy={addEnergy}
           onSpendGems={spendGems}
+          onWatchAd={handleWatchAd}
           gems={gems}
+          adsWatchedToday={adsWatchedToday}
+          maxAdsPerDay={MAX_ADS_PER_DAY}
         />
 
         <SettingsDialog
@@ -784,3 +826,5 @@ export default function GameLayout() {
     </>
   );
 }
+
+    

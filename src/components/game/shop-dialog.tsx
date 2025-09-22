@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Gem, Zap, CreditCard, ShoppingBag } from 'lucide-react';
+import { Gem, Zap, CreditCard, ShoppingBag, Clapperboard } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { MAX_ENERGY } from './game-layout';
 
@@ -20,10 +20,13 @@ interface ShopDialogProps {
   onPurchaseGems: (amount: number, price: string) => void;
   onAddEnergy: (amount: number) => void;
   onSpendGems: (amount: number) => boolean;
+  onWatchAd: () => boolean;
   gems: number;
+  adsWatchedToday: number;
+  maxAdsPerDay: number;
 }
 
-const ShopItem = ({ title, description, icon, actionText, onAction, cost, disabled }: {
+const ShopItem = ({ title, description, icon, actionText, onAction, cost, disabled, children }: {
     title: string;
     description: string;
     icon: React.ReactNode;
@@ -31,6 +34,7 @@ const ShopItem = ({ title, description, icon, actionText, onAction, cost, disabl
     onAction: () => void;
     cost?: number;
     disabled?: boolean;
+    children?: React.ReactNode;
 }) => (
     <Card className='text-center flex flex-col'>
         <CardHeader className='pb-2'>
@@ -40,7 +44,9 @@ const ShopItem = ({ title, description, icon, actionText, onAction, cost, disabl
             <CardTitle className='text-lg'>{title}</CardTitle>
             <CardDescription className="text-xs">{description}</CardDescription>
         </CardHeader>
-        <CardContent className='flex-grow' />
+        <CardContent className='flex-grow'>
+            {children}
+        </CardContent>
         <CardFooter>
             <Button onClick={onAction} className='w-full' disabled={disabled}>
                 {actionText}
@@ -79,13 +85,20 @@ export default function ShopDialog({
   onPurchaseGems,
   onAddEnergy,
   onSpendGems,
-  gems
+  onWatchAd,
+  gems,
+  adsWatchedToday,
+  maxAdsPerDay
 }: ShopDialogProps) {
 
   const handleBuyEnergy = () => {
     if (onSpendGems(30)) {
         onAddEnergy(100);
     }
+  }
+
+  const handleAdWatch = () => {
+    onWatchAd();
   }
     
   const gemPackages = [
@@ -94,6 +107,8 @@ export default function ShopDialog({
       { id: 3, gems: 1200, price: '$9.99' },
       { id: 4, gems: 2500, price: '$19.99' },
   ];
+
+  const adsRemaining = maxAdsPerDay - adsWatchedToday;
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -111,7 +126,7 @@ export default function ShopDialog({
                 <TabsTrigger value="buy" disabled><CreditCard className="mr-2"/>Comprar Gemas</TabsTrigger>
             </TabsList>
             <TabsContent value="spend" className="mt-4">
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <ShopItem 
                         title="Recarga de Energía"
                         description={`Obtén 100 de energía al instante (máx. ${MAX_ENERGY}).`}
@@ -121,6 +136,18 @@ export default function ShopDialog({
                         cost={30}
                         disabled={gems < 30}
                     />
+                    <ShopItem
+                        title="Energía Gratis"
+                        description="¡Obtén 50 de energía viendo un anuncio!"
+                        icon={<Clapperboard className='w-6 h-6 text-green-500' />}
+                        actionText="Ver Anuncio"
+                        onAction={handleAdWatch}
+                        disabled={adsRemaining <= 0}
+                    >
+                        <p className='text-sm text-muted-foreground'>
+                            Anuncios restantes hoy: {adsRemaining > 0 ? adsRemaining : 'Ninguno'}
+                        </p>
+                    </ShopItem>
                 </div>
             </TabsContent>
             <TabsContent value="buy" className="mt-4">
