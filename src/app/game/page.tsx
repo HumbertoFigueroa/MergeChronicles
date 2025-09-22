@@ -408,36 +408,37 @@ export default function GamePage() {
   };
 
   const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
-    if (draggedItemIndex !== null) {
-        const touch = e.touches[0];
-        const dropTargetElement = document.elementFromPoint(touch.clientX, touch.clientY);
-        
-        const getSlotIndexFromElement = (el: Element | null): number => {
-            if (!el) return -1;
-            const slotDiv = el.closest('[data-slot-id]');
-            if (slotDiv) {
-                const slotId = slotDiv.getAttribute('data-slot-id');
-                const match = slotId?.match(/cell-(\d+)/);
-                if (match && match[1]) {
-                    return parseInt(match[1], 10);
-                }
-            }
-            return -1;
-        };
-
-        const targetIndex = getSlotIndexFromElement(dropTargetElement);
-        
-        if (targetIndex !== -1 && targetIndex !== draggedItemIndex) {
-            handleDrop(draggedItemIndex, targetIndex);
-            setDraggedItemIndex(targetIndex);
-        }
-    }
+    // This function can be used to add visual feedback while dragging,
+    // but the actual drop logic is now in handleTouchEnd.
+    // For example, you could highlight the target slot.
   };
 
-  const handleTouchEnd = () => {
-    if (draggedItemIndex !== null) {
-        setDraggedItemIndex(null);
+  const handleTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (draggedItemIndex === null) return;
+  
+    const touch = e.changedTouches[0];
+    const dropTargetElement = document.elementFromPoint(touch.clientX, touch.clientY);
+  
+    const getSlotIndexFromElement = (el: Element | null): number => {
+      if (!el) return -1;
+      const slotDiv = el.closest('[data-slot-id]');
+      if (slotDiv) {
+        const slotId = slotDiv.getAttribute('data-slot-id');
+        const match = slotId?.match(/cell-(\d+)/);
+        if (match && match[1]) {
+          return parseInt(match[1], 10);
+        }
+      }
+      return -1;
+    };
+  
+    const targetIndex = getSlotIndexFromElement(dropTargetElement);
+  
+    if (targetIndex !== -1 && targetIndex !== draggedItemIndex) {
+      handleDrop(draggedItemIndex, targetIndex);
     }
+  
+    setDraggedItemIndex(null);
   };
 
   const handleItemClick = (index: number) => {

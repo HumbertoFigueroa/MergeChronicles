@@ -7,7 +7,6 @@ interface MergeItemProps {
   item: Item;
   onDragStart: (e: React.DragEvent<HTMLDivElement>) => void;
   onDragEnd: (e: React.DragEvent<HTMLDivElement>) => void;
-  onTouchStart: (e: React.TouchEvent<HTMLDivElement>) => void;
   isDragging: boolean;
   isSelectedGenerator?: boolean;
 }
@@ -16,7 +15,6 @@ export default function MergeItem({
   item, 
   onDragStart, 
   onDragEnd, 
-  onTouchStart, 
   isDragging, 
   isSelectedGenerator 
 }: MergeItemProps) {
@@ -26,7 +24,6 @@ export default function MergeItem({
       draggable={!item.isGenerator}
       onDragStart={onDragStart}
       onDragEnd={onDragEnd}
-      onTouchStart={onTouchStart}
       className={cn(
           "w-full h-full p-1 flex flex-col items-center justify-center rounded-lg bg-card/50 transition-all duration-200 ease-in-out will-change-transform touch-none",
           item.isGenerator 

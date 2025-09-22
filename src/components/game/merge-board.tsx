@@ -36,6 +36,7 @@ export default function MergeBoard({
           onDragOver={handleDragOver}
           onDrop={(e) => onDrop(e, index)}
           onClick={() => onItemClick(index)}
+          onTouchStart={(e) => onTouchStart(e, index)}
           className="rounded-lg transition-colors aspect-square bg-card/60 shadow-inner"
         >
           {slot.item && (
@@ -43,7 +44,6 @@ export default function MergeBoard({
               item={slot.item}
               onDragStart={(e) => onDragStart(e, index)}
               onDragEnd={onDragEnd}
-              onTouchStart={(e) => onTouchStart(e, index)}
               isDragging={draggedItemIndex === index}
             />
           )}
