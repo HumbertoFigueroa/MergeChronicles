@@ -6,7 +6,7 @@ import type { BoardSlot, Item, Order, ItemType, Reward } from '@/lib/types';
 import { ITEMS, MERGE_RULES, REWARDS } from '@/lib/game-data';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
-import { Lock, ShoppingCart, Loader } from 'lucide-react';
+import { Lock, ShoppingCart, Loader, Settings } from 'lucide-react';
 import PlayerStats from '@/components/game/player-stats';
 import OrderDisplay from '@/components/game/order-display';
 import ShopDialog from '@/components/game/shop-dialog';
@@ -16,6 +16,7 @@ import { Toaster } from '@/components/ui/toaster';
 import LevelUpReward from '@/components/game/level-up-reward';
 import GameHeader from '@/components/game/game-header';
 import DraggedItemGhost from '@/components/game/dragged-item-ghost';
+import SettingsDialog from '@/components/game/settings-dialog';
 
 const BOARD_SIZE = 56; // 7 columns x 8 rows
 export const ENERGY_REGEN_RATE = 1.5 * 60 * 1000; // 1.5 minutes in ms
@@ -68,7 +69,7 @@ const getRandomItemForMultiplier = (multiplier: Multiplier, itemType: ItemType):
     }
     
     if (multiplier === 2) { // 10% Lvl 1, 70% Lvl 2, 20% Lvl 3
-        if (rand < 0.1) return `${itemType}_1`;
+        if (rand < 0.1) return `${item-type}_1`;
         if (rand < 0.8) return `${itemType}_2`; // 0.1 + 0.7
         return `${itemType}_3`;
     }
@@ -108,6 +109,9 @@ export default function GamePage() {
   const [board, setBoard] = useState<BoardSlot[]>(initialBoard);
   const [orders, setOrders] = useState<Order[]>([]);
   const [isShopOpen, setIsShopOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [volume, setVolume] = useState(0.5);
+
   const [multiplier, setMultiplier] = useState<Multiplier>(1);
   
   const [levelUpReward, setLevelUpReward] = useState<Reward | null>(null);
@@ -117,6 +121,8 @@ export default function GamePage() {
   const [draggedItemGhost, setDraggedItemGhost] = useState<{ item: Item; x: number; y: number } | null>(null);
 
   const { toast } = useToast();
+
+  const audioRef = useRef<HTMLAudioElement>(null);
 
   const isInitialLoad = useRef(true);
   
@@ -132,6 +138,7 @@ export default function GamePage() {
         setEnergy(data.energy ?? 100);
         setGems(data.gems ?? 25);
         setOrders(data.orders ?? []);
+        setVolume(data.volume ?? 0.5);
         const savedBoard = data.board ?? initialBoard;
         const hydratedBoard = savedBoard.map((slot: BoardSlot) => ({
           ...slot,
@@ -163,6 +170,7 @@ export default function GamePage() {
             gems,
             board: board.map(slot => ({...slot, item: slot.item ? { id: slot.item.id } : null })),
             orders,
+            volume,
             lastSaved: new Date().toISOString()
         };
         localStorage.setItem('fusionHistoriaGameData', JSON.stringify(gameData));
@@ -176,7 +184,13 @@ export default function GamePage() {
         clearTimeout(handler);
     };
 
-  }, [level, xp, energy, gems, board, orders]);
+  }, [level, xp, energy, gems, board, orders, volume]);
+
+  useEffect(() => {
+    if (audioRef.current) {
+        audioRef.current.volume = volume;
+    }
+  }, [volume]);
 
   const xpNeeded = getXpNeededForLevel(level);
 
@@ -612,6 +626,7 @@ export default function GamePage() {
       >
         <GameBackground />
         <Toaster />
+        <audio ref={audioRef} src="/audio/background-music.mp3" autoPlay loop muted={volume === 0} />
 
         {draggedItemGhost && <DraggedItemGhost {...draggedItemGhost} />}
 
@@ -629,6 +644,13 @@ export default function GamePage() {
           onAddEnergy={addEnergy}
           onSpendGems={spendGems}
           gems={gems}
+        />
+
+        <SettingsDialog
+            isOpen={isSettingsOpen}
+            onOpenChange={setIsSettingsOpen}
+            volume={volume}
+            onVolumeChange={setVolume}
         />
         
         <main className="relative z-10 flex flex-col lg:flex-row gap-4 p-2 sm:p-4 flex-grow">
@@ -663,6 +685,9 @@ export default function GamePage() {
               </Button>
               <Button variant="secondary" size="icon" className='h-10 w-10 rounded-lg flex-shrink-0' onClick={() => setIsShopOpen(true)}>
                   <ShoppingCart className="h-5 w-5" />
+              </Button>
+              <Button variant="secondary" size="icon" className='h-10 w-10 rounded-lg flex-shrink-0' onClick={() => setIsSettingsOpen(true)}>
+                  <Settings className="h-5 w-5" />
               </Button>
             </div>
             
