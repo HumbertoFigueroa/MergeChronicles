@@ -36,9 +36,6 @@ const nextConfig: NextConfig = {
   allowedDevOrigins: [
     '6000-firebase-studio-1758335378879.cluster-c72u3gwiofapkvxrcwjq5zllcu.cloudworkstations.dev',
   ],
-  experimental: {
-    // This is a dummy change to force a full server restart, hopefully clearing any corrupted cache.
-  },
 };
 
 const pwaConfig = withPWA({
