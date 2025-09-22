@@ -47,20 +47,18 @@ const getRewardByProbability = (): number => {
 interface LevelUpRouletteProps {
   isOpen: boolean;
   onSpinComplete: (reward: Reward) => void;
-  spinsAvailable: number;
 }
 
 export default function LevelUpRoulette({
   isOpen,
   onSpinComplete,
-  spinsAvailable,
 }: LevelUpRouletteProps) {
   const [isSpinning, setIsSpinning] = useState(false);
   const [rotation, setRotation] = useState(0);
   const [resultIndex, setResultIndex] = useState<number | null>(null);
 
   const handleSpinClick = () => {
-    if (isSpinning || spinsAvailable === 0) return;
+    if (isSpinning) return;
     
     setIsSpinning(true);
     setResultIndex(null);
@@ -97,7 +95,7 @@ export default function LevelUpRoulette({
             ¡Has Subido de Nivel!
           </DialogTitle>
           <DialogDescription className="text-center">
-            ¡Gira la ruleta para ganar un premio! Tienes {spinsAvailable} giro(s).
+            ¡Gira la ruleta para ganar un premio!
           </DialogDescription>
         </DialogHeader>
 
@@ -153,7 +151,7 @@ export default function LevelUpRoulette({
 
         <Button
           onClick={handleSpinClick}
-          disabled={isSpinning || spinsAvailable === 0}
+          disabled={isSpinning}
           size="lg"
           className="w-full"
         >

@@ -97,7 +97,8 @@ export default function GamePage() {
   const [isShopOpen, setIsShopOpen] = useState(false);
   const [multiplier, setMultiplier] = useState<Multiplier>(1);
   
-  const [spinsAvailable, setSpinsAvailable] = useState(0);
+  const [isSpinning, setIsSpinning] = useState(false);
+  const [spinAvailable, setSpinAvailable] = useState(false);
 
   const [draggedItemIndex, setDraggedItemIndex] = useState<number | null>(null);
 
@@ -123,7 +124,7 @@ export default function GamePage() {
           item: slot.item ? ITEMS[slot.item.id] : null,
         }));
         setBoard(hydratedBoard);
-        setSpinsAvailable(data.spinsAvailable ?? 0);
+        setSpinAvailable(data.spinAvailable ?? false);
       } else {
         setBoard(currentBoard => {
             const newBoard = [...currentBoard];
@@ -149,7 +150,7 @@ export default function GamePage() {
             gems,
             board: board.map(slot => ({...slot, item: slot.item ? { id: slot.item.id } : null })),
             orders,
-            spinsAvailable,
+            spinAvailable,
             lastSaved: new Date().toISOString()
         };
         localStorage.setItem('fusionHistoriaGameData', JSON.stringify(gameData));
@@ -163,7 +164,7 @@ export default function GamePage() {
         clearTimeout(handler);
     };
 
-  }, [level, xp, energy, gems, board, orders, spinsAvailable]);
+  }, [level, xp, energy, gems, board, orders, spinAvailable]);
 
   const xpNeeded = getXpNeededForLevel(level);
 
@@ -274,7 +275,7 @@ export default function GamePage() {
       
       if (levelsGained > 0) {
         setLevel(currentLevel);
-        setSpinsAvailable(s => s + levelsGained);
+        setSpinAvailable(true);
       }
 
       return newXp;
@@ -570,7 +571,7 @@ export default function GamePage() {
       title: "¡Premio!",
       description: `Has ganado ${reward.label}.`
     });
-    setSpinsAvailable(s => s - 1);
+    setSpinAvailable(false);
   };
 
   if (isGameDataLoading) {
@@ -593,9 +594,8 @@ export default function GamePage() {
         <Toaster />
 
         <LevelUpRoulette
-          isOpen={spinsAvailable > 0}
+          isOpen={spinAvailable}
           onSpinComplete={handleSpinComplete}
-          spinsAvailable={spinsAvailable}
         />
 
         <ShopDialog 
