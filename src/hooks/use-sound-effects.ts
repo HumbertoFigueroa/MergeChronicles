@@ -2,41 +2,47 @@
 
 import { useRef, useCallback } from 'react';
 
-const soundFiles = {
-  'merge-pop': '/audio/merge-pop.wav',
+// Using a shared AudioContext for performance
+let audioContext: AudioContext | null = null;
+const getAudioContext = () => {
+  if (typeof window !== 'undefined' && !audioContext) {
+    audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+  }
+  return audioContext;
 };
 
-type SoundEffect = keyof typeof soundFiles;
-
 export function useSoundEffects(volume: number) {
-  const audioPlayers = useRef<Record<string, HTMLAudioElement[]>>({});
-
-  const playSound = useCallback((sound: SoundEffect, poolSize = 3) => {
-    if (volume === 0) return;
-
-    if (!audioPlayers.current[sound]) {
-      audioPlayers.current[sound] = Array.from({ length: poolSize }, () => new Audio(soundFiles[sound]));
+  const playSound = useCallback((sound: 'merge-pop') => {
+    const context = getAudioContext();
+    if (!context || volume === 0) return;
+    
+    // Resume context if it's suspended (required by modern browsers)
+    if (context.state === 'suspended') {
+      context.resume();
     }
 
-    const players = audioPlayers.current[sound];
-    let player = players.find(p => p.paused);
+    if (sound === 'merge-pop') {
+      try {
+        const oscillator = context.createOscillator();
+        const gainNode = context.createGain();
 
-    if (!player) {
-      // If all players are busy, find the one that is closest to finishing
-      // or just reuse the first one. This prevents sound cutoff.
-      player = players.reduce((prev, curr) => {
-        return (prev.currentTime > curr.currentTime) ? curr : prev;
-      });
-    }
+        // Create a short, high-pitched "pop" sound
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(600, context.currentTime); // Start pitch
+        oscillator.frequency.exponentialRampToValueAtTime(100, context.currentTime + 0.1); // Pitch drops quickly
 
-    player.volume = volume;
-    player.currentTime = 0;
-    player.play().catch(error => {
-      // Don't log the "interrupted" error, as it's expected when playing sounds quickly.
-      if (error.name !== 'AbortError') {
-        console.error(`Error playing sound ${sound}:`, error)
+        gainNode.gain.setValueAtTime(volume * 0.5, context.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 0.1);
+
+        oscillator.connect(gainNode);
+        gainNode.connect(context.destination);
+
+        oscillator.start(context.currentTime);
+        oscillator.stop(context.currentTime + 0.1);
+      } catch (error) {
+        console.error("Error playing sound with Web Audio API:", error);
       }
-    });
+    }
   }, [volume]);
 
   return { playSound };
