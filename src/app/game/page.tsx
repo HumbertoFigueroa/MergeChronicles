@@ -15,6 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import { Toaster } from '@/components/ui/toaster';
 import LevelUpReward from '@/components/game/level-up-reward';
 import GameHeader from '@/components/game/game-header';
+import DraggedItemGhost from '@/components/game/dragged-item-ghost';
 
 const BOARD_SIZE = 56; // 7 columns x 8 rows
 export const ENERGY_REGEN_RATE = 1.5 * 60 * 1000; // 1.5 minutes in ms
@@ -113,6 +114,7 @@ export default function GamePage() {
 
   const [draggedItemIndex, setDraggedItemIndex] = useState<number | null>(null);
   const [draggedOverIndex, setDraggedOverIndex] = useState<number | null>(null);
+  const [draggedItemGhost, setDraggedItemGhost] = useState<{ item: Item; x: number; y: number } | null>(null);
 
   const { toast } = useToast();
 
@@ -404,7 +406,9 @@ export default function GamePage() {
   const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>, index: number) => {
     const item = board[index].item;
     if (item && !item.isGenerator) {
-        setDraggedItemIndex(index);
+      setDraggedItemIndex(index);
+      const touch = e.touches[0];
+      setDraggedItemGhost({ item, x: touch.clientX, y: touch.clientY });
     }
   };
 
@@ -412,6 +416,8 @@ export default function GamePage() {
     if (draggedItemIndex === null) return;
 
     const touch = e.touches[0];
+    setDraggedItemGhost(g => g ? { ...g, x: touch.clientX, y: touch.clientY } : null);
+
     const dropTargetElement = document.elementFromPoint(touch.clientX, touch.clientY);
     const getSlotIndexFromElement = (el: Element | null): number => {
       if (!el) return -1;
@@ -435,30 +441,13 @@ export default function GamePage() {
   const handleTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
     if (draggedItemIndex === null) return;
   
-    const touch = e.changedTouches[0];
-    const dropTargetElement = document.elementFromPoint(touch.clientX, touch.clientY);
-  
-    const getSlotIndexFromElement = (el: Element | null): number => {
-      if (!el) return -1;
-      const slotDiv = el.closest('[data-slot-id]');
-      if (slotDiv) {
-        const slotId = slotDiv.getAttribute('data-slot-id');
-        const match = slotId?.match(/cell-(\d+)/);
-        if (match && match[1]) {
-          return parseInt(match[1], 10);
-        }
-      }
-      return -1;
-    };
-  
-    const targetIndex = getSlotIndexFromElement(dropTargetElement);
-  
-    if (targetIndex !== -1 && targetIndex !== draggedItemIndex) {
-      handleDrop(draggedItemIndex, targetIndex);
+    if (draggedOverIndex !== null && draggedOverIndex !== -1 && draggedOverIndex !== draggedItemIndex) {
+      handleDrop(draggedItemIndex, draggedOverIndex);
     }
   
     setDraggedItemIndex(null);
     setDraggedOverIndex(null);
+    setDraggedItemGhost(null);
   };
 
   const handleItemClick = (index: number) => {
@@ -624,6 +613,8 @@ export default function GamePage() {
         <GameBackground />
         <Toaster />
 
+        {draggedItemGhost && <DraggedItemGhost {...draggedItemGhost} />}
+
         {levelUpReward && (
           <LevelUpReward
             reward={levelUpReward}
@@ -698,5 +689,3 @@ export default function GamePage() {
     </>
   );
 }
-
-    
