@@ -26,10 +26,10 @@ export default function HomePage() {
   const router = useRouter();
 
   useEffect(() => {
-    if (user) {
+    if (!loading && user) {
       router.push('/game');
     }
-  }, [user, router]);
+  }, [user, loading, router]);
   
   const bgImage = "https://picsum.photos/seed/login_bg/1200/800";
 
@@ -60,8 +60,8 @@ export default function HomePage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-           <Button variant="outline" className="w-full font-bold" size="lg" onClick={signInWithGoogle}>
-              <GoogleIcon />
+           <Button variant="outline" className="w-full font-bold" size="lg" onClick={signInWithGoogle} disabled={loading}>
+              {loading ? <Loader className="mr-2 h-4 w-4 animate-spin" /> : <GoogleIcon />}
               Continuar con Google
           </Button>
           <div className="my-4 flex items-center">

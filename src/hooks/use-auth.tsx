@@ -32,16 +32,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
-      // onAuthStateChanged will handle the user state update
+      // onAuthStateChanged will handle the user state update and navigation
     } catch (error) {
       console.error("Error signing in with Google: ", error);
+      // You might want to show a toast or message to the user here
     }
   };
 
   const signOut = async () => {
     try {
       await firebaseSignOut(auth);
-      // onAuthStateChanged will handle the user state update
+      router.push('/'); // Redirect to home page after sign out
     } catch (error) {
       console.error("Error signing out: ", error);
     }

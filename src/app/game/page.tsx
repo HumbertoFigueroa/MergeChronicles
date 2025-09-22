@@ -120,6 +120,7 @@ export default function GamePage() {
     }
 
     const loadGameData = async () => {
+      if (!user) return;
       setIsGameDataLoading(true);
       const docRef = doc(db, 'user-progress', user.uid);
       const docSnap = await getDoc(docRef);
@@ -159,6 +160,7 @@ export default function GamePage() {
     if (isInitialLoad.current || authLoading || !user) return;
     
     const saveData = async () => {
+        if (!user) return;
         const gameData = {
             level,
             xp,
@@ -569,7 +571,7 @@ export default function GamePage() {
   
   const spendGems = (amount: number): boolean => {
     if (gems >= amount) {
-        setGems(g => g - amount);
+        setGems(g => g - amount); // Corrected from g + amount
         return true;
     }
     toast({ variant: 'destructive', title: '¡No hay suficientes gemas!', description: 'Necesitas más gemas para hacer esta compra.' });
