@@ -6,7 +6,7 @@ import type { BoardSlot, Item, Order, ItemType, Reward } from '@/lib/types';
 import { ITEMS, MERGE_RULES, REWARDS } from '@/lib/game-data';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
-import { Lock, ShoppingCart, Loader, Settings } from 'lucide-react';
+import { Lock, ShoppingCart, Loader, Settings, Gem, DollarSign } from 'lucide-react';
 import PlayerStats from '@/components/game/player-stats';
 import OrderDisplay from '@/components/game/order-display';
 import ShopDialog from '@/components/game/shop-dialog';
@@ -110,6 +110,7 @@ export default function GamePage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [isShopOpen, setIsShopOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isSellMode, setIsSellMode] = useState(false);
 
   const [multiplier, setMultiplier] = useState<Multiplier>(1);
   
@@ -261,14 +262,24 @@ export default function GamePage() {
   
   }, [level, isGameDataLoading]);
 
+  const lastEnergyUpdateTime = useRef(Date.now());
+
   useEffect(() => {
     const timer = setInterval(() => {
-        setEnergy(currentEnergy => {
-            if (currentEnergy < MAX_ENERGY_REGEN_STOP) {
-                return currentEnergy + 1;
-            }
-            return currentEnergy;
-        });
+      const now = Date.now();
+      const timePassed = now - lastEnergyUpdateTime.current;
+      lastEnergyUpdateTime.current = now;
+
+      setEnergy(currentEnergy => {
+          if (currentEnergy >= MAX_ENERGY_REGEN_STOP) {
+              return currentEnergy;
+          }
+          const energyToRegen = Math.floor(timePassed / ENERGY_REGEN_RATE);
+          if (energyToRegen > 0) {
+            return Math.min(MAX_ENERGY_REGEN_STOP, currentEnergy + energyToRegen);
+          }
+          return currentEnergy;
+      });
     }, ENERGY_REGEN_RATE);
 
     return () => clearInterval(timer);
@@ -388,6 +399,10 @@ export default function GamePage() {
   };
 
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>, index: number) => {
+    if (isSellMode) {
+      e.preventDefault();
+      return;
+    }
     e.dataTransfer.setData('sourceIndex', index.toString());
     setDraggedItemIndex(index);
   };
@@ -398,6 +413,7 @@ export default function GamePage() {
 
   const handleDragDrop = (e: React.DragEvent<HTMLDivElement>, targetIndex: number) => {
     e.preventDefault();
+    if (isSellMode) return;
     const sourceIndexStr = e.dataTransfer.getData('sourceIndex');
     if (sourceIndexStr === null) return;
     const sourceIndex = parseInt(sourceIndexStr, 10);
@@ -407,6 +423,7 @@ export default function GamePage() {
   };
   
   const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>, index: number) => {
+    if (isSellMode) return;
     const item = board[index].item;
     if (item && !item.isGenerator) {
       setDraggedItemIndex(index);
@@ -416,7 +433,7 @@ export default function GamePage() {
   };
 
   const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
-    if (draggedItemIndex === null) return;
+    if (draggedItemIndex === null || isSellMode) return;
 
     const touch = e.touches[0];
     setDraggedItemGhost(g => g ? { ...g, x: touch.clientX, y: touch.clientY } : null);
@@ -442,7 +459,7 @@ export default function GamePage() {
   };
 
   const handleTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
-    if (draggedItemIndex === null) return;
+    if (draggedItemIndex === null || isSellMode) return;
   
     if (draggedOverIndex !== null && draggedOverIndex !== -1 && draggedOverIndex !== draggedItemIndex) {
       handleDrop(draggedItemIndex, draggedOverIndex);
@@ -453,7 +470,42 @@ export default function GamePage() {
     setDraggedItemGhost(null);
   };
 
+  const handleSellItem = (index: number) => {
+    const itemToSell = board[index].item;
+    if (!itemToSell || itemToSell.isGenerator) {
+      toast({
+        title: 'No se puede vender',
+        description: 'Los generadores no se pueden vender.',
+        variant: 'destructive',
+      });
+      return;
+    }
+  
+    const gemsEarned = Math.floor(itemToSell.level / 3);
+    if (gemsEarned > 0) {
+      setGems(g => g + gemsEarned);
+    }
+  
+    setBoard(currentBoard => {
+      const newBoard = [...currentBoard];
+      newBoard[index] = { ...newBoard[index], item: null };
+      return newBoard;
+    });
+
+    toast({
+      title: '¡Objeto Vendido!',
+      description: `Has ganado ${gemsEarned} gemas.`,
+    });
+  
+    setIsSellMode(false);
+  };
+
   const handleItemClick = (index: number) => {
+    if (isSellMode) {
+      handleSellItem(index);
+      return;
+    }
+
     const clickedItem = board[index].item;
     if (!clickedItem || !clickedItem.isGenerator) {
       return;
@@ -517,7 +569,7 @@ export default function GamePage() {
 
       const gemRewardChance = Math.random();
       if (gemRewardChance > 0.3) { // 70% chance to get gems
-        const gemAmount = Math.floor(deliveredItem.level / 2);
+        const gemAmount = Math.floor(deliveredItem.level / 1); // Updated logic
         if (gemAmount > 0) {
           setGems(g => g + gemAmount);
         }
@@ -556,7 +608,7 @@ export default function GamePage() {
   };
 
   const addEnergy = (amount: number) => {
-    setEnergy(e => e + amount);
+    setEnergy(e => Math.min(MAX_ENERGY_REGEN_STOP, e + amount));
   };
   
   const spendGems = (amount: number): boolean => {
@@ -677,11 +729,23 @@ export default function GamePage() {
               </Button>
             </div>
             
-            <div className='w-full my-2'>
+            <div className='w-full my-2 flex items-center justify-center gap-4'>
                 <OrderDisplay orders={orders} onDeliverOrder={handleDeliverOrder} />
             </div>
             
             <div className="flex flex-col items-center justify-center w-full">
+              <div className='w-full max-w-2xl mx-auto flex justify-end pr-2 sm:pr-4 mb-2'>
+                  <Button 
+                    variant={isSellMode ? "destructive" : "outline"} 
+                    size="sm" 
+                    onClick={() => setIsSellMode(!isSellMode)}
+                    className="h-10 w-auto px-3"
+                  >
+                      <DollarSign className="h-4 w-4" />
+                      <Gem className="h-4 w-4" />
+                      <span className='ml-1'>{isSellMode ? 'Cancelar' : 'Vender'}</span>
+                  </Button>
+              </div>
               <MergeBoard
                 board={board}
                 onDragStart={handleDragStart}
@@ -691,6 +755,7 @@ export default function GamePage() {
                 onTouchStart={handleTouchStart}
                 draggedItemIndex={draggedItemIndex}
                 draggedOverIndex={draggedOverIndex}
+                isSellMode={isSellMode}
               />
             </div>
 
