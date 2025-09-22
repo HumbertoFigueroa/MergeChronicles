@@ -22,12 +22,21 @@ export function useSoundEffects(volume: number) {
     let player = players.find(p => p.paused);
 
     if (!player) {
-      player = players[0]; // Fallback to the first player if all are busy
+      // If all players are busy, find the one that is closest to finishing
+      // or just reuse the first one. This prevents sound cutoff.
+      player = players.reduce((prev, curr) => {
+        return (prev.currentTime > curr.currentTime) ? curr : prev;
+      });
     }
 
     player.volume = volume;
     player.currentTime = 0;
-    player.play().catch(error => console.error(`Error al reproducir el sonido ${sound}:`, error));
+    player.play().catch(error => {
+      // Don't log the "interrupted" error, as it's expected when playing sounds quickly.
+      if (error.name !== 'AbortError') {
+        console.error(`Error playing sound ${sound}:`, error)
+      }
+    });
   }, [volume]);
 
   return { playSound };
