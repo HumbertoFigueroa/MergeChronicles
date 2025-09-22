@@ -560,12 +560,16 @@ export default function GamePage() {
       });
   };
   
-  const handleSpinComplete = (reward: { type: 'energy' | 'gems', amount: number }) => {
+  const handleSpinComplete = (reward: { type: 'energy' | 'gems', amount: number, label: string }) => {
     if (reward.type === 'energy') {
       addEnergy(reward.amount);
     } else {
       setGems(g => g + reward.amount);
     }
+    toast({
+      title: "¡Premio!",
+      description: `Has ganado ${reward.label}.`
+    });
     setSpinsAvailable(s => s - 1);
   };
 
