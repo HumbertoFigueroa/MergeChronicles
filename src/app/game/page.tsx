@@ -193,6 +193,8 @@ export default function GamePage() {
         audioRef.current.volume = volume;
         if (volume > 0 && audioRef.current.paused) {
           audioRef.current.play().catch(() => {});
+        } else if (volume === 0) {
+          audioRef.current.pause();
         }
     }
   }, [volume]);
@@ -201,7 +203,7 @@ export default function GamePage() {
     if (isGameDataLoading) return;
     
     const playMusic = async () => {
-        if (audioRef.current && audioRef.current.paused) {
+        if (audioRef.current && audioRef.current.paused && audioRef.current.volume > 0) {
             try {
                 await audioRef.current.play();
             } catch (error) {
@@ -210,7 +212,6 @@ export default function GamePage() {
         }
     };
 
-    // Attempt to play on any user interaction
     document.addEventListener('click', playMusic, { once: true });
     document.addEventListener('touchend', playMusic, { once: true });
 
@@ -655,7 +656,10 @@ export default function GamePage() {
       >
         <GameBackground />
         <Toaster />
-        <audio ref={audioRef} src="/audio/background-music.mp3" loop muted />
+        
+        <audio ref={audioRef} loop muted>
+            <source src="/audio/background-music.mp3" type="audio/mpeg" />
+        </audio>
 
         {draggedItemGhost && <DraggedItemGhost {...draggedItemGhost} />}
 
