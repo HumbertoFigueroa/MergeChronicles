@@ -9,6 +9,7 @@ interface PlayerStatsProps {
   xpNeeded: number;
   energy: number;
   gems: number;
+  lastEnergyUpdate: number;
 }
 
 const GemIcon = () => (
@@ -43,27 +44,24 @@ const TimerIcon = () => (
     </svg>
 );
 
-const EnergyTimer = ({ nextEnergyTime }: { nextEnergyTime: number }) => {
-    const [timeLeft, setTimeLeft] = useState(nextEnergyTime - Date.now());
+const EnergyTimer = ({ lastEnergyUpdate }: { lastEnergyUpdate: number }) => {
+    const [timeLeft, setTimeLeft] = useState(0);
 
     useEffect(() => {
-        if (nextEnergyTime === 0) return;
+        const calculateTimeLeft = () => {
+            const timeSinceLast = Date.now() - lastEnergyUpdate;
+            const timeToNext = ENERGY_REGEN_RATE - (timeSinceLast % ENERGY_REGEN_RATE);
+            return timeToNext;
+        };
+
+        setTimeLeft(calculateTimeLeft());
 
         const interval = setInterval(() => {
-            const newTimeLeft = nextEnergyTime - Date.now();
-            if (newTimeLeft <= 0) {
-                setTimeLeft(0); 
-            } else {
-                setTimeLeft(newTimeLeft);
-            }
+            setTimeLeft(calculateTimeLeft());
         }, 1000);
 
         return () => clearInterval(interval);
-    }, [nextEnergyTime]);
-    
-    useEffect(() => {
-        setTimeLeft(nextEnergyTime - Date.now());
-    }, [nextEnergyTime]);
+    }, [lastEnergyUpdate]);
 
 
     if (timeLeft <= 0) {
@@ -82,27 +80,9 @@ const EnergyTimer = ({ nextEnergyTime }: { nextEnergyTime: number }) => {
 };
 
 
-export default function PlayerStats({ level, xp, xpNeeded, energy, gems }: PlayerStatsProps) {
+export default function PlayerStats({ level, xp, xpNeeded, energy, gems, lastEnergyUpdate }: PlayerStatsProps) {
     const xpPercentage = (xp / xpNeeded) * 100;
-    const [nextEnergyTime, setNextEnergyTime] = useState(0);
-
-    useEffect(() => {
-        let timer: NodeJS.Timeout;
-        if (energy < MAX_ENERGY_REGEN_STOP) {
-            const updateTimer = () => {
-                setNextEnergyTime(Date.now() + ENERGY_REGEN_RATE);
-            };
-            updateTimer(); 
-            timer = setInterval(updateTimer, ENERGY_REGEN_RATE);
-        } else {
-            setNextEnergyTime(0);
-        }
-
-        return () => {
-            if (timer) clearInterval(timer);
-        };
-    }, [energy]);
-
+    
     return (
         <div className='flex items-center justify-between gap-2 w-full bg-black/20 rounded-full p-1.5 h-12 shadow-inner border border-white/30 text-white'>
             {/* Level */}
@@ -136,7 +116,7 @@ export default function PlayerStats({ level, xp, xpNeeded, energy, gems }: Playe
                 <div className="relative flex items-center gap-1.5 h-8">
                      <div className='w-5 h-5 flex items-center justify-center'><ZapIcon /></div>
                      <span className="text-sm font-bold">{energy}</span>
-                     {energy < MAX_ENERGY_REGEN_STOP && <EnergyTimer nextEnergyTime={nextEnergyTime} />}
+                     {energy < MAX_ENERGY_REGEN_STOP && <EnergyTimer lastEnergyUpdate={lastEnergyUpdate} />}
                 </div>
             </div>
 

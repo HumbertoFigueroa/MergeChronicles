@@ -123,6 +123,7 @@ export default function GameLayout() {
   const { toast } = useToast();
 
   const isInitialLoad = useRef(true);
+  const lastEnergyUpdateTime = useRef(Date.now());
   
   useEffect(() => {
     const loadGameData = () => {
@@ -133,7 +134,19 @@ export default function GameLayout() {
         const data = JSON.parse(savedData);
         setLevel(data.level ?? 1);
         setXp(data.xp ?? 0);
-        setEnergy(data.energy ?? 100);
+        
+        const currentEnergy = data.energy ?? 100;
+        const lastSavedTime = data.lastSaved ? new Date(data.lastSaved).getTime() : Date.now();
+        const timePassed = Date.now() - lastSavedTime;
+
+        let energyFromOffline = 0;
+        if (timePassed > 0) {
+          energyFromOffline = Math.floor(timePassed / ENERGY_REGEN_RATE);
+        }
+        
+        const totalEnergy = Math.min(MAX_ENERGY_REGEN_STOP, currentEnergy + energyFromOffline);
+        setEnergy(totalEnergy);
+        
         setGems(data.gems ?? 25);
         setOrders(data.orders ?? []);
         const savedBoard = data.board ?? initialBoard;
@@ -149,6 +162,7 @@ export default function GameLayout() {
             return newBoard;
         });
       }
+      lastEnergyUpdateTime.current = Date.now();
       setIsGameDataLoading(false);
       isInitialLoad.current = false;
     };
@@ -157,7 +171,7 @@ export default function GameLayout() {
   }, []);
 
   useEffect(() => {
-    if (isInitialLoad.current) return;
+    if (isInitialLoad.current || isGameDataLoading) return;
     
     const saveData = () => {
         const gameData = {
@@ -180,7 +194,7 @@ export default function GameLayout() {
         clearTimeout(handler);
     };
 
-  }, [level, xp, energy, gems, board, orders]);
+  }, [level, xp, energy, gems, board, orders, isGameDataLoading]);
 
   const xpNeeded = getXpNeededForLevel(level);
 
@@ -262,9 +276,8 @@ export default function GameLayout() {
   
   }, [level, isGameDataLoading]);
 
-  const lastEnergyUpdateTime = useRef(Date.now());
-
   useEffect(() => {
+    if (isGameDataLoading) return;
     const timer = setInterval(() => {
       const now = Date.now();
       const timePassed = now - lastEnergyUpdateTime.current;
@@ -286,7 +299,7 @@ export default function GameLayout() {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, []);
+  }, [isGameDataLoading]);
 
   const addXp = (amount: number) => {
     setXp(currentXp => {
@@ -715,6 +728,7 @@ export default function GameLayout() {
                   xpNeeded={xpNeeded} 
                   energy={energy}
                   gems={gems}
+                  lastEnergyUpdate={lastEnergyUpdateTime.current}
                />
               <Button onClick={toggleMultiplier} variant='secondary' size='sm' className='h-10 w-12 rounded-lg relative flex-shrink-0'>
                   <Badge className='text-sm'>x{multiplier}</Badge>
