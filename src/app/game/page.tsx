@@ -17,6 +17,7 @@ import LevelUpReward from '@/components/game/level-up-reward';
 import GameHeader from '@/components/game/game-header';
 import DraggedItemGhost from '@/components/game/dragged-item-ghost';
 import SettingsDialog from '@/components/game/settings-dialog';
+import { useSoundEffects } from '@/hooks/use-sound-effects';
 
 const BOARD_SIZE = 56; // 7 columns x 8 rows
 export const ENERGY_REGEN_RATE = 1.5 * 60 * 1000; // 1.5 minutes in ms
@@ -69,7 +70,7 @@ const getRandomItemForMultiplier = (multiplier: Multiplier, itemType: ItemType):
     }
     
     if (multiplier === 2) { // 10% Lvl 1, 70% Lvl 2, 20% Lvl 3
-        if (rand < 0.1) return `${item-type}_1`;
+        if (rand < 0.1) return `${itemType}_1`;
         if (rand < 0.8) return `${itemType}_2`; // 0.1 + 0.7
         return `${itemType}_3`;
     }
@@ -123,6 +124,7 @@ export default function GamePage() {
   const { toast } = useToast();
 
   const audioRef = useRef<HTMLAudioElement>(null);
+  const { playSound } = useSoundEffects(volume);
 
   const isInitialLoad = useRef(true);
   
@@ -189,8 +191,18 @@ export default function GamePage() {
   useEffect(() => {
     if (audioRef.current) {
         audioRef.current.volume = volume;
+        if (volume > 0 && audioRef.current.paused) {
+          audioRef.current.play().catch(() => {});
+        }
     }
   }, [volume]);
+
+  useEffect(() => {
+    if (!audioRef.current) return;
+    audioRef.current.play().catch(error => {
+        console.log("La reproducción automática de audio fue bloqueada por el navegador.");
+    });
+  }, [isGameDataLoading]);
 
   const xpNeeded = getXpNeededForLevel(level);
 
@@ -388,6 +400,7 @@ export default function GamePage() {
           if (newItem) {
             newBoard[targetIndex] = { ...targetSlot, item: newItem };
             newBoard[sourceIndex] = { ...sourceSlot, item: null };
+            playSound('merge-pop');
           }
         } else {
           newBoard[targetIndex] = { ...targetSlot, item: sourceItem };
@@ -626,7 +639,7 @@ export default function GamePage() {
       >
         <GameBackground />
         <Toaster />
-        <audio ref={audioRef} src="/audio/background-music.mp3" autoPlay loop muted={volume === 0} />
+        <audio ref={audioRef} src="/audio/background-music.mp3" loop muted />
 
         {draggedItemGhost && <DraggedItemGhost {...draggedItemGhost} />}
 
@@ -714,3 +727,5 @@ export default function GamePage() {
     </>
   );
 }
+
+    
