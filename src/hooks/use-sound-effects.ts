@@ -3,7 +3,7 @@
 import { useRef, useCallback } from 'react';
 
 const soundFiles = {
-  'merge-pop': '/audio/merge-pop.mp3',
+  'merge-pop': '/audio/merge-pop.wav',
 };
 
 type SoundEffect = keyof typeof soundFiles;
@@ -32,5 +32,3 @@ export function useSoundEffects(volume: number) {
 
   return { playSound };
 }
-
-    

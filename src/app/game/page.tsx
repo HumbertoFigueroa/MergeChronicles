@@ -191,11 +191,6 @@ export default function GamePage() {
   useEffect(() => {
     if (audioRef.current) {
         audioRef.current.volume = volume;
-        if (volume > 0 && audioRef.current.paused) {
-          // Don't auto-play here, wait for user interaction
-        } else if (volume === 0) {
-          audioRef.current.pause();
-        }
     }
   }, [volume]);
 
@@ -205,12 +200,11 @@ export default function GamePage() {
             audioRef.current.play().catch(e => console.log("Audio play failed, waiting for another interaction."));
         }
     };
-    // Add event listeners for the first user interaction
+    
     window.addEventListener('click', playMusicOnInteraction, { once: true });
     window.addEventListener('touchend', playMusicOnInteraction, { once: true });
 
     return () => {
-        // Cleanup listeners
         window.removeEventListener('click', playMusicOnInteraction);
         window.removeEventListener('touchend', playMusicOnInteraction);
     };
@@ -653,7 +647,7 @@ export default function GamePage() {
         <Toaster />
         
         <audio ref={audioRef} loop>
-            <source src="/audio/background-music.mp3" type="audio/mpeg" />
+            <source src="/audio/background-music.wav" type="audio/wav" />
         </audio>
 
         {draggedItemGhost && <DraggedItemGhost {...draggedItemGhost} />}
