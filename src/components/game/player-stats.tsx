@@ -1,6 +1,6 @@
 import { Progress } from '@/components/ui/progress';
 import React, { useState, useEffect } from 'react';
-import { ENERGY_REGEN_RATE, MAX_ENERGY_REGEN_STOP } from '@/app/game/page';
+import { ENERGY_REGEN_RATE, MAX_ENERGY_REGEN_STOP } from '@/components/game/game-layout';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 
 interface PlayerStatsProps {
