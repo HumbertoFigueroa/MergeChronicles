@@ -18,7 +18,7 @@ import GameHeader from '@/components/game/game-header';
 
 const BOARD_SIZE = 56; // 7 columns x 8 rows
 export const ENERGY_REGEN_RATE = 1.5 * 60 * 1000; // 1.5 minutes in ms
-export const MAX_ENERGY_REGEN = 100;
+export const MAX_ENERGY_REGEN_STOP = 100;
 const ENERGY_COST_PER_ITEM = 1;
 const MAX_ORDERS = 3;
 
@@ -258,7 +258,7 @@ export default function GamePage() {
   useEffect(() => {
     const timer = setInterval(() => {
         setEnergy(currentEnergy => {
-            if (currentEnergy < MAX_ENERGY_REGEN) {
+            if (currentEnergy < MAX_ENERGY_REGEN_STOP) {
                 return currentEnergy + 1;
             }
             return currentEnergy;
@@ -543,12 +543,12 @@ export default function GamePage() {
   };
 
   const addEnergy = (amount: number) => {
-    setEnergy(e => Math.min(e + amount, MAX_ENERGY_REGEN));
+    setEnergy(e => e + amount);
   };
   
   const spendGems = (amount: number): boolean => {
     if (gems >= amount) {
-        setGems(g => g - amount); // Corrected from g + amount
+        setGems(g => g - amount);
         return true;
     }
     toast({ variant: 'destructive', title: '¡No hay suficientes gemas!', description: 'Necesitas más gemas para hacer esta compra.' });
@@ -676,3 +676,5 @@ export default function GamePage() {
     </>
   );
 }
+
+    

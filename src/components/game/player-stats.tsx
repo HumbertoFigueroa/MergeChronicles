@@ -1,6 +1,6 @@
 import { Progress } from '@/components/ui/progress';
 import React, { useState, useEffect } from 'react';
-import { ENERGY_REGEN_RATE, MAX_ENERGY_REGEN } from '@/app/game/page';
+import { ENERGY_REGEN_RATE, MAX_ENERGY_REGEN_STOP } from '@/app/game/page';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 
 interface PlayerStatsProps {
@@ -88,7 +88,7 @@ export default function PlayerStats({ level, xp, xpNeeded, energy, gems }: Playe
 
     useEffect(() => {
         let timer: NodeJS.Timeout;
-        if (energy < MAX_ENERGY_REGEN) {
+        if (energy < MAX_ENERGY_REGEN_STOP) {
             const updateTimer = () => {
                 setNextEnergyTime(Date.now() + ENERGY_REGEN_RATE);
             };
@@ -136,10 +136,12 @@ export default function PlayerStats({ level, xp, xpNeeded, energy, gems }: Playe
                 <div className="relative flex items-center gap-1.5 h-8">
                      <div className='w-5 h-5 flex items-center justify-center'><ZapIcon /></div>
                      <span className="text-sm font-bold">{energy}</span>
-                     {energy < MAX_ENERGY_REGEN && <EnergyTimer nextEnergyTime={nextEnergyTime} />}
+                     {energy < MAX_ENERGY_REGEN_STOP && <EnergyTimer nextEnergyTime={nextEnergyTime} />}
                 </div>
             </div>
 
         </div>
     );
 }
+
+    
