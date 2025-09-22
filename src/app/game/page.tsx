@@ -17,7 +17,6 @@ import LevelUpReward from '@/components/game/level-up-reward';
 import GameHeader from '@/components/game/game-header';
 import DraggedItemGhost from '@/components/game/dragged-item-ghost';
 import SettingsDialog from '@/components/game/settings-dialog';
-import { useSoundEffects } from '@/hooks/use-sound-effects';
 
 const BOARD_SIZE = 56; // 7 columns x 8 rows
 export const ENERGY_REGEN_RATE = 1.5 * 60 * 1000; // 1.5 minutes in ms
@@ -111,7 +110,6 @@ export default function GamePage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [isShopOpen, setIsShopOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [volume, setVolume] = useState(0.5);
 
   const [multiplier, setMultiplier] = useState<Multiplier>(1);
   
@@ -122,9 +120,6 @@ export default function GamePage() {
   const [draggedItemGhost, setDraggedItemGhost] = useState<{ item: Item; x: number; y: number } | null>(null);
 
   const { toast } = useToast();
-
-  const audioRef = useRef<HTMLAudioElement>(null);
-  const { playSound } = useSoundEffects(volume);
 
   const isInitialLoad = useRef(true);
   
@@ -140,7 +135,6 @@ export default function GamePage() {
         setEnergy(data.energy ?? 100);
         setGems(data.gems ?? 25);
         setOrders(data.orders ?? []);
-        setVolume(data.volume ?? 0.5);
         const savedBoard = data.board ?? initialBoard;
         const hydratedBoard = savedBoard.map((slot: BoardSlot) => ({
           ...slot,
@@ -172,7 +166,6 @@ export default function GamePage() {
             gems,
             board: board.map(slot => ({...slot, item: slot.item ? { id: slot.item.id } : null })),
             orders,
-            volume,
             lastSaved: new Date().toISOString()
         };
         localStorage.setItem('fusionHistoriaGameData', JSON.stringify(gameData));
@@ -186,29 +179,7 @@ export default function GamePage() {
         clearTimeout(handler);
     };
 
-  }, [level, xp, energy, gems, board, orders, volume]);
-
-  useEffect(() => {
-    if (audioRef.current) {
-        audioRef.current.volume = volume;
-    }
-  }, [volume]);
-
-  useEffect(() => {
-    const playMusicOnInteraction = () => {
-        if (audioRef.current && audioRef.current.paused && volume > 0) {
-            audioRef.current.play().catch(e => console.log("Audio play failed, waiting for another interaction."));
-        }
-    };
-    
-    window.addEventListener('click', playMusicOnInteraction, { once: true });
-    window.addEventListener('touchend', playMusicOnInteraction, { once: true });
-
-    return () => {
-        window.removeEventListener('click', playMusicOnInteraction);
-        window.removeEventListener('touchend', playMusicOnInteraction);
-    };
-  }, [volume, isGameDataLoading]);
+  }, [level, xp, energy, gems, board, orders]);
 
   const xpNeeded = getXpNeededForLevel(level);
 
@@ -406,7 +377,6 @@ export default function GamePage() {
           if (newItem) {
             newBoard[targetIndex] = { ...targetSlot, item: newItem };
             newBoard[sourceIndex] = { ...sourceSlot, item: null };
-            playSound('merge-pop');
           }
         } else {
           newBoard[targetIndex] = { ...targetSlot, item: sourceItem };
@@ -646,10 +616,6 @@ export default function GamePage() {
         <GameBackground />
         <Toaster />
         
-        <audio ref={audioRef} loop>
-            <source src="/audio/background-music.wav" type="audio/wav" />
-        </audio>
-
         {draggedItemGhost && <DraggedItemGhost {...draggedItemGhost} />}
 
         {levelUpReward && (
@@ -671,8 +637,6 @@ export default function GamePage() {
         <SettingsDialog
             isOpen={isSettingsOpen}
             onOpenChange={setIsSettingsOpen}
-            volume={volume}
-            onVolumeChange={setVolume}
         />
         
         <main className="relative z-10 flex flex-col lg:flex-row gap-4 p-2 sm:p-4 flex-grow">
