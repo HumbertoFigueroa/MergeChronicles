@@ -1,0 +1,21 @@
+{
+  "name": "Merge Chronicle",
+  "short_name": "MergeChronicle",
+  "description": "A merge game of historical evolution.",
+  "start_url": "/game",
+  "display": "standalone",
+  "background_color": "#E0F2FE",
+  "theme_color": "#E0F2FE",
+  "icons": [
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
