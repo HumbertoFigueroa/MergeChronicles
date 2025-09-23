@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Gem, Zap, CreditCard, ShoppingBag, Clapperboard } from 'lucide-react';
+import { Gem, Zap, CreditCard, ShoppingBag, Clapperboard, Loader } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { MAX_ENERGY } from './game-layout';
 
@@ -20,10 +20,11 @@ interface ShopDialogProps {
   onPurchaseGems: (amount: number, price: string) => void;
   onAddEnergy: (amount: number) => void;
   onSpendGems: (amount: number) => boolean;
-  onWatchAd: () => boolean;
+  onWatchAd: () => void;
   gems: number;
   adsWatchedToday: number;
   maxAdsPerDay: number;
+  isWatchingAd: boolean;
 }
 
 const ShopItem = ({ title, description, icon, actionText, onAction, cost, disabled, children }: {
@@ -49,6 +50,7 @@ const ShopItem = ({ title, description, icon, actionText, onAction, cost, disabl
         </CardContent>
         <CardFooter>
             <Button onClick={onAction} className='w-full' disabled={disabled}>
+                {disabled && (actionText === "Ver Anuncio" || actionText === "Cargando...") ? <Loader className="animate-spin mr-2 h-4 w-4" /> : null}
                 {actionText}
                 {cost && (
                     <>
@@ -88,7 +90,8 @@ export default function ShopDialog({
   onWatchAd,
   gems,
   adsWatchedToday,
-  maxAdsPerDay
+  maxAdsPerDay,
+  isWatchingAd
 }: ShopDialogProps) {
 
   const handleBuyEnergy = () => {
@@ -140,9 +143,9 @@ export default function ShopDialog({
                         title="Energía Gratis"
                         description="¡Obtén 50 de energía viendo un anuncio!"
                         icon={<Clapperboard className='w-6 h-6 text-green-500' />}
-                        actionText="Ver Anuncio"
+                        actionText={isWatchingAd ? "Cargando..." : "Ver Anuncio"}
                         onAction={handleAdWatch}
-                        disabled={adsRemaining <= 0}
+                        disabled={adsRemaining <= 0 || isWatchingAd}
                     >
                         <p className='text-sm text-muted-foreground'>
                             Anuncios restantes hoy: {adsRemaining > 0 ? adsRemaining : 'Ninguno'}
@@ -178,5 +181,3 @@ export default function ShopDialog({
     </Dialog>
   );
 }
-
-    

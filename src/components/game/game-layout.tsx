@@ -100,6 +100,12 @@ const getRewardByProbability = (): Reward => {
   return REWARDS[0]; // Fallback
 };
 
+declare global {
+    interface Window {
+        adsbygoogle: any[];
+    }
+}
+
 export default function GameLayout() {
   const [isGameDataLoading, setIsGameDataLoading] = useState(true);
   
@@ -124,6 +130,7 @@ export default function GameLayout() {
 
   const [adsWatchedToday, setAdsWatchedToday] = useState(0);
   const [lastAdWatchDate, setLastAdWatchDate] = useState<string | null>(null);
+  const [isWatchingAd, setIsWatchingAd] = useState(false);
 
   const { toast } = useToast();
 
@@ -661,20 +668,40 @@ export default function GameLayout() {
 
     if (lastAdWatchDate !== today) {
         currentAdCount = 0;
-        setLastAdWatchDate(today);
     }
     
     if (currentAdCount >= MAX_ADS_PER_DAY) {
         toast({ variant: 'destructive', title: 'Límite de anuncios alcanzado', description: 'Has visto el máximo de anuncios por hoy. Vuelve mañana.' });
-        return false;
+        return;
     }
 
-    // TODO: Aquí iría la lógica para mostrar un anuncio real.
-    // Por ahora, solo simulamos la recompensa.
-    addEnergy(50);
-    setAdsWatchedToday(currentAdCount + 1);
-    toast({ title: '¡Gracias por tu apoyo!', description: 'Has ganado 50 de energía.' });
-    return true;
+    if (isWatchingAd) {
+      return;
+    }
+
+    try {
+        setIsWatchingAd(true);
+        window.adsbygoogle = window.adsbygoogle || [];
+        window.adsbygoogle.push({
+            // TODO: Replace this with your own AdSense ad slot ID.
+            // You can get this from your AdSense account.
+            // The ad unit must be a "Rewarded" ad type.
+            'data-ad-slot': 'ca-pub-XXXXXXXXXXXXXXXX/YYYYYYYYYY',
+            'data-ad-format': 'auto',
+            'data-full-width-responsive': 'true',
+            'ad_reward': () => {
+                addEnergy(50);
+                setAdsWatchedToday(currentAdCount + 1);
+                setLastAdWatchDate(today);
+                toast({ title: '¡Gracias por tu apoyo!', description: 'Has ganado 50 de energía.' });
+                setIsWatchingAd(false);
+            },
+        });
+    } catch (e) {
+        console.error("Error showing ad:", e);
+        toast({ variant: 'destructive', title: 'Error con el anuncio', description: 'No se pudo mostrar el anuncio. Inténtalo más tarde.' });
+        setIsWatchingAd(false);
+    }
   };
 
   const toggleMultiplier = () => {
@@ -744,6 +771,7 @@ export default function GameLayout() {
           gems={gems}
           adsWatchedToday={adsWatchedToday}
           maxAdsPerDay={MAX_ADS_PER_DAY}
+          isWatchingAd={isWatchingAd}
         />
 
         <SettingsDialog
@@ -826,5 +854,3 @@ export default function GameLayout() {
     </>
   );
 }
-
-    
