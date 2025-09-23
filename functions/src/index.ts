@@ -1,12 +1,23 @@
-/const functions = require('firebase-functions');
-const next = require('next');
 
-const app = next({
+import { onRequest } from "firebase-functions/v2/https";
+import path from "path";
+import express from "express";
+import next from "next";
+
+const nextApp = next({
   dev: false,
-  conf: { distDir: './.next' }
+  conf: {
+    distDir: path.join(
+      path.dirname(require.resolve("nextn/package.json")),
+      ".next"
+    ),
+  },
 });
-const handle = app.getRequestHandler();
+const handle = nextApp.getRequestHandler();
 
-exports.nextApp = functions.https.onRequest((req: any, res: any) => {
-  return app.prepare().then(() => handle(req, res));
+const server = express();
+server.all("*", (req, res) => {
+  return handle(req, res);
 });
+
+export const nextAppProxy = onRequest(server);
