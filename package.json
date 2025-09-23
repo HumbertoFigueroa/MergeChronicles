@@ -19,5 +19,8 @@
   "bugs": {
     "url": "https://github.com/HumbertoFigueroa/MergeChronicles/issues"
   },
-  "homepage": "https://github.com/HumbertoFigueroa/MergeChronicles#readme"
+  "homepage": "https://github.com/HumbertoFigueroa/MergeChronicles#readme",
+  "dependencies": {
+    "next": "^15.5.3"
+  }
 }
