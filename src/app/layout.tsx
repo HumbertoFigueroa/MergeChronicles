@@ -29,6 +29,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <meta name="google-adsense-account" content="ca-pub-2899297059049278" />
         <link rel="apple-touch-icon" href="/icons/icon-192x192.png"></link>
         <meta name="theme-color" content="#E0F2FE" />
         <Script
